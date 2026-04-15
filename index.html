@@ -447,7 +447,7 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
   position: fixed;
   left: 0; right: 0; bottom: 0; top: auto;
   width: 100%;
-  height: 82vh;
+  height: 90vh;
   border-radius: 20px 20px 0 0;
   transform: translateY(100%);
   transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
@@ -527,8 +527,8 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
   .dr {
     left: 50%; top: 50%;
     bottom: auto; right: auto;
-    width: min(560px, 92vw);
-    height: min(680px, 85vh);
+    width: min(580px, 94vw);
+    height: min(800px, 92vh);
     border-radius: 20px;
     transform: translate(-50%, -50%) scale(0.95);
     opacity: 0;
@@ -542,7 +542,7 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
     pointer-events: auto;
   }
   .dr .dl { flex: 1; overflow-y: auto; min-height: 0; }
-  .dr .df { flex-shrink: 0; max-height: 55%; overflow-y: auto; }
+  .dr .df { flex-shrink: 0; overflow-y: auto; }
 }
 
 /* ══ МОБИЛЬ max-width:639px ══ */
@@ -1207,19 +1207,30 @@ function renderAll() {
       if(bImg) html += '<img class="brand-photo" loading="lazy" src="'+bImg+'" alt="'+bData.brand+'">';
       html += '<div class="brand-info"><div class="brand-name">'+bData.brand+'</div><div class="brand-line"></div></div>';
       html += '</div>';
-      Object.keys(bData.series).forEach(function(sName) {
-        var sData = bData.series[sName];
-        var ico = BRAND_ICONS[gid] || '⭐';
-        var suffix = gid==='inv' ? ' Inverter' : (gid==='onoff' ? ' On/Off' : '');
-        html += '<div class="sub-block">';
-        html += '<div class="series-badge g">'
-          + '<span class="series-badge-ico">'+ico+'</span>'
-          + '<div><b>'+sName+suffix+'</b>'+sData.cardBenef+'</div>'
-          + '</div>';
-        html += '<div class="pgrid">';
-        sData.items.forEach(function(p,i){ html += cardHtml(p,i); });
+      // For accessories/pipes — flat grid without series sub-headings
+      var FLAT_GROUPS = {rashod:1, truba:1, poluprom:1, mobile:1};
+      if (FLAT_GROUPS[gid]) {
+        html += '<div class="sub-block"><div class="pgrid">';
+        var flatIdx = 0;
+        Object.keys(bData.series).forEach(function(sName) {
+          bData.series[sName].items.forEach(function(p) { html += cardHtml(p, flatIdx++); });
+        });
         html += '</div></div>';
-      });
+      } else {
+        Object.keys(bData.series).forEach(function(sName) {
+          var sData = bData.series[sName];
+          var ico = BRAND_ICONS[gid] || '⭐';
+          var suffix = gid==='inv' ? ' Inverter' : (gid==='onoff' ? ' On/Off' : '');
+          html += '<div class="sub-block">';
+          html += '<div class="series-badge g">'
+            + '<span class="series-badge-ico">'+ico+'</span>'
+            + '<div><b>'+sName+suffix+'</b>'+sData.cardBenef+'</div>'
+            + '</div>';
+          html += '<div class="pgrid">';
+          sData.items.forEach(function(p,i){ html += cardHtml(p,i); });
+          html += '</div></div>';
+        });
+      }
       html += '</div>';
     });
     html += '</div>';
@@ -1485,12 +1496,12 @@ function sendOrder() {
       if (currentUser) loadBonusBalance();
     } else {
       showToast('Ошибка. Позвоните: +7 978 599-13-69', true);
-      if(btn) { btn.disabled=false; btn.textContent='&#128228; Отправить заявку'; }
+      if(btn) { btn.disabled=false; btn.innerHTML='&#128228; Отправить заявку'; }
     }
   })
   .catch(function(){
     showToast('Ошибка сети. Позвоните: +7 978 599-13-69', true);
-    if(btn) { btn.disabled=false; btn.textContent='&#128228; Отправить заявку'; }
+    if(btn) { btn.disabled=false; btn.innerHTML='&#128228; Отправить заявку'; }
   });
 }
 
