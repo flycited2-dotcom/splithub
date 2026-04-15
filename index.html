@@ -771,6 +771,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pd-ov{position:fixed;inset:0;z-index:300;background:rgba(15,18,28,.45);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .28s}
 .pd-ov.on{opacity:1;pointer-events:auto}
 .pd{position:fixed;left:0;right:0;bottom:0;z-index:301;background:rgba(245,247,250,.97);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border-radius:24px 24px 0 0;border-top:1px solid var(--bhi);box-shadow:0 -12px 60px rgba(0,0,0,.2);max-height:92vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .38s cubic-bezier(.4,0,.2,1);overflow:hidden}
+#pd-inner{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
 .pd.on{transform:translateY(0)}
 .pd-handle{width:100%;padding:12px 0 4px;display:flex;justify-content:center;flex-shrink:0;cursor:pointer}
 .pd-handle-bar{width:40px;height:4px;border-radius:2px;background:rgba(0,0,0,.12)}
@@ -811,8 +812,8 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pd-qb.pls:hover{background:var(--amber-d)}
 .pd-qv{font-family:'Unbounded',sans-serif;font-size:.88rem;font-weight:700;min-width:22px;text-align:center;color:var(--text)}
 @media(min-width:640px){
-  .pd{max-width:540px;left:50%;border-radius:20px 20px 0 0;transform:translateX(-50%) translateY(100%)}
-  .pd.on{transform:translateX(-50%) translateY(0)}
+  .pd{max-width:560px;width:92vw;left:50%;top:50%;bottom:auto;border-radius:20px;transform:translate(-50%,-50%) scale(0.95);opacity:0;pointer-events:none;transition:transform .3s ease,opacity .3s ease;max-height:88vh;}
+  .pd.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto;}
 }
 
 /* SCROLL-TOP & SHARE */
@@ -1096,7 +1097,7 @@ function syncFab() {
 function addItem(id) {
   var p = PRODUCTS.find(function(x){ return x.id===id; }); if(!p) return;
   var ex = cart.find(function(c){ return c.id===id; });
-  if(ex){ ex.qty++; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,qty:1}); }
+  if(ex){ ex.qty++; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:1}); }
   syncFab(); renderAll(); openD();
 }
 
@@ -1181,11 +1182,18 @@ function renderAll() {
   }
   // Build: group → brand → series → items
   var tree = {};
+  // BrandCode groups to merge into unified blocks
+  var DRAIN_BC   = {dmetplst:1, drenazhg:1};
+  var KREPEJ_BC  = {kpo:1, blt:1, gka:1, shba:1, db:1};
+
   list.forEach(function(p) {
-    var g = p.group;
+    var g   = p.group;
+    var bc  = p.brandCode;
+    var bname = p.brand;
+    if (DRAIN_BC[bc])  { bc = '_drenaj';  bname = 'Дренаж'; }
+    else if (KREPEJ_BC[bc]) { bc = '_krepej'; bname = 'Крепежные элементы'; }
     if(!tree[g]) tree[g] = {};
-    var bc = p.brandCode;
-    if(!tree[g][bc]) tree[g][bc] = {brand:p.brand, series:{}};
+    if(!tree[g][bc]) tree[g][bc] = {brand:bname, series:{}};
     var s = p.series;
     if(!tree[g][bc].series[s]) tree[g][bc].series[s] = {cardBenef:p.cardBenef, items:[]};
     tree[g][bc].series[s].items.push(p);
@@ -1342,7 +1350,7 @@ function pdAddToCart() {
   if(!pdCurrentId) return;
   var p = PRODUCTS.find(function(x){ return x.id===pdCurrentId; }); if(!p) return;
   var ex = cart.find(function(c){ return c.id===p.id; });
-  if(ex){ ex.qty += pdQty; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,qty:pdQty}); }
+  if(ex){ ex.qty += pdQty; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:pdQty}); }
   closeDetail(); syncFab(); renderAll(); openD();
 }
 
@@ -1606,7 +1614,7 @@ function renderUpsell() {
 function addUpsell(id) {
   var p = PRODUCTS.find(function(x){ return x.id===id; }); if(!p) return;
   var ex = cart.find(function(c){ return c.id===id; });
-  if(ex){ ex.qty++; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,qty:1}); }
+  if(ex){ ex.qty++; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:1}); }
   syncFab(); renderAll(); renderD();
   showToast('✓ ' + p.model + ' добавлен');
 }

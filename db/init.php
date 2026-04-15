@@ -7,6 +7,25 @@
  * Throws a clear RuntimeException if PDO SQLite driver is missing.
  */
 
+function setupPromoRules($db) {
+    // Count current distinct rule names
+    $distinct = (int)$db->query('SELECT COUNT(DISTINCT COALESCE(product_group,"_all")) FROM promo_rules')->fetchColumn();
+    $total    = (int)$db->query('SELECT COUNT(*) FROM promo_rules')->fetchColumn();
+    // If duplicates exist OR rules are not the expected 6 per-group rules, reset
+    if ($total !== 6 || $distinct !== 6) {
+        $db->exec('DELETE FROM promo_rules');
+        $db->exec('
+            INSERT INTO promo_rules (name, active, bonus_percent, product_group, min_order) VALUES
+            ("Ретробонус инв 2%",       1, 2.0, "inv",      0),
+            ("Ретробонус он/офф 2%",    1, 2.0, "onoff",    0),
+            ("Ретробонус мульти 3%",    1, 3.0, "multi",    0),
+            ("Ретробонус полупром 3%",  1, 3.0, "poluprom", 0),
+            ("Ретробонус расходка 1%",  1, 1.0, "rashod",   0),
+            ("Ретробонус труба 2%",     1, 2.0, "truba",    0)
+        ');
+    }
+}
+
 function getDB() {
     static $db = null;
     if ($db) return $db;
@@ -47,6 +66,7 @@ function getDB() {
     // Always run migrate — all statements use IF NOT EXISTS, so it's safe to call every time.
     // This also fixes the case where the DB file was created empty by a previous failed attempt.
     migrate($db);
+    setupPromoRules($db);
 
     return $db;
 }
@@ -106,9 +126,6 @@ function migrate($db) {
             min_order INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
-
-        INSERT INTO promo_rules (name, active, bonus_percent, product_group, min_order)
-        VALUES ("Ретробонус 3%", 1, 3.0, NULL, 0);
     ');
 }
 
@@ -184,18 +201,27 @@ function calculateBonus($total, $items = []) {
     foreach ($rules as $rule) {
         if ($rule['min_order'] > 0 && $total < $rule['min_order']) continue;
 
-        if ($rule['product_group'] === null || $rule['product_group'] === '') {
+        $pg = $rule['product_group'] ?? '';
+        if ($pg === null || $pg === '') {
+            // Global rule — apply to whole order
             $bonus = (int)floor($total * $rule['bonus_percent'] / 100);
-            $totalBonus  += $bonus;
-            $appliedRules[] = $rule['name'] . ': +' . $bonus . ' ₽';
+            if ($bonus > 0) {
+                $totalBonus += $bonus;
+                $appliedRules[] = $rule['name'] . ': +' . $bonus . ' ₽';
+            }
         } else {
+            // Group rule — sum all matching items first, then calculate once
+            $groupTotal = 0;
             foreach ($items as $item) {
-                $group = $item['group'] ?? '';
-                if ($group === $rule['product_group']) {
-                    $itemTotal = ($item['price'] ?? 0) * ($item['qty'] ?? 1);
-                    $bonus = (int)floor($itemTotal * $rule['bonus_percent'] / 100);
-                    $totalBonus  += $bonus;
-                    $appliedRules[] = $rule['name'] . ' (' . $group . '): +' . $bonus . ' ₽';
+                if (($item['group'] ?? '') === $pg) {
+                    $groupTotal += ($item['price'] ?? 0) * ($item['qty'] ?? 1);
+                }
+            }
+            if ($groupTotal > 0) {
+                $bonus = (int)floor($groupTotal * $rule['bonus_percent'] / 100);
+                if ($bonus > 0) {
+                    $totalBonus += $bonus;
+                    $appliedRules[] = $rule['name'] . ': +' . $bonus . ' ₽';
                 }
             }
         }
