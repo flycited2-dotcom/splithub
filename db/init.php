@@ -60,7 +60,7 @@ function migrate($db) {
             telegram TEXT DEFAULT "",
             password_hash TEXT NOT NULL,
             role TEXT DEFAULT "client",
-            created_at TEXT DEFAULT (datetime("now"))
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS orders (
@@ -72,7 +72,7 @@ function migrate($db) {
             status TEXT DEFAULT "new",
             comment TEXT DEFAULT "",
             client_tg TEXT DEFAULT "",
-            created_at TEXT DEFAULT (datetime("now")),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         );
 
@@ -92,7 +92,7 @@ function migrate($db) {
             amount INTEGER NOT NULL,
             type TEXT NOT NULL,
             description TEXT DEFAULT "",
-            created_at TEXT DEFAULT (datetime("now")),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id),
             FOREIGN KEY (order_id) REFERENCES orders(id)
         );
@@ -104,7 +104,7 @@ function migrate($db) {
             bonus_percent REAL DEFAULT 3.0,
             product_group TEXT DEFAULT NULL,
             min_order INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT (datetime("now"))
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
         INSERT INTO promo_rules (name, active, bonus_percent, product_group, min_order)
