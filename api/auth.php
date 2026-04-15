@@ -10,14 +10,43 @@
  * GET  /api/auth.php?action=bonus
  */
 
+// Always respond with JSON — catch PHP fatal errors
+set_error_handler(function($errno, $errstr) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Server error: ' . $errstr]);
+    exit;
+});
+register_shutdown_function(function() {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+        echo json_encode(['ok' => false, 'error' => 'Fatal server error']);
+        exit;
+    }
+});
+
 require __DIR__ . '/../db/init.php';
 
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
-if (session_status() === PHP_SESSION_NONE) session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    // Use writable session path on shared hosting
+    $sessDir = sys_get_temp_dir() . '/splithub_sess';
+    if (!is_dir($sessDir)) @mkdir($sessDir, 0700, true);
+    if (is_writable($sessDir)) session_save_path($sessDir);
+    session_start();
+}
 
 $action = $_GET['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
+
+try {
 
 switch ($action) {
 
@@ -169,4 +198,14 @@ switch ($action) {
 
     default:
         jsonResponse(['ok' => false, 'error' => 'Unknown action'], 400);
+}
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    exit;
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Server error: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    exit;
 }

@@ -848,6 +848,8 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 /* NAV AUTH BTN */
 .nav-auth-btn{border:none;background:rgba(245,158,11,.12);color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
 .nav-auth-btn:hover{background:rgba(245,158,11,.2)}
+.nav-reg-btn{border:1px solid rgba(245,158,11,.35);background:transparent;color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s}
+.nav-reg-btn:hover{background:rgba(245,158,11,.1)}
 
 /* DASHBOARD MODAL */
 .dash-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -900,6 +902,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
       <a href="https://t.me/Byttehopt" class="nav-ph tg" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg> <span>+7 990 217-03-15</span></a>
       <a href="https://t.me/tsarev_simf" class="nav-ph tg" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg> <span>+7 978 839-40-42</span></a>
     </div>
+    <button class="nav-reg-btn" id="navRegBtn" onclick="openRegister()">Регистрация</button>
     <button class="nav-auth-btn" id="navAuthBtn" onclick="openAuth()">Войти</button>
     <button class="btn-amber nav-order-btn" onclick="openD()">Заявка</button>
   </div>
@@ -1066,7 +1069,7 @@ var LEGACY = {
   alfa:'assets/img/extracted/img_12_7576a97f1e.jpg',
   wr:  'assets/img/extracted/img_01_4642a8d790.jpg'
 };
-var BRAND_ICONS = {inv:'❄', onoff:'🌀', truba:'🔧', poluprom:'🏭'};
+var BRAND_ICONS = {inv:'❄', onoff:'🌀', truba:'🔧', poluprom:'🏭', rashod:'🔆'};
 
 function getImg(p) {
   if(p.photo && p.photo !== 'undefined' && p.photo !== '')
@@ -1139,7 +1142,7 @@ var FILTER_MAP = {
   'truba':  {label:'Медная труба',       test:function(p){ return p.group==='truba'; }},
   'rashod': {label:'Расходники',         test:function(p){ return p.group==='rashod'; }},
   'poluprom':{label:'Полупром',          test:function(p){ return p.group==='poluprom'; }},
-  'multi':  {label:'Чёрные сплиты',     test:function(p){ return p.group==='multi'||p.group==='black'; }}
+  'multi':  {label:'Чёрные сплиты',     test:function(p){ return p.group==='multi'||p.group==='black'||p.color==='black'; }}
 };
 
 var GROUP_ORDER  = ['inv','onoff','truba','poluprom','rashod','multi'];
@@ -1602,19 +1605,28 @@ var currentUser = null;
 var bonusBalance = 0;
 
 function updateNavAuth() {
-  var btn = document.getElementById('navAuthBtn');
+  var btn    = document.getElementById('navAuthBtn');
+  var regBtn = document.getElementById('navRegBtn');
   if (!btn) return;
   if (currentUser) {
     btn.textContent = currentUser.name;
     btn.onclick = openDash;
+    if (regBtn) regBtn.style.display = 'none';
   } else {
     btn.textContent = 'Войти';
     btn.onclick = openAuth;
+    if (regBtn) regBtn.style.display = '';
   }
 }
 
 function openAuth() {
   showAuthForm('login');
+  document.getElementById('auth-ov').classList.add('on');
+  document.getElementById('auth-modal').classList.add('on');
+}
+
+function openRegister() {
+  showAuthForm('register');
   document.getElementById('auth-ov').classList.add('on');
   document.getElementById('auth-modal').classList.add('on');
 }
