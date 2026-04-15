@@ -1,4 +1,10 @@
 <?php
+if (!file_exists(__DIR__ . '/config.php')) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'config.php not found on server']);
+    exit;
+}
 require __DIR__ . '/config.php';
 require __DIR__ . '/db/init.php';
 
@@ -174,16 +180,28 @@ $mailOk = mail(EMAIL_TO, $emailSubj, $emailHtml, $headers);
 file_put_contents($rateFile, time());
 
 // ── Ответ ──
-if ($tgResult['result']['ok'] ?? false) {
-    $resp = ['ok' => true, 'email' => $mailOk ? 'sent' : 'failed'];
+// Считаем заявку успешной если: TG ОК, или email ОК, или заказ сохранён в БД
+$tgOk    = $tgResult['result']['ok'] ?? false;
+$orderOk = $tgOk || $mailOk || ($orderId !== null);
+
+if ($orderOk) {
+    $resp = ['ok' => true, 'email' => $mailOk ? 'sent' : 'failed', 'tg' => $tgOk ? 'sent' : 'failed'];
     if ($orderId) {
-        $resp['order_id'] = $orderId;
+        $resp['order_id']     = $orderId;
         $resp['bonus_earned'] = $bonusEarned;
-        $resp['bonus_spent'] = $bonusSpent;
+        $resp['bonus_spent']  = $bonusSpent;
+    }
+    if (!$tgOk) {
+        // TG не сработал — логируем детально, но заявка принята
+        $tgErr = json_decode($tgResult['resp'] ?? '{}', true);
+        error_log('[SplitHub] TG warn: ' . ($tgErr['description'] ?? $tgResult['resp'] ?? 'no response'));
     }
     echo json_encode($resp);
 } else {
-    error_log("[SplitHub] TG error: " . ($tgResult['resp'] ?? ''));
+    // Ни TG, ни email, ни БД — полный провал
+    $tgErr = json_decode($tgResult['resp'] ?? '{}', true);
+    $tgDesc = $tgErr['description'] ?? ('HTTP ' . ($tgResult['code'] ?? '?'));
+    error_log('[SplitHub] TG error: ' . $tgDesc);
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Ошибка отправки']);
+    echo json_encode(['ok' => false, 'error' => 'Ошибка отправки: ' . $tgDesc]);
 }
