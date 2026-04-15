@@ -10,21 +10,34 @@
  * GET  /api/auth.php?action=bonus
  */
 
-// Always respond with JSON — catch PHP fatal errors
-set_error_handler(function($errno, $errstr) {
-    header('Content-Type: application/json; charset=utf-8');
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Server error: ' . $errstr]);
-    exit;
-});
-register_shutdown_function(function() {
+// ── Buffer ALL output so stray PHP notices/warnings can't break JSON ──────────
+ob_start();
+
+// ── Turn off display_errors so PHP errors don't bleed into the response ───────
+@ini_set('display_errors', '0');
+@error_reporting(E_ALL);
+
+// ── Catch fatal errors that bypass try/catch ──────────────────────────────────
+register_shutdown_function(function () {
     $err = error_get_last();
-    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
-        http_response_code(500);
-        echo json_encode(['ok' => false, 'error' => 'Fatal server error']);
-        exit;
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        ob_clean();
+        if (!headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+            header('Access-Control-Allow-Origin: *');
+        }
+        echo json_encode([
+            'ok'    => false,
+            'error' => 'Server fatal error: ' . $err['message'] . ' (line ' . $err['line'] . ')'
+        ], JSON_UNESCAPED_UNICODE);
     }
+});
+
+// ── Convert PHP warnings/notices to exceptions so try/catch catches them ──────
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    if (!(error_reporting() & $errno)) return false;
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 });
 
 require __DIR__ . '/../db/init.php';
@@ -33,10 +46,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { ob_end_clean(); http_response_code(200); exit; }
 
+// ── Session (writable path for shared hosting) ────────────────────────────────
 if (session_status() === PHP_SESSION_NONE) {
-    // Use writable session path on shared hosting
     $sessDir = sys_get_temp_dir() . '/splithub_sess';
     if (!is_dir($sessDir)) @mkdir($sessDir, 0700, true);
     if (is_writable($sessDir)) session_save_path($sessDir);
@@ -48,6 +61,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
 
+// Discard any buffered noise before we start writing JSON
+ob_clean();
+
 switch ($action) {
 
     // ── Register ──
@@ -55,6 +71,8 @@ switch ($action) {
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
 
         $raw = json_decode(file_get_contents('php://input'), true);
+        if (!$raw) jsonResponse(['ok' => false, 'error' => 'Invalid JSON body'], 400);
+
         $name     = trim($raw['name'] ?? '');
         $phone    = normalizePhone($raw['phone'] ?? '');
         $password = $raw['password'] ?? '';
@@ -80,15 +98,15 @@ switch ($action) {
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $ins = $db->prepare('INSERT INTO users (name, phone, telegram, password_hash) VALUES (?, ?, ?, ?)');
+        $ins  = $db->prepare('INSERT INTO users (name, phone, telegram, password_hash) VALUES (?, ?, ?, ?)');
         $ins->execute([$name, $phone, $telegram, $hash]);
 
         $userId = (int)$db->lastInsertId();
         $_SESSION['user_id'] = $userId;
 
         jsonResponse(['ok' => true, 'user' => [
-            'id'   => $userId,
-            'name' => $name,
+            'id'    => $userId,
+            'name'  => $name,
             'phone' => $phone,
             'role'  => 'client'
         ]]);
@@ -99,6 +117,8 @@ switch ($action) {
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
 
         $raw = json_decode(file_get_contents('php://input'), true);
+        if (!$raw) jsonResponse(['ok' => false, 'error' => 'Invalid JSON body'], 400);
+
         $phone    = normalizePhone($raw['phone'] ?? '');
         $password = $raw['password'] ?? '';
 
@@ -106,7 +126,7 @@ switch ($action) {
             jsonResponse(['ok' => false, 'error' => 'Введите телефон и пароль'], 422);
         }
 
-        $db = getDB();
+        $db   = getDB();
         $stmt = $db->prepare('SELECT * FROM users WHERE phone = ?');
         $stmt->execute([$phone]);
         $user = $stmt->fetch();
@@ -118,8 +138,8 @@ switch ($action) {
         $_SESSION['user_id'] = (int)$user['id'];
 
         jsonResponse(['ok' => true, 'user' => [
-            'id'   => (int)$user['id'],
-            'name' => $user['name'],
+            'id'    => (int)$user['id'],
+            'name'  => $user['name'],
             'phone' => $user['phone'],
             'role'  => $user['role']
         ]]);
@@ -130,7 +150,8 @@ switch ($action) {
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $p = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+            setcookie(session_name(), '', time() - 42000,
+                $p['path'], $p['domain'], $p['secure'], $p['httponly']);
         }
         session_destroy();
         jsonResponse(['ok' => true]);
@@ -139,13 +160,13 @@ switch ($action) {
     // ── Profile ──
     case 'profile':
         $uid = authRequire();
-        $db = getDB();
+        $db  = getDB();
 
         $stmt = $db->prepare('SELECT id, name, phone, telegram, role, created_at FROM users WHERE id = ?');
         $stmt->execute([$uid]);
         $user = $stmt->fetch();
+        if (!$user) jsonResponse(['ok' => false, 'error' => 'Пользователь не найден'], 404);
 
-        // Bonus balance
         $bal = $db->prepare('SELECT COALESCE(SUM(amount), 0) as balance FROM bonus_log WHERE user_id = ?');
         $bal->execute([$uid]);
         $balance = (int)$bal->fetch()['balance'];
@@ -156,7 +177,7 @@ switch ($action) {
     // ── Order history ──
     case 'history':
         $uid = authRequire();
-        $db = getDB();
+        $db  = getDB();
 
         $orders = $db->prepare('
             SELECT id, total, bonus_earned, bonus_spent, status, comment, created_at
@@ -165,7 +186,6 @@ switch ($action) {
         $orders->execute([$uid]);
         $list = $orders->fetchAll();
 
-        // Attach items to each order
         foreach ($list as &$order) {
             $items = $db->prepare('SELECT product_name, price, qty FROM order_items WHERE order_id = ?');
             $items->execute([$order['id']]);
@@ -178,7 +198,7 @@ switch ($action) {
     // ── Bonus log ──
     case 'bonus':
         $uid = authRequire();
-        $db = getDB();
+        $db  = getDB();
 
         $log = $db->prepare('
             SELECT bl.amount, bl.type, bl.description, bl.created_at, o.total as order_total
@@ -200,12 +220,12 @@ switch ($action) {
         jsonResponse(['ok' => false, 'error' => 'Unknown action'], 400);
 }
 
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
-    exit;
 } catch (Throwable $e) {
+    ob_clean();
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Server error: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    echo json_encode([
+        'ok'    => false,
+        'error' => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }

@@ -2,16 +2,45 @@
 /**
  * SQLite database initialization and connection.
  * Database file is auto-created on first request.
+ *
+ * Falls back to sys_get_temp_dir() if db/ directory is not writable.
+ * Throws a clear RuntimeException if PDO SQLite driver is missing.
  */
 
 function getDB() {
     static $db = null;
     if ($db) return $db;
 
-    $dbPath = __DIR__ . '/splithub.sqlite';
+    // ── Check PDO SQLite availability ─────────────────────────────────────────
+    if (!extension_loaded('pdo_sqlite') && !in_array('sqlite', PDO::getAvailableDrivers())) {
+        throw new RuntimeException(
+            'PDO SQLite driver is not enabled on this server. ' .
+            'Please contact your hosting provider to enable php-pdo-sqlite / php8.x-sqlite3.'
+        );
+    }
+
+    // ── Determine writable path for the database file ─────────────────────────
+    $dbDir  = __DIR__;
+    $dbPath = $dbDir . '/splithub.sqlite';
+
+    // If db/ is not writable, fall back to system temp directory
+    if (!is_writable($dbDir)) {
+        $tmpDir = sys_get_temp_dir() . '/splithub_db';
+        if (!is_dir($tmpDir)) @mkdir($tmpDir, 0700, true);
+        $dbPath = $tmpDir . '/splithub.sqlite';
+    }
+
     $isNew = !file_exists($dbPath);
 
-    $db = new PDO('sqlite:' . $dbPath);
+    try {
+        $db = new PDO('sqlite:' . $dbPath);
+    } catch (PDOException $e) {
+        throw new RuntimeException(
+            'Cannot open database: ' . $e->getMessage() .
+            ' (path: ' . $dbPath . ')'
+        );
+    }
+
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     $db->exec('PRAGMA journal_mode=WAL');
@@ -80,7 +109,6 @@ function migrate($db) {
             created_at TEXT DEFAULT (datetime("now"))
         );
 
-        -- Default promo: 3% retro-bonus on all orders
         INSERT INTO promo_rules (name, active, bonus_percent, product_group, min_order)
         VALUES ("Ретробонус 3%", 1, 3.0, NULL, 0);
     ');
@@ -90,6 +118,7 @@ function migrate($db) {
  * JSON response helper.
  */
 function jsonResponse($data, $code = 200) {
+    if (ob_get_level()) ob_clean();
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
@@ -100,7 +129,12 @@ function jsonResponse($data, $code = 200) {
  * Start session and return user_id or null.
  */
 function authCheck() {
-    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        $sessDir = sys_get_temp_dir() . '/splithub_sess';
+        if (!is_dir($sessDir)) @mkdir($sessDir, 0700, true);
+        if (is_writable($sessDir)) session_save_path($sessDir);
+        session_start();
+    }
     return $_SESSION['user_id'] ?? null;
 }
 
@@ -118,7 +152,7 @@ function authRequire() {
  */
 function adminRequire() {
     $uid = authRequire();
-    $db = getDB();
+    $db  = getDB();
     $user = $db->prepare('SELECT role FROM users WHERE id = ?');
     $user->execute([$uid]);
     $row = $user->fetch();
@@ -143,29 +177,26 @@ function normalizePhone($phone) {
  * Calculate bonus for an order based on active promo rules.
  */
 function calculateBonus($total, $items = []) {
-    $db = getDB();
+    $db    = getDB();
     $rules = $db->query('SELECT * FROM promo_rules WHERE active = 1')->fetchAll();
 
-    $totalBonus = 0;
+    $totalBonus   = 0;
     $appliedRules = [];
 
     foreach ($rules as $rule) {
         if ($rule['min_order'] > 0 && $total < $rule['min_order']) continue;
 
         if ($rule['product_group'] === null || $rule['product_group'] === '') {
-            // Rule applies to entire order
             $bonus = (int)floor($total * $rule['bonus_percent'] / 100);
-            $totalBonus += $bonus;
+            $totalBonus  += $bonus;
             $appliedRules[] = $rule['name'] . ': +' . $bonus . ' ₽';
         } else {
-            // Rule applies to specific product group — match by group name in item names
-            // Items should have 'group' field if available
             foreach ($items as $item) {
                 $group = $item['group'] ?? '';
                 if ($group === $rule['product_group']) {
                     $itemTotal = ($item['price'] ?? 0) * ($item['qty'] ?? 1);
                     $bonus = (int)floor($itemTotal * $rule['bonus_percent'] / 100);
-                    $totalBonus += $bonus;
+                    $totalBonus  += $bonus;
                     $appliedRules[] = $rule['name'] . ' (' . $group . '): +' . $bonus . ' ₽';
                 }
             }
