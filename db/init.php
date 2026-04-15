@@ -30,8 +30,6 @@ function getDB() {
         $dbPath = $tmpDir . '/splithub.sqlite';
     }
 
-    $isNew = !file_exists($dbPath);
-
     try {
         $db = new PDO('sqlite:' . $dbPath);
     } catch (PDOException $e) {
@@ -46,9 +44,9 @@ function getDB() {
     $db->exec('PRAGMA journal_mode=WAL');
     $db->exec('PRAGMA foreign_keys=ON');
 
-    if ($isNew) {
-        migrate($db);
-    }
+    // Always run migrate — all statements use IF NOT EXISTS, so it's safe to call every time.
+    // This also fixes the case where the DB file was created empty by a previous failed attempt.
+    migrate($db);
 
     return $db;
 }
