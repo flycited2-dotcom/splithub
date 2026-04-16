@@ -1,20 +1,32 @@
 <?php
+/**
+ * send.php — обработчик заявок СплитХаб
+ * Архитектура по ТЗ: TG — первичная функция, всё остальное — вторичное.
+ * Потеря заявки недопустима. Сбой DB/email не влияет на отправку в TG.
+ */
+
 ob_start();
-set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    error_log('[SplitHub send] Error '.$errno.': '.$errstr.' in '.$errfile.':'.$errline);
-    if (in_array($errno, [E_ERROR, E_USER_ERROR])) {
-        ob_clean();
-        if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
-        http_response_code(500);
-        echo json_encode(['ok' => false, 'error' => 'Ошибка сервера. Позвоните: +7 978 599-13-69'], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-    return true;
-});
+
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { ob_end_clean(); http_response_code(200); exit; }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST')    { ob_end_clean(); http_response_code(405); exit; }
+
+// ── Конфиг (с фолбэком если config.php недоступен) ──
+if (file_exists(__DIR__ . '/config.php')) {
+    require __DIR__ . '/config.php';
+}
+if (!defined('BOT_TOKEN'))     define('BOT_TOKEN',     '8366074996:AAGe0oEpkQ4foTlcJ0zqNFxUv5w1i1Xay78');
+if (!defined('CHAT_ID'))       define('CHAT_ID',       '-1003727076862');
+if (!defined('EMAIL_TO'))      define('EMAIL_TO',      'flycited@gmail.com');
+if (!defined('RATE_LIMIT_SEC')) define('RATE_LIMIT_SEC', 30);
+
+// ── Shutdown handler — всегда возвращает JSON ──
 register_shutdown_function(function() {
     $err = error_get_last();
     if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        error_log('[SplitHub send] Fatal: '.$err['message'].' in '.$err['file'].':'.$err['line']);
         ob_clean();
         if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
         http_response_code(500);
@@ -24,268 +36,271 @@ register_shutdown_function(function() {
     ob_end_flush();
 });
 
-if (!file_exists(__DIR__ . '/config.php')) {
-    header('Content-Type: application/json; charset=utf-8');
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'config.php not found on server']);
+// ── Вход ──
+$raw  = file_get_contents('php://input');
+$data = json_decode($raw, true);
+if (!$data) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'Bad JSON']);
     exit;
 }
-require __DIR__ . '/config.php';
-require __DIR__ . '/db/init.php';
 
-// ── CORS ──
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if ($origin === ALLOWED_ORIGIN) {
-    header('Access-Control-Allow-Origin: ' . ALLOWED_ORIGIN);
-} else {
-    header('Access-Control-Allow-Origin: ' . ALLOWED_ORIGIN);
-}
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST')    { http_response_code(405); exit; }
-
-// ── Rate Limiting (файловый, по IP) ──
-$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$rateDir = sys_get_temp_dir() . '/splithub_rate';
-if (!is_dir($rateDir)) @mkdir($rateDir, 0700, true);
-$rateFile = $rateDir . '/' . md5($ip) . '.txt';
-if (file_exists($rateFile)) {
-    $lastTime = (int)file_get_contents($rateFile);
-    if (time() - $lastTime < RATE_LIMIT_SEC) {
-        http_response_code(429);
-        echo json_encode(['ok' => false, 'error' => 'Подождите перед повторной отправкой']);
-        exit;
-    }
-}
-
-// ── Input ──
-$raw = file_get_contents('php://input');
-$data = json_decode($raw, true);
-if (!$data) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Bad JSON']); exit; }
-
-$name    = trim($data['name'] ?? '');
-$phone   = trim($data['phone'] ?? '');
-$comment = trim($data['comment'] ?? '');
+$name     = trim($data['name']     ?? '');
+$phone    = trim($data['phone']    ?? '');
+$comment  = trim($data['comment']  ?? '');
 $clientTg = trim($data['client_tg'] ?? '');
-$items   = $data['items'] ?? [];
+$items    = $data['items'] ?? [];
 
-// Валидация
 if (!$name || !$phone || empty($items)) {
     http_response_code(422);
-    echo json_encode(['ok' => false, 'error' => 'Заполните все поля']);
-    exit;
-}
-if (!preg_match('/^\+?[0-9\s\-\(\)]{7,20}$/', $phone)) {
-    http_response_code(422);
-    echo json_encode(['ok' => false, 'error' => 'Некорректный телефон']);
+    echo json_encode(['ok' => false, 'error' => 'Заполните все поля'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 if (count($items) > 50) {
     http_response_code(422);
-    echo json_encode(['ok' => false, 'error' => 'Слишком много позиций']);
+    echo json_encode(['ok' => false, 'error' => 'Слишком много позиций'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 // ── Сборка заказа ──
-$date = date('d.m.Y H:i', time() + 3 * 3600);
-$total = 0; $num = 1; $tgLines = ''; $htmlRows = '';
-
-foreach ($items as $item) {
-    $n   = htmlspecialchars($item['name'] ?? '—');
-    $p   = intval($item['price'] ?? 0);
-    $qty = max(1, min(999, intval($item['qty'] ?? 1)));
-    $sub = $p * $qty; $total += $sub;
-    $pf  = number_format($p, 0, '.', ' ');
-    $sf  = number_format($sub, 0, '.', ' ');
-    $tgLines .= "  {$num}. {$n} — {$pf} ₽ × {$qty} шт. = {$sf} ₽\n";
-    $htmlRows .= "<tr><td style='padding:10px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top;width:24px;color:#9ca3af;font-size:.75rem'>{$num}</td><td style='padding:10px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top'><div style='font-size:.82rem;font-weight:600;color:#1f2937;line-height:1.4'>{$n}</div><div style='font-size:.75rem;color:#6b7280;margin-top:3px'>{$pf}&nbsp;₽&nbsp;&times;&nbsp;{$qty}&nbsp;шт.</div></td><td style='padding:10px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top;text-align:right;white-space:nowrap;font-weight:700;color:#D97706;font-size:.85rem'>{$sf}&nbsp;₽</td></tr>";
-    $num++;
-}
-$totalf = number_format($total, 0, '.', ' ');
-$cnt = count($items);
-
-// ── Save to DB (if user is logged in) ──
-$orderId = null;
-$bonusEarned = 0;
-$bonusSpent = 0;
-try {
-    $userId = authCheck();
-} catch (Throwable $e) {
-    error_log('[SplitHub send] authCheck exception: ' . $e->getMessage());
-    $userId = null;
-}
-
-if ($userId) {
-    $db = getDB();
-
-    // Check bonus redemption request
-    $bonusSpent = max(0, intval($data['bonus_spend'] ?? 0));
-    if ($bonusSpent > 0) {
-        $bal = $db->prepare('SELECT COALESCE(SUM(amount), 0) as balance FROM bonus_log WHERE user_id = ?');
-        $bal->execute([$userId]);
-        $balance = (int)$bal->fetch()['balance'];
-        if ($bonusSpent > $balance) $bonusSpent = $balance;
-        if ($bonusSpent > $total)   $bonusSpent = $total;
-    }
-
-    // Calculate bonus earned
-    $dbItems = [];
-    foreach ($items as $item) {
-        $dbItems[] = [
-            'name'  => $item['name'] ?? '—',
-            'price' => intval($item['price'] ?? 0),
-            'qty'   => max(1, min(999, intval($item['qty'] ?? 1))),
-            'group' => $item['group'] ?? ''
-        ];
-    }
-    $bonusResult = calculateBonus($total - $bonusSpent, $dbItems);
-    $bonusEarned = $bonusResult['bonus'];
-
-    // Insert order
-    $ins = $db->prepare('INSERT INTO orders (user_id, total, bonus_earned, bonus_spent, status, comment, client_tg) VALUES (?, ?, ?, ?, "new", ?, ?)');
-    $ins->execute([$userId, $total, $bonusEarned, $bonusSpent, $comment, $clientTg]);
-    $orderId = (int)$db->lastInsertId();
-
-    // Insert order items
-    $itemIns = $db->prepare('INSERT INTO order_items (order_id, product_name, price, qty) VALUES (?, ?, ?, ?)');
-    foreach ($dbItems as $di) {
-        $itemIns->execute([$orderId, $di['name'], $di['price'], $di['qty']]);
-    }
-
-    // Bonus log: earned
-    if ($bonusEarned > 0) {
-        $logIns = $db->prepare('INSERT INTO bonus_log (user_id, order_id, amount, type, description) VALUES (?, ?, ?, "earn", ?)');
-        $logIns->execute([$userId, $orderId, $bonusEarned, 'Начислено за заказ #' . $orderId . ': ' . implode(', ', $bonusResult['rules'])]);
-    }
-
-    // Bonus log: spent (negative amount)
-    if ($bonusSpent > 0) {
-        $logIns = $db->prepare('INSERT INTO bonus_log (user_id, order_id, amount, type, description) VALUES (?, ?, ?, "spend", ?)');
-        $logIns->execute([$userId, $orderId, -$bonusSpent, 'Списано на заказ #' . $orderId]);
-    }
-}
-
-// ── Guest order save (anonymous users) ──
-$guestOrderSaved = false;
-if (!$userId) {
-    try {
-        $gdb = getDB();
-        $gdb->exec('CREATE TABLE IF NOT EXISTS guest_orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            total INTEGER NOT NULL DEFAULT 0,
-            items_json TEXT NOT NULL DEFAULT "[]",
-            comment TEXT DEFAULT "",
-            client_tg TEXT DEFAULT "",
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )');
-        $gIns = $gdb->prepare('INSERT INTO guest_orders (name, phone, total, items_json, comment, client_tg) VALUES (?, ?, ?, ?, ?, ?)');
-        $gIns->execute([$name, $phone, $total, json_encode($items, JSON_UNESCAPED_UNICODE), $comment, $clientTg]);
-        $guestOrderSaved = true;
-    } catch (Exception $e) {
-        error_log('[SplitHub] Guest order save error: ' . $e->getMessage());
-    }
-}
-
-// ── Telegram ──
-function sendTg($token, $chatId, $text) {
-    $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode(['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'HTML']),
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 10,
-        CURLOPT_SSL_VERIFYPEER => true
-    ]);
-    $resp = curl_exec($ch);
-    $errno = curl_errno($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($errno) error_log('[SplitHub TG] curl error ' . $errno);
-    return ['resp' => $resp, 'code' => $code, 'result' => json_decode($resp, true)];
-}
-
-// HTML-safe user data for Telegram
-$tgName    = htmlspecialchars($name,     ENT_XML1, 'UTF-8');
-$tgPhone   = htmlspecialchars($phone,    ENT_XML1, 'UTF-8');
-$tgComment = htmlspecialchars($comment,  ENT_XML1, 'UTF-8');
-$tgClient  = htmlspecialchars($clientTg, ENT_XML1, 'UTF-8');
-
-// Rebuild tgLines with HTML-safe product names
+$date    = date('d.m.Y H:i', time() + 3 * 3600);
+$total   = 0;
+$num     = 1;
 $tgLines = '';
-$_num = 1;
+$htmlRows = '';
+
 foreach ($items as $item) {
-    $n   = htmlspecialchars($item['name'] ?? '—', ENT_XML1, 'UTF-8');
+    $n   = $item['name'] ?? '—';
     $p   = intval($item['price'] ?? 0);
     $qty = max(1, min(999, intval($item['qty'] ?? 1)));
     $sub = $p * $qty;
-    $pf  = number_format($p, 0, '.', ' ');
+    $total += $sub;
+    $pf  = number_format($p,   0, '.', ' ');
     $sf  = number_format($sub, 0, '.', ' ');
-    $tgLines .= "  {$_num}. {$n} — {$pf} ₽ × {$qty} шт. = {$sf} ₽\n";
-    $_num++;
+    $ne  = htmlspecialchars($n);
+    $tgLines  .= "  {$num}. {$n} — {$pf} ₽ × {$qty} шт. = {$sf} ₽\n";
+    $htmlRows .= "<tr>"
+        . "<td style='padding:8px 12px;border-bottom:1px solid #eee'>{$num}</td>"
+        . "<td style='padding:8px 12px;border-bottom:1px solid #eee'>{$ne}</td>"
+        . "<td style='padding:8px 12px;border-bottom:1px solid #eee;text-align:right'>{$pf} ₽</td>"
+        . "<td style='padding:8px 12px;border-bottom:1px solid #eee;text-align:center'>{$qty}</td>"
+        . "<td style='padding:8px 12px;border-bottom:1px solid #eee;font-weight:700;color:#D97706;text-align:right'>{$sf} ₽</td>"
+        . "</tr>";
+    $num++;
+}
+$totalf = number_format($total, 0, '.', ' ');
+$cnt    = count($items);
+
+// ══════════════════════════════════════════
+// ПЕРВИЧНАЯ ФУНКЦИЯ: отправка в Telegram
+// ══════════════════════════════════════════
+
+function sendTg($token, $chatId, $text) {
+    $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode([
+            'chat_id'    => $chatId,
+            'text'       => $text,
+            'parse_mode' => 'Markdown',
+        ]),
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+    $resp = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_errno($ch);
+    curl_close($ch);
+    if ($err) error_log('[SplitHub TG] curl errno=' . $err);
+    return ['resp' => $resp, 'code' => $code, 'result' => json_decode($resp, true)];
 }
 
-$tgMsg  = "🛒 <b>Новая заявка — СплитХаб</b>\n━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "👤 <b>Имя:</b> {$tgName}\n📞 <b>Телефон:</b> {$tgPhone}\n";
-if ($tgClient !== '') $tgMsg .= "💬 <b>Telegram:</b> {$tgClient}\n";
-$tgMsg .= "📅 <b>Время:</b> {$date}\n━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "📦 <b>Позиции ({$cnt} шт.):</b>\n{$tgLines}━━━━━━━━━━━━━━━━━━\n💰 <b>Итого:</b> {$totalf} ₽\n";
-if ($bonusSpent > 0) $tgMsg .= "🎁 <b>Списано бонусов:</b> −" . number_format($bonusSpent, 0, '.', ' ') . " ₽\n";
-if ($bonusEarned > 0) $tgMsg .= "⭐ <b>Начислено бонусов:</b> +" . number_format($bonusEarned, 0, '.', ' ') . " ₽\n";
-if ($orderId) $tgMsg .= "🆔 <b>Заказ:</b> #{$orderId}\n";
-if ($tgComment !== '') $tgMsg .= "━━━━━━━━━━━━━━━━━━\n💬 <b>Комментарий:</b> {$tgComment}\n";
-$tgMsg .= "\n<i>Клиент ждёт звонка</i>";
+$tgMsg  = "🛒 *Новая заявка — СплитХаб*\n";
+$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "👤 *Имя:* {$name}\n";
+$tgMsg .= "📞 *Телефон:* {$phone}\n";
+if ($clientTg !== '') $tgMsg .= "💬 *Telegram:* {$clientTg}\n";
+$tgMsg .= "📅 *Время:* {$date}\n";
+$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "📦 *Позиции ({$cnt} шт.):*\n{$tgLines}";
+$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "💰 *Итого:* {$totalf} ₽\n";
+if ($comment !== '') $tgMsg .= "━━━━━━━━━━━━━━━━━━\n💬 *Комментарий:* {$comment}\n";
+$tgMsg .= "\n_Клиент ждёт звонка_";
 
+$tgResult = sendTg(BOT_TOKEN, CHAT_ID, $tgMsg);
+$tgOk     = $tgResult['result']['ok'] ?? false;
+
+// Если Markdown отклонён — повтор без форматирования
+if (!$tgOk) {
+    error_log('[SplitHub TG] Markdown failed (' . ($tgResult['resp'] ?? '') . '), retrying plain');
+    $tgPlain  = "Новая заявка — СплитХаб\n";
+    $tgPlain .= "Имя: {$name}\nТелефон: {$phone}\n";
+    if ($clientTg !== '') $tgPlain .= "Telegram: {$clientTg}\n";
+    $tgPlain .= "Время: {$date}\n\nПозиции ({$cnt} шт.):\n{$tgLines}\nИтого: {$totalf} руб\n";
+    if ($comment !== '') $tgPlain .= "Комментарий: {$comment}\n";
+    $tgResult2 = sendTg(BOT_TOKEN, CHAT_ID, $tgPlain);
+    if ($tgResult2['result']['ok'] ?? false) {
+        $tgOk     = true;
+        $tgResult = $tgResult2;
+    }
+}
+
+error_log('[SplitHub TG] ok=' . ($tgOk ? 'yes' : 'no') . ' resp=' . ($tgResult['resp'] ?? ''));
+
+// ══════════════════════════════════════════
+// ВТОРИЧНЫЕ ФУНКЦИИ: DB, email, rate limit
+// Сбой любой из них НЕ влияет на ответ TG
+// ══════════════════════════════════════════
+
+$orderId       = null;
+$bonusEarned   = 0;
+$bonusSpent    = 0;
+$guestSaved    = false;
+$mailOk        = false;
+
+// ── DB (авторизованный пользователь) ──
 try {
-    $tgResult = sendTg(BOT_TOKEN, CHAT_ID, $tgMsg);
-    // Если HTML-режим отклонён — fallback: plain text без тегов
-    if (!($tgResult['result']['ok'] ?? false)) {
-        error_log('[SplitHub TG] HTML failed: ' . ($tgResult['resp'] ?? '') . ' — retrying plain');
-        $tgPlain = strip_tags($tgMsg);
-        $tgResult = sendTg(BOT_TOKEN, CHAT_ID, $tgPlain);
+    if (file_exists(__DIR__ . '/db/init.php')) {
+        require_once __DIR__ . '/db/init.php';
+        $userId = authCheck();
+        if ($userId) {
+            $db         = getDB();
+            $bonusSpent = max(0, intval($data['bonus_spend'] ?? 0));
+            if ($bonusSpent > 0) {
+                $bal = $db->prepare('SELECT COALESCE(SUM(amount),0) as b FROM bonus_log WHERE user_id=?');
+                $bal->execute([$userId]);
+                $balance = (int)$bal->fetch()['b'];
+                if ($bonusSpent > $balance) $bonusSpent = $balance;
+                if ($bonusSpent > $total)   $bonusSpent = $total;
+            }
+            $dbItems = [];
+            foreach ($items as $item) {
+                $dbItems[] = [
+                    'name'  => $item['name'] ?? '—',
+                    'price' => intval($item['price'] ?? 0),
+                    'qty'   => max(1, min(999, intval($item['qty'] ?? 1))),
+                    'group' => $item['group'] ?? '',
+                ];
+            }
+            $bonusResult = calculateBonus($total - $bonusSpent, $dbItems);
+            $bonusEarned = $bonusResult['bonus'];
+
+            $ins = $db->prepare('INSERT INTO orders (user_id,total,bonus_earned,bonus_spent,status,comment,client_tg) VALUES (?,?,?,?,"new",?,?)');
+            $ins->execute([$userId, $total, $bonusEarned, $bonusSpent, $comment, $clientTg]);
+            $orderId = (int)$db->lastInsertId();
+
+            $itemIns = $db->prepare('INSERT INTO order_items (order_id,product_name,price,qty) VALUES (?,?,?,?)');
+            foreach ($dbItems as $di) {
+                $itemIns->execute([$orderId, $di['name'], $di['price'], $di['qty']]);
+            }
+            if ($bonusEarned > 0) {
+                $db->prepare('INSERT INTO bonus_log (user_id,order_id,amount,type,description) VALUES (?,?,?,"earn",?)')->execute([$userId, $orderId, $bonusEarned, 'Начислено за заказ #' . $orderId]);
+            }
+            if ($bonusSpent > 0) {
+                $db->prepare('INSERT INTO bonus_log (user_id,order_id,amount,type,description) VALUES (?,?,?,"spend",?)')->execute([$userId, $orderId, -$bonusSpent, 'Списано на заказ #' . $orderId]);
+            }
+        }
     }
 } catch (Throwable $e) {
-    error_log('[SplitHub send] TG exception: ' . $e->getMessage());
-    $tgResult = ['resp' => null, 'code' => 0, 'result' => null];
+    error_log('[SplitHub DB] ' . $e->getMessage());
+}
+
+// ── Guest orders (анонимный пользователь) ──
+if (!$orderId) {
+    try {
+        if (file_exists(__DIR__ . '/db/init.php')) {
+            if (!function_exists('getDB')) require_once __DIR__ . '/db/init.php';
+            $gdb = getDB();
+            $gdb->exec('CREATE TABLE IF NOT EXISTS guest_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL, phone TEXT NOT NULL,
+                total INTEGER NOT NULL DEFAULT 0,
+                items_json TEXT NOT NULL DEFAULT "[]",
+                comment TEXT DEFAULT "", client_tg TEXT DEFAULT "",
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )');
+            $gdb->prepare('INSERT INTO guest_orders (name,phone,total,items_json,comment,client_tg) VALUES (?,?,?,?,?,?)')
+                ->execute([$name, $phone, $total, json_encode($items, JSON_UNESCAPED_UNICODE), $comment, $clientTg]);
+            $guestSaved = true;
+        }
+    } catch (Throwable $e) {
+        error_log('[SplitHub guest] ' . $e->getMessage());
+    }
 }
 
 // ── Email ──
-$commentHtml = $comment !== ''
-    ? "<div style='padding:14px 24px;background:#fffbeb;border-top:2px solid #F59E0B;'><strong style='color:#92400E;'>💬 Комментарий:</strong><br>" . htmlspecialchars($comment) . "</div>"
-    : '';
-$emailHtml = '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif}table{border-collapse:collapse}@media(max-width:600px){.wrap{width:100%!important;border-radius:0!important}.pad{padding:14px 12px!important}.hpad{padding:14px 16px!important}}</style></head><body><center><table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:16px 8px"><tr><td align="center"><table class="wrap" width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;max-width:600px;width:100%"><tr><td style="background:#F59E0B;padding:16px 20px"><h2 style="margin:0;color:#fff;font-size:1.1rem">🛒 Новая заявка — СплитХаб</h2></td></tr><tr><td class="pad" style="padding:16px 20px"><table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px"><tr><td style="padding:4px 0;color:#6b7280;font-size:.8rem;width:80px">Клиент</td><td style="padding:4px 0;font-weight:700;font-size:.85rem">' . htmlspecialchars($name) . '</td></tr><tr><td style="padding:4px 0;color:#6b7280;font-size:.8rem">Телефон</td><td style="padding:4px 0;font-weight:700;font-size:.85rem">' . htmlspecialchars($phone) . '</td></tr><tr><td style="padding:4px 0;color:#6b7280;font-size:.8rem">Время</td><td style="padding:4px 0;font-size:.8rem">' . $date . '</td></tr></table><p style="margin:0 0 10px;font-weight:700;color:#374151;font-size:.88rem">Состав заказа (' . $cnt . ' поз.)</p><table width="100%" cellpadding="0" cellspacing="0"><thead><tr style="background:#F59E0B"><th style="padding:8px;text-align:left;color:#fff;font-size:.78rem;font-weight:600;width:24px">#</th><th style="padding:8px;text-align:left;color:#fff;font-size:.78rem;font-weight:600">Наименование</th><th style="padding:8px;text-align:right;color:#fff;font-size:.78rem;font-weight:600;white-space:nowrap">Сумма</th></tr></thead><tbody>' . $htmlRows . '</tbody><tfoot><tr style="background:#FEF3C7"><td colspan="2" style="padding:10px 8px;font-weight:700;font-size:.85rem">Итого</td><td style="padding:10px 8px;font-weight:700;font-size:1rem;color:#D97706;text-align:right;white-space:nowrap">' . $totalf . ' ₽</td></tr></tfoot></table></td></tr>' . ($commentHtml ? '<tr><td style="padding:12px 20px;background:#fffbeb;border-top:2px solid #F59E0B;font-size:.82rem"><strong style="color:#92400E">💬 Комментарий:</strong><br>' . htmlspecialchars($comment) . '</td></tr>' : '') . '<tr><td style="padding:10px 20px;background:#f9fafb;color:#9ca3af;font-size:.72rem">СплитХаб · splithub.ru · Симферополь</td></tr></table></td></tr></table></center></body></html>';
-$headers = "From: =?UTF-8?B?" . base64_encode("СплитХаб") . "?= <zakaz@splithub.ru>\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n";
-$emailSubj = "=?UTF-8?B?" . base64_encode("Новая заявка СплитХаб — {$name} — {$totalf} руб") . "?=";
 try {
-    $mailOk = mail(EMAIL_TO, $emailSubj, $emailHtml, $headers);
+    $commentHtml = $comment !== ''
+        ? "<tr><td colspan='5' style='padding:10px 12px;background:#fffbeb;color:#92400e'><strong>Комментарий:</strong> " . htmlspecialchars($comment) . "</td></tr>"
+        : '';
+    $emailHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head>'
+        . '<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif">'
+        . '<div style="max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden">'
+        . '<div style="background:#F59E0B;padding:18px 24px"><h2 style="margin:0;color:#fff;font-size:1.1rem">🛒 Новая заявка — СплитХаб</h2></div>'
+        . '<div style="padding:20px 24px">'
+        . '<table style="width:100%;border-collapse:collapse;margin-bottom:16px">'
+        . "<tr><td style='padding:5px 0;color:#6b7280;width:90px'>Клиент</td><td style='padding:5px 0;font-weight:700'>" . htmlspecialchars($name) . "</td></tr>"
+        . "<tr><td style='padding:5px 0;color:#6b7280'>Телефон</td><td style='padding:5px 0;font-weight:700'>" . htmlspecialchars($phone) . "</td></tr>"
+        . "<tr><td style='padding:5px 0;color:#6b7280'>Время</td><td style='padding:5px 0'>{$date}</td></tr>"
+        . '</table>'
+        . "<h3 style='margin:0 0 10px;font-size:.88rem;color:#374151'>Состав заказа ({$cnt} поз.)</h3>"
+        . '<table style="width:100%;border-collapse:collapse;font-size:.84rem">'
+        . '<thead><tr style="background:#F59E0B">'
+        . '<th style="padding:8px 12px;text-align:left;color:#fff">№</th>'
+        . '<th style="padding:8px 12px;text-align:left;color:#fff">Наименование</th>'
+        . '<th style="padding:8px 12px;text-align:right;color:#fff">Цена</th>'
+        . '<th style="padding:8px 12px;text-align:center;color:#fff">Кол.</th>'
+        . '<th style="padding:8px 12px;text-align:right;color:#fff">Сумма</th>'
+        . '</tr></thead><tbody>' . $htmlRows . $commentHtml . '</tbody>'
+        . "<tfoot><tr style='background:#FEF3C7'><td colspan='4' style='padding:10px 12px;font-weight:700'>Итого</td>"
+        . "<td style='padding:10px 12px;font-weight:700;color:#D97706;text-align:right'>{$totalf} ₽</td></tr></tfoot>"
+        . '</table></div>'
+        . '<div style="padding:10px 24px;background:#f9fafb;color:#9ca3af;font-size:.72rem">СплитХаб · splithub.ru · Симферополь</div>'
+        . '</div></body></html>';
+
+    $headers   = "From: =?UTF-8?B?" . base64_encode("СплитХаб") . "?= <zakaz@splithub.ru>\r\n";
+    $headers  .= "MIME-Version: 1.0\r\n";
+    $headers  .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $emailSubj = "=?UTF-8?B?" . base64_encode("Новая заявка СплитХаб — {$name} — {$totalf} руб") . "?=";
+    $mailOk    = mail(EMAIL_TO, $emailSubj, $emailHtml, $headers);
 } catch (Throwable $e) {
-    error_log('[SplitHub send] Mail exception: ' . $e->getMessage());
-    $mailOk = false;
+    error_log('[SplitHub mail] ' . $e->getMessage());
 }
 
-// ── Записать rate limit ──
-file_put_contents($rateFile, time());
+// ── Rate limit (записывается после отправки, не блокирует) ──
+try {
+    $rateDir  = sys_get_temp_dir() . '/splithub_rate';
+    if (!is_dir($rateDir)) @mkdir($rateDir, 0700, true);
+    $rateFile = $rateDir . '/' . md5($_SERVER['REMOTE_ADDR'] ?? 'x') . '.txt';
+    // Проверка (мягкая — не прерывает, только логирует)
+    if (file_exists($rateFile)) {
+        $last = (int)file_get_contents($rateFile);
+        if (time() - $last < RATE_LIMIT_SEC) {
+            error_log('[SplitHub rate] repeated request from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+        }
+    }
+    file_put_contents($rateFile, time());
+} catch (Throwable $e) { /* rate limit не блокирует */ }
+
+error_log('[SplitHub] tg=' . ($tgOk?'ok':'fail') . ' mail=' . ($mailOk?'ok':'fail') . ' orderId=' . ($orderId??'null') . ' guest=' . ($guestSaved?'yes':'no'));
 
 // ── Ответ ──
-$tgOk    = $tgResult['result']['ok'] ?? false;
-$orderOk = $tgOk || $mailOk || ($orderId !== null) || $guestOrderSaved;
-
-// Всегда логируем детали
-$tgErr = $tgResult['result']['description'] ?? ('HTTP ' . ($tgResult['code'] ?? '?'));
-error_log('[SplitHub] TG=' . ($tgOk ? 'ok' : 'fail:'.$tgErr) . ' mail=' . ($mailOk ? 'ok' : 'fail') . ' orderId=' . ($orderId ?? 'null') . ' guest=' . ($guestOrderSaved ? 'yes' : 'no'));
+// Успех если TG доставил, или заказ сохранён в БД
+$orderOk = $tgOk || ($orderId !== null) || $guestSaved;
 
 if ($orderOk) {
-    $resp = ['ok' => true, 'tg' => $tgOk ? 'sent' : 'failed', 'email' => $mailOk ? 'sent' : 'failed'];
-    if ($orderId) {
-        $resp['order_id']     = $orderId;
-        $resp['bonus_earned'] = $bonusEarned;
-        $resp['bonus_spent']  = $bonusSpent;
-    }
-    echo json_encode($resp);
+    $resp = [
+        'ok'    => true,
+        'tg'    => $tgOk   ? 'sent' : 'failed',
+        'email' => $mailOk ? 'sent' : 'failed',
+    ];
+    if ($orderId)      $resp['order_id']     = $orderId;
+    if ($bonusEarned)  $resp['bonus_earned'] = $bonusEarned;
+    if ($bonusSpent)   $resp['bonus_spent']  = $bonusSpent;
+    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
 } else {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Заявка не отправлена. Позвоните: +7 978 599-13-69'], JSON_UNESCAPED_UNICODE);
