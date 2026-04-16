@@ -287,29 +287,28 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 .dl{flex:1;overflow-y:auto;padding:0 16px 8px;display:flex;flex-direction:column;gap:10px;min-height:0;}
 
 /* ── ТОВАР В КОРЗИНЕ — КРУПНАЯ КАРТОЧКА ── */
-/* КОРЗИНА — строчный табличный вид */
+/* КОРЗИНА — компактная строка */
 .di{
   background:rgba(255,255,255,0.85);
   border:1px solid var(--bhi);
   border-radius:13px;
-  padding:12px 14px;
-  display:flex;flex-direction:column;gap:8px;
+  padding:10px 12px;
+  display:flex;flex-direction:column;gap:0;
   box-shadow:0 2px 8px rgba(0,0,0,0.04);
 }
-.di-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;width:100%;}
-.di-num{font-size:0.65rem;font-weight:700;color:var(--text3);min-width:18px;flex-shrink:0;margin-top:3px;}
+.di-row1{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
+.di-num{font-size:0.62rem;font-weight:700;color:var(--text3);min-width:16px;flex-shrink:0;}
 .di-fullname{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-.di-cat{font-size:0.62rem;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.05em;line-height:1.3;}
-.di-n{font-size:0.84rem;font-weight:700;color:var(--text);line-height:1.3;}
-.di-trash{background:none;border:none;cursor:pointer;padding:4px;color:var(--text3);font-size:1rem;flex-shrink:0;transition:color 0.2s;}
+.di-name-price{display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
+.di-n{font-size:0.82rem;font-weight:700;color:var(--text);line-height:1.25;flex:1;min-width:0;}
+.di-line{font-size:0.84rem;font-weight:700;color:var(--amber-d);white-space:nowrap;flex-shrink:0;}
+.di-unit{font-size:0.65rem;color:var(--text3);line-height:1.3;}
+.di-controls{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:6px;}
+.di-trash{background:none;border:none;cursor:pointer;padding:4px;color:var(--text3);flex-shrink:0;transition:color 0.2s;display:flex;align-items:center;}
 .di-trash:active{color:#EF4444;}
-.di-row2{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.di-price-col{display:flex;flex-direction:column;}
-.di-p{font-size:0.86rem;font-weight:700;color:var(--amber);}
-.di-unit{font-size:0.65rem;color:var(--text3);}
 /* Счётчик количества */
 .di-qty{display:flex;align-items:center;gap:0;border:1.5px solid var(--blo);border-radius:11px;overflow:hidden;background:rgba(255,255,255,0.8);}
-.di-qbtn{width:44px;height:40px;border:none;background:none;cursor:pointer;font-size:1.3rem;font-weight:400;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+.di-qbtn{width:34px;height:34px;border:none;background:none;cursor:pointer;font-size:1.1rem;font-weight:400;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
 .di-qbtn.minus:active{background:rgba(239,68,68,0.1);color:#EF4444;}
 .di-qbtn.plus{background:var(--amber);color:#fff;}
 .di-qbtn.plus:active{background:var(--amber-d);}
@@ -441,27 +440,27 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 .pgrid { grid-template-columns: 1fr 1fr; gap: 8px; }
 .quick-row { padding: 10px 12px 0; }
 .qbtn { font-size: 0.76rem; padding: 10px 8px; }
-.di-qbtn { width: 38px; height: 38px; font-size: 1.1rem; }
+.di-qbtn { width: 34px; height: 34px; font-size: 1.05rem; }
 
 /* ── FAB и scroll-top на мобиле ── */
 .fab { bottom: 72px; right: 14px; }
 .scroll-top { bottom: 130px; right: 14px; width: 44px; height: 44px; }
 
-/* ── Drawer на мобиле — bottom sheet ── */
+/* ── Drawer на мобиле — full screen ── */
 .dr {
   position: fixed;
-  left: 0; right: 0; bottom: 0; top: auto;
+  left: 0; right: 0; bottom: 0; top: 0;
   width: 100%;
-  height: 90vh;
-  border-radius: 20px 20px 0 0;
+  height: 100dvh;
+  border-radius: 0;
   transform: translateY(100%);
   transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+  box-shadow: none;
 }
 .dr.on { transform: translateY(0); }
-.dl { flex: 1; min-height: 0; overflow-y: auto; padding: 0 12px 8px; -webkit-overflow-scrolling: touch; }
-.df { flex-shrink: 0; padding: 10px 14px 20px; border-top: 1px solid rgba(0,0,0,0.08); }
-.di { padding: 10px 12px; border-radius: 10px; }
+.dl { flex: 1; min-height: 0; overflow-y: auto; padding: 0 12px 6px; -webkit-overflow-scrolling: touch; gap: 6px; }
+.df { flex-shrink: 0; padding: 8px 14px 18px; border-top: 1px solid rgba(0,0,0,0.08); }
+.di { padding: 8px 10px; border-radius: 10px; }
 .snd { width: 100%; padding: 14px; border-radius: 12px; }
 .btn-back { width: 100%; text-align: center; margin-bottom: 6px; }
 .inp { width: 100%; box-sizing: border-box; }
@@ -646,33 +645,14 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 
-/* === Cart UX refresh === */
-.di{
-  padding:10px 12px;
-  gap:6px;
-}
-.di-row1{align-items:flex-start;gap:6px;}
-.di-num{min-width:16px;font-size:0.62rem;margin-top:2px;}
-.di-fullname{gap:0;}
-.di-cat{font-size:0.58rem;line-height:1.15;}
-.di-n{font-size:0.8rem;line-height:1.22;}
-.di-row2{align-items:flex-end;gap:8px;}
-.di-price-col{gap:2px;}
-.di-unit{font-size:0.7rem;line-height:1.2;color:var(--text2);}
-.di-line{font-size:0.84rem;font-weight:700;line-height:1.2;color:var(--amber-d);}
-.di-trash{
-  width:34px;height:34px;padding:8px;margin:-4px -4px 0 0;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:10px;
-}
-.di-trash:active{background:rgba(239,68,68,0.08);}
+/* === Cart UX — desktop overrides === */
 .di-qty{
   border-radius:10px;
   background:rgba(255,255,255,0.72);
   border:1px solid rgba(180,188,205,0.55);
 }
 .di-qbtn{
-  width:36px;height:34px;font-size:1rem;font-weight:500;
+  width:34px;height:34px;font-size:1rem;font-weight:500;
 }
 .di-qbtn.plus{
   background:rgba(245,158,11,0.14);
@@ -1378,17 +1358,19 @@ function renderD() {
     html += '<div class="di">'
       + '<div class="di-row1">'
         + '<span class="di-num">'+(i+1)+'.</span>'
-        + '<div class="di-fullname"><span class="di-cat">'+p.brand+'</span><span class="di-n">'+p.name+'</span></div>'
-        + '<button class="di-trash" onclick="chQty(\''+p.id+'\',-999)" title="Удалить">'
-          + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>'
-        + '</button>'
-      + '</div>'
-      + '<div class="di-row2">'
-        + '<div class="di-price-col"><div class="di-unit">'+unit+' ₽ / шт.</div><div class="di-line">Итого: '+lt+' ₽</div></div>'
-        + '<div class="di-qty">'
-          + '<button class="di-qbtn minus" onclick="chQty(\''+p.id+'\',-1)">−</button>'
-          + '<span class="di-qnum">'+p.qty+'</span>'
-          + '<button class="di-qbtn plus" onclick="chQty(\''+p.id+'\',1)">+</button>'
+        + '<div class="di-fullname">'
+          + '<div class="di-name-price"><span class="di-n">'+p.name+'</span><span class="di-line">'+lt+' ₽</span></div>'
+          + '<span class="di-unit">'+p.brand+' · '+unit+' ₽/шт.</span>'
+        + '</div>'
+        + '<div class="di-controls">'
+          + '<div class="di-qty">'
+            + '<button class="di-qbtn minus" onclick="chQty(\''+p.id+'\',-1)">−</button>'
+            + '<span class="di-qnum">'+p.qty+'</span>'
+            + '<button class="di-qbtn plus" onclick="chQty(\''+p.id+'\',1)">+</button>'
+          + '</div>'
+          + '<button class="di-trash" onclick="chQty(\''+p.id+'\',-999)" title="Удалить">'
+            + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>'
+          + '</button>'
         + '</div>'
       + '</div>'
     + '</div>';
@@ -1585,20 +1567,21 @@ function initPhoneMask() {
 
 // ── Upsell: «Комплект монтажника» ───────────────────
 function getUpsellItems() {
-  // Если в корзине есть сплиты и есть truba/расходники в каталоге — предложить
   var hasSplit = cart.some(function(c) {
     var p = PRODUCTS.find(function(x){ return x.id === c.id; });
     return p && (p.group === 'inv' || p.group === 'onoff');
   });
   if (!hasSplit) return [];
-  var suggestions = [];
-  PRODUCTS.forEach(function(p) {
-    if (p.group === 'truba' || p.group === 'rashod') {
-      var inCart = cart.some(function(c){ return c.id === p.id; });
-      if (!inCart && p.stock !== 'out') suggestions.push(p);
-    }
+  // Фиксированный список: медь средняя стенка 1/4, 3/8, 1/2 + AVIORA лента + дешёвый кронштейн
+  var targetIds = ['1045','1046','1047','1069','1063'];
+  var result = [];
+  targetIds.forEach(function(tid) {
+    var inCart = cart.some(function(c){ return c.id === tid; });
+    if (inCart) return;
+    var p = PRODUCTS.find(function(x){ return x.id === tid; });
+    if (p && p.stock !== 'out') result.push(p);
   });
-  return suggestions.slice(0, 3);
+  return result.slice(0, 5);
 }
 
 function renderUpsell() {
