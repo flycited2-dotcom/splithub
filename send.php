@@ -180,7 +180,7 @@ if (!$userId) {
             items_json TEXT NOT NULL DEFAULT "[]",
             comment TEXT DEFAULT "",
             client_tg TEXT DEFAULT "",
-            created_at TEXT DEFAULT (datetime("now"))
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )');
         $gIns = $gdb->prepare('INSERT INTO guest_orders (name, phone, total, items_json, comment, client_tg) VALUES (?, ?, ?, ?, ?, ?)');
         $gIns->execute([$name, $phone, $total, json_encode($items, JSON_UNESCAPED_UNICODE), $comment, $clientTg]);
@@ -195,31 +195,59 @@ function sendTg($token, $chatId, $text) {
     $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode(['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'Markdown']),
+        CURLOPT_POSTFIELDS => json_encode(['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'HTML']),
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 10,
         CURLOPT_SSL_VERIFYPEER => true
     ]);
     $resp = curl_exec($ch);
+    $errno = curl_errno($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($errno) error_log('[SplitHub TG] curl error ' . $errno);
     return ['resp' => $resp, 'code' => $code, 'result' => json_decode($resp, true)];
 }
 
-$tgMsg  = "🛒 *Новая заявка — СплитХаб*\n━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "👤 *Имя:* {$name}\n📞 *Телефон:* {$phone}\n";
-if ($clientTg !== '') $tgMsg .= "💬 *Telegram:* {$clientTg}\n";
-$tgMsg .= "📅 *Время:* {$date}\n━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "📦 *Позиции ({$cnt} шт.):*\n{$tgLines}━━━━━━━━━━━━━━━━━━\n💰 *Итого:* {$totalf} ₽\n";
-if ($bonusSpent > 0) $tgMsg .= "🎁 *Списано бонусов:* −" . number_format($bonusSpent, 0, '.', ' ') . " ₽\n";
-if ($bonusEarned > 0) $tgMsg .= "⭐ *Начислено бонусов:* +" . number_format($bonusEarned, 0, '.', ' ') . " ₽\n";
-if ($orderId) $tgMsg .= "🆔 *Заказ:* #{$orderId}\n";
-if ($comment !== '') $tgMsg .= "━━━━━━━━━━━━━━━━━━\n💬 *Комментарий:* " . htmlspecialchars($comment) . "\n";
-$tgMsg .= "\n_Клиент ждёт звонка_";
+// HTML-safe user data for Telegram
+$tgName    = htmlspecialchars($name,     ENT_XML1, 'UTF-8');
+$tgPhone   = htmlspecialchars($phone,    ENT_XML1, 'UTF-8');
+$tgComment = htmlspecialchars($comment,  ENT_XML1, 'UTF-8');
+$tgClient  = htmlspecialchars($clientTg, ENT_XML1, 'UTF-8');
+
+// Rebuild tgLines with HTML-safe product names
+$tgLines = '';
+$_num = 1;
+foreach ($items as $item) {
+    $n   = htmlspecialchars($item['name'] ?? '—', ENT_XML1, 'UTF-8');
+    $p   = intval($item['price'] ?? 0);
+    $qty = max(1, min(999, intval($item['qty'] ?? 1)));
+    $sub = $p * $qty;
+    $pf  = number_format($p, 0, '.', ' ');
+    $sf  = number_format($sub, 0, '.', ' ');
+    $tgLines .= "  {$_num}. {$n} — {$pf} ₽ × {$qty} шт. = {$sf} ₽\n";
+    $_num++;
+}
+
+$tgMsg  = "🛒 <b>Новая заявка — СплитХаб</b>\n━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "👤 <b>Имя:</b> {$tgName}\n📞 <b>Телефон:</b> {$tgPhone}\n";
+if ($tgClient !== '') $tgMsg .= "💬 <b>Telegram:</b> {$tgClient}\n";
+$tgMsg .= "📅 <b>Время:</b> {$date}\n━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "📦 <b>Позиции ({$cnt} шт.):</b>\n{$tgLines}━━━━━━━━━━━━━━━━━━\n💰 <b>Итого:</b> {$totalf} ₽\n";
+if ($bonusSpent > 0) $tgMsg .= "🎁 <b>Списано бонусов:</b> −" . number_format($bonusSpent, 0, '.', ' ') . " ₽\n";
+if ($bonusEarned > 0) $tgMsg .= "⭐ <b>Начислено бонусов:</b> +" . number_format($bonusEarned, 0, '.', ' ') . " ₽\n";
+if ($orderId) $tgMsg .= "🆔 <b>Заказ:</b> #{$orderId}\n";
+if ($tgComment !== '') $tgMsg .= "━━━━━━━━━━━━━━━━━━\n💬 <b>Комментарий:</b> {$tgComment}\n";
+$tgMsg .= "\n<i>Клиент ждёт звонка</i>";
 
 try {
     $tgResult = sendTg(BOT_TOKEN, CHAT_ID, $tgMsg);
+    // Если HTML-режим отклонён — fallback: plain text без тегов
+    if (!($tgResult['result']['ok'] ?? false)) {
+        error_log('[SplitHub TG] HTML failed: ' . ($tgResult['resp'] ?? '') . ' — retrying plain');
+        $tgPlain = strip_tags($tgMsg);
+        $tgResult = sendTg(BOT_TOKEN, CHAT_ID, $tgPlain);
+    }
 } catch (Throwable $e) {
     error_log('[SplitHub send] TG exception: ' . $e->getMessage());
     $tgResult = ['resp' => null, 'code' => 0, 'result' => null];
@@ -243,28 +271,22 @@ try {
 file_put_contents($rateFile, time());
 
 // ── Ответ ──
-// Считаем заявку успешной если: TG ОК, или email ОК, или заказ сохранён в БД
 $tgOk    = $tgResult['result']['ok'] ?? false;
 $orderOk = $tgOk || $mailOk || ($orderId !== null) || $guestOrderSaved;
 
+// Всегда логируем детали
+$tgErr = $tgResult['result']['description'] ?? ('HTTP ' . ($tgResult['code'] ?? '?'));
+error_log('[SplitHub] TG=' . ($tgOk ? 'ok' : 'fail:'.$tgErr) . ' mail=' . ($mailOk ? 'ok' : 'fail') . ' orderId=' . ($orderId ?? 'null') . ' guest=' . ($guestOrderSaved ? 'yes' : 'no'));
+
 if ($orderOk) {
-    $resp = ['ok' => true, 'email' => $mailOk ? 'sent' : 'failed', 'tg' => $tgOk ? 'sent' : 'failed'];
+    $resp = ['ok' => true, 'tg' => $tgOk ? 'sent' : 'failed', 'email' => $mailOk ? 'sent' : 'failed'];
     if ($orderId) {
         $resp['order_id']     = $orderId;
         $resp['bonus_earned'] = $bonusEarned;
         $resp['bonus_spent']  = $bonusSpent;
     }
-    if (!$tgOk) {
-        // TG не сработал — логируем детально, но заявка принята
-        $tgErr = json_decode($tgResult['resp'] ?? '{}', true);
-        error_log('[SplitHub] TG warn: ' . ($tgErr['description'] ?? $tgResult['resp'] ?? 'no response'));
-    }
     echo json_encode($resp);
 } else {
-    // Ни TG, ни email, ни БД — полный провал
-    $tgErr = json_decode($tgResult['resp'] ?? '{}', true);
-    $tgDesc = $tgErr['description'] ?? ('HTTP ' . ($tgResult['code'] ?? '?'));
-    error_log('[SplitHub] TG error: ' . $tgDesc);
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Ошибка отправки: ' . $tgDesc]);
+    echo json_encode(['ok' => false, 'error' => 'Заявка не отправлена. Позвоните: +7 978 599-13-69'], JSON_UNESCAPED_UNICODE);
 }
