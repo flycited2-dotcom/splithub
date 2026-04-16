@@ -14,11 +14,15 @@ function getDB() {
     $db = new PDO('sqlite:' . $dbPath);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    $db->exec('PRAGMA journal_mode=WAL');
-    $db->exec('PRAGMA foreign_keys=ON');
+    try { $db->exec('PRAGMA journal_mode=WAL'); } catch (Throwable $e) {}
+    try { $db->exec('PRAGMA foreign_keys=ON'); } catch (Throwable $e) {}
 
     if ($isNew) {
         migrate($db);
+    } else {
+        // Ensure tables exist even if DB file was created but migration failed
+        $tables = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")->fetch();
+        if (!$tables) migrate($db);
     }
 
     return $db;
@@ -33,7 +37,7 @@ function migrate($db) {
             telegram TEXT DEFAULT "",
             password_hash TEXT NOT NULL,
             role TEXT DEFAULT "client",
-            created_at TEXT DEFAULT (datetime("now"))
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS orders (
@@ -45,7 +49,7 @@ function migrate($db) {
             status TEXT DEFAULT "new",
             comment TEXT DEFAULT "",
             client_tg TEXT DEFAULT "",
-            created_at TEXT DEFAULT (datetime("now")),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         );
 
@@ -65,7 +69,7 @@ function migrate($db) {
             amount INTEGER NOT NULL,
             type TEXT NOT NULL,
             description TEXT DEFAULT "",
-            created_at TEXT DEFAULT (datetime("now")),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id),
             FOREIGN KEY (order_id) REFERENCES orders(id)
         );
@@ -77,7 +81,18 @@ function migrate($db) {
             bonus_percent REAL DEFAULT 3.0,
             product_group TEXT DEFAULT NULL,
             min_order INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT (datetime("now"))
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS guest_orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            total INTEGER NOT NULL DEFAULT 0,
+            items_json TEXT NOT NULL DEFAULT "[]",
+            comment TEXT DEFAULT "",
+            client_tg TEXT DEFAULT "",
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
         -- Default promo: 3% retro-bonus on all orders

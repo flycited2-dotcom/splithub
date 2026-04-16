@@ -71,6 +71,7 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .brand-photo{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid var(--blo);}
 .brand-info{flex:1;}
 .brand-name{font-family:'Unbounded',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+.brand-factory{display:inline-flex;align-items:center;margin-left:8px;padding:2px 8px;font-family:'Inter',sans-serif;font-size:0.68rem;font-weight:600;color:var(--amber-d);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:6px;letter-spacing:0.01em;vertical-align:middle;white-space:nowrap;}
 .brand-line{height:1px;background:var(--blo);margin-top:5px;}
 .series-badge{
   display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;
