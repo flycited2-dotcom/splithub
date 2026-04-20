@@ -211,7 +211,7 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 }
 .pcard-price-val{
   font-family:'Unbounded',sans-serif;font-size:0.84rem;font-weight:700;
-  color:var(--amber-d);line-height:1;
+  color:#2563eb;line-height:1;
 }
 .pcard-price small{
   display:block;font-family:'Inter',sans-serif;
@@ -716,9 +716,12 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 }
 
 /* STOCK card indicators */
-.stock-ok{font-size:.71rem;font-weight:600;color:#10B981;margin-bottom:6px;display:flex;align-items:center;gap:3px}
-.stock-ord{font-size:.68rem;font-weight:600;color:#D97706;margin-bottom:6px}
-.stock-out{font-size:.68rem;font-weight:600;color:#9CA3AF;margin-bottom:6px}
+.stock-badge{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;line-height:1.4;margin-bottom:6px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid;width:fit-content}
+.sb-in {background:rgba(209,250,229,.65);color:#047857;border-color:rgba(16,185,129,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 6px rgba(16,185,129,.12)}
+.sb-12 {background:rgba(255,228,236,.60);color:#be185d;border-color:rgba(244,114,182,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 6px rgba(244,114,182,.1)}
+.sb-35 {background:rgba(255,196,215,.55);color:#9d174d;border-color:rgba(236,72,153,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 1px 6px rgba(236,72,153,.12)}
+.sb-7  {background:rgba(254,243,199,.65);color:#b45309;border-color:rgba(245,158,11,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 6px rgba(245,158,11,.12)}
+.sb-out{background:rgba(241,245,249,.55);color:#6b7280;border-color:rgba(156,163,175,.25)}
 
 /* PRODUCT DETAIL BOTTOM SHEET */
 .pd-ov{position:fixed;inset:0;z-index:300;background:rgba(15,18,28,.45);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .28s}
@@ -734,16 +737,18 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pd-title{font-size:1rem;font-weight:800;color:var(--text);line-height:1.2;letter-spacing:-.02em}
 .pd-series{font-size:.7rem;color:var(--text2);margin-top:3px;line-height:1.4}
 .pd-stock-inline{flex-shrink:0;font-size:.66rem;font-weight:700;padding:4px 10px;border-radius:20px;line-height:1.3;text-align:center;border:1px solid}
-.si-in{background:rgba(16,185,129,.12);color:#059669;border-color:rgba(16,185,129,.25)}
-.si-ord{background:rgba(245,158,11,.12);color:#D97706;border-color:rgba(245,158,11,.25)}
-.si-out{background:rgba(156,163,175,.12);color:#6b7280;border-color:rgba(156,163,175,.25)}
+.si-in {background:rgba(209,250,229,.65);color:#047857;border-color:rgba(16,185,129,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.si-12 {background:rgba(255,228,236,.60);color:#be185d;border-color:rgba(244,114,182,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.si-35 {background:rgba(255,196,215,.55);color:#9d174d;border-color:rgba(236,72,153,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.si-7  {background:rgba(254,243,199,.65);color:#b45309;border-color:rgba(245,158,11,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.si-out{background:rgba(241,245,249,.55);color:#6b7280;border-color:rgba(156,163,175,.25)}
 .pd-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text2);flex-shrink:0;border:none;cursor:pointer;transition:background .2s}
 .pd-close:hover{background:rgba(0,0,0,.12)}
 .pd-scroll{overflow-y:auto;flex:1;padding:0 16px 8px;-webkit-overflow-scrolling:touch}
 .pd-img-wrap{border-radius:16px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(220,230,250,.4));margin-bottom:14px}
 .pd-img{width:100%;max-height:210px;object-fit:contain;padding:14px;display:block}
 .pd-action-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.pd-price{font-family:'Unbounded',sans-serif;font-size:1.2rem;font-weight:700;color:var(--amber-d);letter-spacing:-.02em}
+.pd-price{font-family:'Unbounded',sans-serif;font-size:1.2rem;font-weight:700;color:#2563eb;letter-spacing:-.02em}
 .pd-price-sub{font-family:'Inter',sans-serif;font-size:.6rem;font-weight:400;color:var(--text3);margin-left:2px}
 .pd-order{background:var(--amber);color:#fff;border-radius:12px;padding:11px 18px;font-size:.84rem;font-weight:700;box-shadow:0 4px 14px rgba(245,158,11,.4);transition:all .2s;white-space:nowrap;border:none;cursor:pointer}
 .pd-order:hover{background:var(--amber-d)}
@@ -853,6 +858,13 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .bonus-spend-row label{font-size:.76rem;color:var(--text2)}
 .bonus-spend-row input{width:80px;padding:6px 10px;border:1px solid var(--blo);border-radius:8px;font-size:.82rem;text-align:center;font-family:'Inter',sans-serif}
 .bonus-spend-row .bonus-max{font-size:.68rem;color:var(--amber);cursor:pointer;font-weight:600}
+
+.qbtn-black{background:rgba(15,20,35,.72)!important;color:rgba(255,255,255,.92)!important;border-color:rgba(255,255,255,.12)!important;box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;}
+.qbtn-black:hover{background:rgba(15,20,35,.88)!important;}
+.qbtn-black.active{background:rgba(30,35,55,.88)!important;border-color:rgba(255,255,255,.22)!important;}
+.do-repeat{width:100%;margin-top:9px;padding:8px 0;border-radius:9px;background:rgba(37,99,235,.1);color:#1d4ed8;font-size:.74rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid rgba(37,99,235,.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .18s;}
+.do-repeat:hover{background:rgba(37,99,235,.18);}
+.do-repeat:active{transform:scale(0.98);}
 </style>
 </head>
 <body>
@@ -900,7 +912,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     <button class="g qbtn qbtn-filter" data-filter="truba" onclick="goFilter('truba')">&#128295; Медная труба</button>
     <button class="g qbtn qbtn-filter" data-filter="rashod" onclick="goFilter('rashod')">&#9728; Расходники</button>
     <button class="g qbtn qbtn-filter" data-filter="poluprom" onclick="goFilter('poluprom')">&#127981; Полупром</button>
-    <button class="g qbtn qbtn-filter" data-filter="multi" onclick="goFilter('multi')">&#10054; Чёрные сплиты</button>
+    <button class="g qbtn qbtn-filter qbtn-black" data-filter="multi" onclick="goFilter('multi')">&#10054; Чёрные сплиты</button>
   </div>
   <div class="cat-tiles rv" style="transition-delay:0.1s">
     <a class="g ctile ctile-photo" href="#inv" onclick="go('inv')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-inv.jpg" alt="Инверторные"><div class="ctile-ov"><div class="ctile-lbl">&#10052; Инверторные</div></div></a>
@@ -1072,21 +1084,21 @@ function chQty(id, d) {
 
 // ── Stock helpers ─────────────────────────────────────
 function getStockHtml(p) {
-  if(p.stock === 'in_stock') return '<div class="stock-ok">&#10003; Есть в наличии</div>';
-  if(p.stock === 'out')      return '<div class="stock-out">&#10007; Нет в наличии</div>';
-  if(p.stock === 'days_1_2') return '<div class="stock-ord">Под заказ &middot; 1&ndash;2 дня</div>';
-  if(p.stock === 'days_3_5') return '<div class="stock-ord">Под заказ &middot; 3&ndash;5 дней</div>';
-  if(p.stock === 'order_7')  return '<div class="stock-ord">Под заказ &middot; 7 дней</div>';
+  if(p.stock === 'in_stock') return '<div class="stock-badge sb-in">&#10003; В наличии</div>';
+  if(p.stock === 'out')      return '<div class="stock-badge sb-out">Нет в наличии</div>';
+  if(p.stock === 'days_1_2') return '<div class="stock-badge sb-12">Под заказ &middot; 1&ndash;2 дня</div>';
+  if(p.stock === 'days_3_5') return '<div class="stock-badge sb-35">Под заказ &middot; 3&ndash;5 дней</div>';
+  if(p.stock === 'order_7')  return '<div class="stock-badge sb-7">Под заказ &middot; 7 дней</div>';
   return '';
 }
 
 function getStockInline(p) {
   var cls, lbl;
   if(p.stock === 'in_stock')      { cls='si-in';  lbl='В наличии'; }
-  else if(p.stock === 'out')      { cls='si-out'; lbl='Нет'; }
-  else if(p.stock === 'days_1_2') { cls='si-ord'; lbl='Под заказ<br>1&ndash;2 дня'; }
-  else if(p.stock === 'days_3_5') { cls='si-ord'; lbl='Под заказ<br>3&ndash;5 дней'; }
-  else if(p.stock === 'order_7')  { cls='si-ord'; lbl='Под заказ<br>7 дней'; }
+  else if(p.stock === 'out')      { cls='si-out'; lbl='Нет в наличии'; }
+  else if(p.stock === 'days_1_2') { cls='si-12';  lbl='Под заказ &middot; 1&ndash;2 дня'; }
+  else if(p.stock === 'days_3_5') { cls='si-35';  lbl='Под заказ &middot; 3&ndash;5 дней'; }
+  else if(p.stock === 'order_7')  { cls='si-7';   lbl='Под заказ &middot; 7 дней'; }
   else                            { cls='si-in';  lbl='В наличии'; }
   return '<div class="pd-stock-inline ' + cls + '">' + lbl + '</div>';
 }
@@ -1792,6 +1804,7 @@ function renderDashTab(tab) {
     + '</div>';
 
   if (tab === 'orders') {
+    _dashOrders = [];
     body.innerHTML = tabs + '<div class="dash-empty">Загрузка...</div>';
     fetch('api/auth.php?action=history')
     .then(function(r){ return r.json(); })
