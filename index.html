@@ -865,6 +865,34 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .do-repeat{width:100%;margin-top:9px;padding:8px 0;border-radius:9px;background:rgba(37,99,235,.1);color:#1d4ed8;font-size:.74rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid rgba(37,99,235,.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .18s;}
 .do-repeat:hover{background:rgba(37,99,235,.18);}
 .do-repeat:active{transform:scale(0.98);}
+
+/* ── Order history filters ── */
+.orders-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.of-search{flex:1;min-width:130px;padding:8px 12px;border:1px solid var(--blo);border-radius:10px;background:rgba(255,255,255,.75);font-family:'Inter',sans-serif;font-size:.78rem;color:var(--text);outline:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.of-search:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,158,11,.1)}
+.of-sel{padding:8px 10px;border:1px solid var(--blo);border-radius:10px;background:rgba(255,255,255,.75);font-family:'Inter',sans-serif;font-size:.75rem;color:var(--text);outline:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer}
+/* ── Pagination ── */
+.orders-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;flex-wrap:wrap}
+.op-info{font-size:.71rem;color:var(--text3)}
+.op-btns{display:flex;gap:4px}
+.op-btn{padding:5px 10px;border:1px solid var(--blo);border-radius:8px;background:rgba(255,255,255,.6);font-size:.74rem;font-weight:600;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.op-btn.cur{background:var(--amber);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(245,158,11,.3)}
+/* ── Unavailable items modal ── */
+.unavail-ov{position:fixed;inset:0;z-index:500;background:rgba(15,18,28,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.unavail-ov.on{opacity:1;pointer-events:auto}
+.unavail-box{background:rgba(248,250,252,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;padding:20px 18px;max-width:330px;width:100%;border:1px solid var(--blo);box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.unavail-title{font-weight:700;font-size:.88rem;margin-bottom:6px;color:var(--text)}
+.unavail-sub{font-size:.76rem;color:var(--text2);margin-bottom:10px;line-height:1.5}
+.unavail-list{margin-bottom:14px}
+.unavail-item{font-size:.74rem;color:#ef4444;padding:3px 0;border-bottom:1px solid rgba(239,68,68,.08);line-height:1.4}
+.unavail-item:last-child{border-bottom:none}
+.unavail-btns{display:flex;gap:8px}
+.unavail-ok{flex:1;padding:9px;border:none;border-radius:10px;background:var(--amber);color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.unavail-cart{flex:1;padding:9px;border:1px solid rgba(22,163,74,.3);border-radius:10px;background:rgba(22,163,74,.1);color:#16a34a;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+/* ── Toast action button ── */
+.toast-action{margin-left:8px;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;vertical-align:middle}
+/* ── More items line ── */
+.do-more{font-size:.68rem;color:var(--amber-d);font-weight:600;padding:3px 0}
 </style>
 </head>
 <body>
@@ -1435,10 +1463,18 @@ function logout() {
 // ── Toast helper ─────────────────────────────────────
 function showToast(msg, isError) {
   var t = document.getElementById('toast');
-  t.textContent = msg;
+  t.innerHTML = msg;
   t.classList.toggle('toast-err', !!isError);
   t.classList.add('on');
   setTimeout(function(){ t.classList.remove('on', 'toast-err'); }, 4000);
+}
+function showToastWithAction(msg, actionLabel, actionFn) {
+  var t = document.getElementById('toast');
+  t.innerHTML = msg + '<button class="toast-action" id="toastActionBtn">' + actionLabel + '</button>';
+  t.classList.remove('toast-err');
+  t.classList.add('on');
+  document.getElementById('toastActionBtn').onclick = function(){ t.classList.remove('on'); actionFn(); };
+  setTimeout(function(){ t.classList.remove('on'); }, 5000);
 }
 
 // ── Send ──────────────────────────────────────────────
@@ -1776,24 +1812,104 @@ function closeDash() {
   document.getElementById('dash-modal').classList.remove('on');
 }
 
-function repeatOrder(orderId, itemsEncoded) {
-  var items;
-  try { items = JSON.parse(decodeURIComponent(itemsEncoded)); } catch(e) { return; }
-  var added = 0;
-  items.forEach(function(it) {
-    // Try to find by product_id first, then by name match
-    var prod = (it.id && it.id !== '') ? PRODUCTS.find(function(p){ return p.id === it.id; }) : null;
-    if (!prod) prod = PRODUCTS.find(function(p){ return p.model === it.name || p.name === it.name; });
-    if (prod && prod.stock !== 'out') {
-      var ex = cart.find(function(c){ return c.id === prod.id; });
-      if (ex) { ex.qty += it.qty; } else { cart.push({id:prod.id,name:prod.model,brand:prod.brand,price:prod.price,brandCode:prod.brandCode,group:prod.group,qty:it.qty}); }
-      added++;
-    }
+// ── Orders history state & helpers ──────────────────
+var _ordersPage=1,_ordersTotal=0,_ordersPages=1,_ordersSearch='',_ordersStatus='',_ordersPeriod='';
+
+function debounce(fn,ms){var t;return function(){var a=arguments;clearTimeout(t);t=setTimeout(function(){fn.apply(null,a);},ms);};}
+
+function repeatOrder(orderId,shNum,itemsEncoded){
+  var items=[];try{items=JSON.parse(decodeURIComponent(itemsEncoded));}catch(e){}
+  var added=[],unavailable=[];
+  items.forEach(function(it){
+    var prod=PRODUCTS.find(function(p){return p.model===(it.product_name||it.name);});
+    if(prod&&prod.stock!=='out'){
+      var ex=cart.find(function(c){return c.id===prod.id;});
+      if(ex){ex.qty+=(it.qty||1);}else{cart.push({id:prod.id,name:prod.model,brand:prod.brand,price:prod.price,brandCode:prod.brandCode,group:prod.group,qty:(it.qty||1)});}
+      added.push(prod.model);
+    }else{unavailable.push(it.product_name||it.name||'?');}
   });
-  closeDash();
-  if (added > 0) { syncFab(); renderAll(); openD(); showToast('✓ ' + added + ' товар(а) добавлены в заявку'); }
-  else showToast('Товары из заказа не найдены в каталоге', true);
+  saveCart();renderCart();updateFab();
+  if(unavailable.length){showUnavailModal(shNum,unavailable,added.length);}
+  else if(added.length){showToastWithAction('\u2713\u00a0'+shNum+': '+added.length+'\u00a0\u043f\u043e\u0437. \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e','\u0418\u0434\u0442\u0438 \u0432 \u043a\u043e\u0440\u0437\u0438\u043d\u0443',function(){openD();});}
+  else{showToast('\u0422\u043e\u0432\u0430\u0440\u044b \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0435',true);}
 }
+
+function showUnavailModal(shNum,unavailable,addedCount){
+  var ov=document.getElementById('unavailOv');
+  document.getElementById('unavailSub').textContent=addedCount>0?addedCount+'\u00a0\u043f\u043e\u0437. \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e. \u041d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b:':'\u0412\u0441\u0435 \u043f\u043e\u0437\u0438\u0446\u0438\u0438 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b:';
+  document.getElementById('unavailList').innerHTML=unavailable.map(function(n){return '<div class="unavail-item">\u2715\u00a0'+n+'</div>';}).join('');
+  var cb=document.getElementById('unavailCartBtn');
+  cb.style.display=addedCount>0?'':'none';
+  cb.onclick=function(){closeUnavailModal();openD();};
+  ov.classList.add('on');
+}
+function closeUnavailModal(){document.getElementById('unavailOv').classList.remove('on');}
+
+function resetOrderFilters(){_ordersSearch='';_ordersStatus='';_ordersPeriod='';_ordersPage=1;renderDashTab('orders');}
+
+function loadOrders(){
+  var listEl=document.getElementById('ordersList');
+  if(!listEl)return;
+  listEl.innerHTML='<div class="dash-empty">\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430...</div>';
+  var url='api/auth.php?action=history&page='+_ordersPage;
+  if(_ordersStatus)url+='&status='+encodeURIComponent(_ordersStatus);
+  if(_ordersPeriod)url+='&period='+encodeURIComponent(_ordersPeriod);
+  if(_ordersSearch)url+='&search='+encodeURIComponent(_ordersSearch);
+  fetch(url).then(function(r){return r.json();}).then(function(d){
+    if(!d.ok){listEl.innerHTML='<div class="dash-empty">\u041e\u0448\u0438\u0431\u043a\u0430</div>';return;}
+    _ordersTotal=d.total;_ordersPages=d.pages;
+    renderOrdersList(d.orders,listEl);
+  }).catch(function(){listEl.innerHTML='<div class="dash-empty">\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0438</div>';});
+}
+
+function renderOrdersList(orders,listEl){
+  if(!orders||!orders.length){
+    listEl.innerHTML=(_ordersSearch||_ordersStatus||_ordersPeriod)
+      ? '<div class="dash-empty">\u041f\u043e \u0437\u0430\u043f\u0440\u043e\u0441\u0443 \u0437\u0430\u043a\u0430\u0437\u043e\u0432 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e<br><button class="op-btn" style="margin-top:10px" onclick="resetOrderFilters()">\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c \u0444\u0438\u043b\u044c\u0442\u0440\u044b</button></div>'
+      : '<div class="dash-empty">\u0412\u044b \u0435\u0449\u0451 \u043d\u0435 \u043e\u0444\u043e\u0440\u043c\u043b\u044f\u043b\u0438 \u0437\u0430\u043a\u0430\u0437\u044b</div>';
+    return;
+  }
+  var sMap={new:'\u041d\u043e\u0432\u044b\u0439',confirmed:'\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d',in_progress:'\u0412 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0435',shipped:'\u041e\u0442\u0433\u0440\u0443\u0436\u0435\u043d',completed:'\u0412\u044b\u043f\u043e\u043b\u043d\u0435\u043d',cancelled:'\u041e\u0442\u043c\u0435\u043d\u0451\u043d'};
+  var sClr={new:'#f59e0b',confirmed:'#3b82f6',in_progress:'#8b5cf6',shipped:'#06b6d4',completed:'#16a34a',cancelled:'#ef4444'};
+  var html='';
+  orders.forEach(function(o){
+    var dt=new Date(o.created_at.replace(' ','T'));
+    var ds=isNaN(dt.getTime())?o.created_at:dt.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var sc=sClr[o.status]||'#9ca3af', sl=sMap[o.status]||o.status;
+    var shNum='SH-'+String(o.id).padStart(5,'0');
+    var items=o.items||[], shown=items.slice(0,2), more=items.length-2;
+    var enc=encodeURIComponent(JSON.stringify(items.map(function(it){return {product_name:it.product_name,qty:it.qty};})));
+    html+='<div class="do-card">'
+      +'<div class="do-head"><div class="do-head-left"><span class="do-num">'+shNum+'</span><span class="do-date">'+ds+'</span></div>'
+      +'<span class="do-badge" style="background:'+sc+'22;color:'+sc+';border-color:'+sc+'44">'+sl+'</span></div>'
+      +'<div class="do-items-list">';
+    shown.forEach(function(it){
+      html+='<div class="do-item-row"><span class="do-item-name">'+it.product_name+'</span>'
+        +'<span class="do-item-meta">'+it.qty+'\u00a0\u0448\u0442.\u00a0\u00b7\u00a0'+(it.price*it.qty).toLocaleString('ru-RU')+'\u00a0\u20bd</span></div>';
+    });
+    if(more>0)html+='<div class="do-more">+ \u0435\u0449\u0451\u00a0'+more+'\u00a0\u043f\u043e\u0437\u0438\u0446\u0438\u0439</div>';
+    html+='</div><div class="do-footer">'
+      +'<div class="do-total-block"><span class="do-total-label">\u0418\u0442\u043e\u0433\u043e</span>'
+      +'<span class="do-total-val">'+parseInt(o.total).toLocaleString('ru-RU')+'\u00a0\u20bd</span></div>'
+      +(o.bonus_earned>0?'<span class="do-bonus plus">+'+o.bonus_earned+'\u00a0\u0431\u043e\u043d</span>':'')
+      +(o.bonus_spent>0?'<span class="do-bonus minus">\u2212'+o.bonus_spent+'\u00a0\u0441\u043f\u0438\u0441\u0430\u043d\u043e</span>':'')
+      +'<button class="do-repeat" onclick="repeatOrder('+o.id+',\''+shNum+'\',\''+enc+'\')">\u21ba\u00a0\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c</button>'
+      +'</div></div>';
+  });
+  if(_ordersTotal>0){
+    var from=((_ordersPage-1)*10)+1,to=Math.min(_ordersPage*10,_ordersTotal);
+    html+='<div class="orders-pager"><span class="op-info">\u041f\u043e\u043a\u0430\u0437\u0430\u043d\u043e\u00a0'+from+'\u2013'+to+'\u00a0\u0438\u0437\u00a0'+_ordersTotal+'</span><div class="op-btns">';
+    if(_ordersPage>1)html+='<button class="op-btn" onclick="_ordersPage--;loadOrders()">\u2039</button>';
+    for(var p=Math.max(1,_ordersPage-2);p<=Math.min(_ordersPages,_ordersPage+2);p++){
+      html+='<button class="op-btn'+(p===_ordersPage?' cur':'')+'" onclick="_ordersPage='+p+';loadOrders()">'+p+'</button>';
+    }
+    if(_ordersPage<_ordersPages)html+='<button class="op-btn" onclick="_ordersPage++;loadOrders()">\u203a</button>';
+    html+='</div></div>';
+  }
+  listEl.innerHTML=html;
+}
+
+
 
 function renderDashTab(tab) {
   var body = document.getElementById('dashBody');
@@ -1804,54 +1920,30 @@ function renderDashTab(tab) {
     + '</div>';
 
   if (tab === 'orders') {
-    _dashOrders = [];
-    body.innerHTML = tabs + '<div class="dash-empty">Загрузка...</div>';
-    fetch('api/auth.php?action=history')
-    .then(function(r){ return r.json(); })
-    .then(function(d) {
-      if (!d.ok || !d.orders || !d.orders.length) {
-        body.innerHTML = tabs + '<div class="dash-empty">Заказов пока нет</div>';
-        return;
-      }
-      var statusMap = {new:'Новый',confirmed:'Подтверждён',in_progress:'В работе',shipped:'Отгружен',completed:'Завершён',cancelled:'Отменён'};
-      var statusColor = {new:'#f59e0b',confirmed:'#3b82f6',in_progress:'#8b5cf6',shipped:'#06b6d4',completed:'#16a34a',cancelled:'#ef4444'};
-      var html = tabs;
-      d.orders.forEach(function(o) {
-        var dt = new Date(o.created_at.replace(' ','T'));
-        var dateStr = isNaN(dt) ? o.created_at : dt.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + dt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-        var sColor = statusColor[o.status] || '#9ca3af';
-        var sLabel = statusMap[o.status] || o.status;
-        var itemsJson = JSON.stringify((o.items||[]).map(function(it){ return {id:it.product_id||'',name:it.product_name,price:it.price,qty:it.qty}; }));
-        html += '<div class="do-card">'
-          + '<div class="do-head">'
-            + '<div class="do-head-left">'
-              + '<span class="do-num">Заказ\u00a0#' + o.id + '</span>'
-              + '<span class="do-date">' + dateStr + '</span>'
-            + '</div>'
-            + '<span class="do-badge" style="background:' + sColor + '22;color:' + sColor + ';border-color:' + sColor + '44">' + sLabel + '</span>'
-          + '</div>'
-          + '<div class="do-items-list">';
-        (o.items||[]).forEach(function(it) {
-          var lineTotal = (it.price * it.qty).toLocaleString('ru-RU');
-          html += '<div class="do-item-row">'
-            + '<span class="do-item-name">' + it.product_name + '</span>'
-            + '<span class="do-item-meta">' + it.qty + '\u00a0шт. \u00b7 ' + lineTotal + '\u00a0₽</span>'
-          + '</div>';
-        });
-        html += '</div>'
-          + '<div class="do-footer">'
-            + '<div class="do-total-block">'
-              + '<span class="do-total-label">Итого</span>'
-              + '<span class="do-total-val">' + parseInt(o.total).toLocaleString('ru-RU') + '\u00a0₽</span>'
-            + '</div>'
-            + (o.bonus_earned > 0 ? '<span class="do-bonus plus">+' + o.bonus_earned + '\u00a0бонусов</span>' : '')
-            + (o.bonus_spent  > 0 ? '<span class="do-bonus minus">\u2212' + o.bonus_spent + '\u00a0списано</span>' : '')
-            + '<button class="do-repeat" onclick="repeatOrder(' + o.id + ',\'' + encodeURIComponent(itemsJson) + '\')">&#128257; Повторить</button>'
-          + '</div>'
-        + '</div>';
-      });
-      body.innerHTML = html;
-    });
+    var srchDebounce = debounce(function(v){_ordersSearch=v;_ordersPage=1;loadOrders();},300);
+    body.innerHTML = tabs
+      + '<div class="orders-filters">'
+      + '<input class="of-search" id="oSearch" type="text" placeholder="Поиск #SH-..." value="'+_ordersSearch+'">'
+      + '<select class="of-sel" id="oStatus">'
+        + '<option value="">Все статусы</option>'
+        + '<option value="completed"'+(_ordersStatus==='completed'?' selected':'')+'>Выполнен</option>'
+        + '<option value="cancelled"'+(_ordersStatus==='cancelled'?' selected':'')+'>Отменён</option>'
+        + '<option value="in_progress"'+(_ordersStatus==='in_progress'?' selected':'')+'>В обработке</option>'
+        + '<option value="new"'+(_ordersStatus==='new'?' selected':'')+'>Новый</option>'
+      + '</select>'
+      + '<select class="of-sel" id="oPeriod">'
+        + '<option value="">За всё время</option>'
+        + '<option value="30d"'+(_ordersPeriod==='30d'?' selected':'')+'>30 дней</option>'
+        + '<option value="3m"'+(_ordersPeriod==='3m'?' selected':'')+'>3 месяца</option>'
+        + '<option value="1y"'+(_ordersPeriod==='1y'?' selected':'')+'>Год</option>'
+      + '</select>'
+      + '</div>'
+      + '<div id="ordersList"></div>';
+    document.getElementById('oSearch').addEventListener('input',function(){srchDebounce(this.value);});
+    document.getElementById('oStatus').addEventListener('change',function(){_ordersStatus=this.value;_ordersPage=1;loadOrders();});
+    document.getElementById('oPeriod').addEventListener('change',function(){_ordersPeriod=this.value;_ordersPage=1;loadOrders();});
+    loadOrders();
+
   } else if (tab === 'bonus') {
     body.innerHTML = tabs + '<div class="dash-empty">Загрузка...</div>';
     fetch('api/auth.php?action=bonus')
@@ -1897,5 +1989,18 @@ renderAll();
 observe();
 syncFab();
 </script>
+
+<!-- UNAVAILABLE ITEMS MODAL -->
+<div class="unavail-ov" id="unavailOv" onclick="if(event.target===this)closeUnavailModal()">
+  <div class="unavail-box g">
+    <div class="unavail-title">&#9888; Часть товаров недоступна</div>
+    <div class="unavail-sub" id="unavailSub"></div>
+    <div class="unavail-list" id="unavailList"></div>
+    <div class="unavail-btns">
+      <button class="unavail-ok" onclick="closeUnavailModal()">Понятно</button>
+      <button class="unavail-cart" id="unavailCartBtn">Перейти в корзину</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

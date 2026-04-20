@@ -155,26 +155,75 @@ switch ($action) {
         jsonResponse(['ok' => true, 'user' => $user, 'bonus_balance' => $balance]);
         break;
 
-    // ── Order history ──
+    // ── Order history (with pagination + filters) ──
     case 'history':
         $uid = authRequire();
-        $db = getDB();
+        $db  = getDB();
 
-        $orders = $db->prepare('
-            SELECT id, total, bonus_earned, bonus_spent, status, comment, created_at
-            FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 50
-        ');
-        $orders->execute([$uid]);
-        $list = $orders->fetchAll();
+        $page    = max(1, (int)($_GET['page']   ?? 1));
+        $perPage = 10;
+        $status  = trim($_GET['status'] ?? '');
+        $period  = trim($_GET['period'] ?? '');
+        $search  = trim($_GET['search'] ?? '');
 
-        // Attach items to each order
-        foreach ($list as &$order) {
-            $items = $db->prepare('SELECT product_id, product_name, price, qty FROM order_items WHERE order_id = ?');
-            $items->execute([$order['id']]);
-            $order['items'] = $items->fetchAll();
+        $where  = ['user_id = ?'];
+        $params = [$uid];
+
+        if ($status !== '') { $where[] = 'status = ?'; $params[] = $status; }
+
+        if ($period === '30d')     { $where[] = "created_at >= datetime('now','-30 days')"; }
+        elseif ($period === '3m')  { $where[] = "created_at >= datetime('now','-3 months')"; }
+        elseif ($period === '1y')  { $where[] = "created_at >= datetime('now','-1 year')"; }
+
+        if ($search !== '') {
+            // strip SH- prefix if present, search by numeric id
+            $numSearch = preg_replace('/^(SH-?|#)/i', '', $search);
+            if (ctype_digit($numSearch)) {
+                $where[] = 'id = ?';
+                $params[] = (int)$numSearch;
+            }
         }
 
-        jsonResponse(['ok' => true, 'orders' => $list]);
+        $whereSQL = 'WHERE ' . implode(' AND ', $where);
+
+        $cnt = $db->prepare("SELECT COUNT(*) AS cnt FROM orders $whereSQL");
+        $cnt->execute($params);
+        $total  = (int)$cnt->fetch()['cnt'];
+        $pages  = max(1, (int)ceil($total / $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        $stmt = $db->prepare("SELECT id, total, bonus_earned, bonus_spent, status, comment, created_at
+                               FROM orders $whereSQL ORDER BY created_at DESC LIMIT $perPage OFFSET $offset");
+        $stmt->execute($params);
+        $list = $stmt->fetchAll();
+
+        foreach ($list as &$order) {
+            $it = $db->prepare('SELECT product_name, price, qty FROM order_items WHERE order_id = ?');
+            $it->execute([$order['id']]);
+            $order['items'] = $it->fetchAll();
+        }
+        unset($order);
+
+        jsonResponse(['ok' => true, 'orders' => $list, 'total' => $total, 'pages' => $pages, 'page' => $page]);
+        break;
+
+    // ── Repeat order — returns items for client-side cart merge ──
+    case 'repeat_order':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $uid = authRequire();
+        $db  = getDB();
+
+        $raw     = json_decode(file_get_contents('php://input'), true);
+        $orderId = (int)($raw['orderId'] ?? 0);
+        if (!$orderId) jsonResponse(['ok' => false, 'error' => 'orderId required'], 422);
+
+        $chk = $db->prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?');
+        $chk->execute([$orderId, $uid]);
+        if (!$chk->fetch()) jsonResponse(['ok' => false, 'error' => 'Заказ не найден'], 404);
+
+        $it = $db->prepare('SELECT product_name, price, qty FROM order_items WHERE order_id = ?');
+        $it->execute([$orderId]);
+        jsonResponse(['ok' => true, 'items' => $it->fetchAll()]);
         break;
 
     // ── Bonus log ──
