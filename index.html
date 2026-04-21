@@ -55,22 +55,21 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .btn-amber{font-size:0.8rem;font-weight:700;color:#fff;padding:8px 16px;border-radius:9px;background:var(--amber);border:none;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 2px 12px rgba(245,158,11,0.4);white-space:nowrap;transition:all 0.2s;}
 .btn-amber:hover{background:var(--amber-d);}
 
-/* КНОПКА ПРАЙС */
+/* КНОПКА ПРАЙС — единый стиль mobile + desktop */
 .btn-price-dl{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:700;
-  color:#fff;cursor:pointer;border:none;white-space:nowrap;
+  color:var(--text);cursor:pointer;border:none;white-space:nowrap;
   padding:11px 20px;border-radius:13px;
-  background:rgba(0,188,188,0.28);
+  background:rgba(245,158,11,0.14);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border:1.5px solid rgba(0,220,210,0.55);
-  box-shadow:0 4px 20px rgba(0,188,188,0.30),inset 0 1px 0 rgba(255,255,255,0.35);
+  border:1.5px solid rgba(245,158,11,0.50);
+  box-shadow:0 4px 20px rgba(245,158,11,0.18),inset 0 1px 0 rgba(255,255,255,0.55);
   transition:all 0.22s cubic-bezier(0.34,1.4,0.64,1);
-  text-shadow:0 1px 4px rgba(0,0,0,0.18);
 }
 .btn-price-dl:hover{
-  background:rgba(0,200,200,0.40);
-  box-shadow:0 6px 28px rgba(0,188,188,0.50),inset 0 1px 0 rgba(255,255,255,0.45);
+  background:rgba(245,158,11,0.24);
+  box-shadow:0 6px 28px rgba(245,158,11,0.32),inset 0 1px 0 rgba(255,255,255,0.65);
   transform:translateY(-1px) scale(1.02);
 }
 .btn-price-dl:active{transform:scale(0.97);}
@@ -78,6 +77,11 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .btn-price-dl--desktop{display:none;}
 /* Мобиль: показать mobile-кнопку как полную строку */
 .btn-price-dl--mobile{display:flex;}
+/* Строка телефонов на десктопе — под hero-head */
+.phones-row-desktop{display:none;}
+@media(min-width:640px){
+  .phones-row-desktop{display:none;}
+}
 
 /* HERO */
 #hero{position:relative;z-index:1;padding-top:92px;}
@@ -833,8 +837,26 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .auth-close{position:absolute;top:10px;right:14px;border:none;background:none;font-size:1.2rem;color:var(--text3);cursor:pointer}
 
 /* NAV AUTH BTN */
-.nav-auth-btn{border:none;background:rgba(245,158,11,.12);color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+.nav-auth-btn{border:none;background:rgba(245,158,11,.12);color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s;overflow:hidden;text-overflow:ellipsis}
 .nav-auth-btn:hover{background:rgba(245,158,11,.2)}
+/* Состояние ЛК: пользователь вошёл — кнопка растягивается на мобиле */
+.nav-auth-btn.lk-active{
+  background:rgba(245,158,11,.18);
+  border:1px solid rgba(245,158,11,.45);
+  color:var(--text);
+  font-weight:700;
+}
+@media(max-width:639px){
+  .nav-auth-btn.lk-active{
+    flex:1;
+    min-width:0;
+    text-align:center;
+    padding:7px 10px;
+    border-radius:9px;
+  }
+  /* Логотип чуть уступает место кнопке ЛК */
+  .nav-top:has(.nav-auth-btn.lk-active) .logo{flex:0 0 auto;}
+}
 .nav-logout-btn{border:none;background:rgba(239,68,68,.1);color:#EF4444;border-radius:8px;padding:6px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:background .18s}
 .nav-logout-btn:hover{background:rgba(239,68,68,.2)}
 .nav-reg-btn{border:1px solid rgba(245,158,11,.35);background:transparent;color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s}
@@ -1106,6 +1128,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 
 <script src="products.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="pricelist.js"></script>
 <script>
 // ── Image fallback map ──────────────────────────────────
@@ -1682,6 +1705,7 @@ function addUpsell(id) {
 // ── Auth State ───────────────────────────────────────
 var currentUser = null;
 var bonusBalance = 0;
+var LK_LABEL = 'ЛК'; // настраиваемая подпись кнопки личного кабинета
 
 function updateNavAuth() {
   var btn       = document.getElementById('navAuthBtn');
@@ -1689,13 +1713,15 @@ function updateNavAuth() {
   var logoutBtn = document.getElementById('navLogoutBtn');
   if (!btn) return;
   if (currentUser) {
-    btn.textContent = currentUser.name;
+    btn.textContent = LK_LABEL + ': ' + currentUser.name;
     btn.onclick = openDash;
+    btn.classList.add('lk-active');
     if (regBtn)    regBtn.style.display    = 'none';
     if (logoutBtn) logoutBtn.style.display = '';
   } else {
     btn.textContent = 'Войти';
     btn.onclick = openAuth;
+    btn.classList.remove('lk-active');
     if (regBtn)    regBtn.style.display    = '';
     if (logoutBtn) logoutBtn.style.display = 'none';
   }

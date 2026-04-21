@@ -1,15 +1,40 @@
 /**
  * pricelist.js — Генератор прайса СплитХаб
- * Форматы: PDF (print) / Excel (SheetJS)
- * Группировка: Бренд → Серия
+ * Форматы: PDF (html2pdf) / Excel (SheetJS)
+ * Группировка: кондиционеры — Бренд → Серия; расходники — по типу товара
  */
+
+/* ── Маппинг расходников по типу (SKU-prefix → категория) ── */
+var RASHOD_CATEGORIES = {
+  'drenazh':    'Дренаж',
+  'thermaflex': 'Дренаж',
+  'kronshtein': 'Крепёж',
+  'lenta':      'Лента',
+  'izolenta':   'Лента',
+  'kabel':      'Кабель',
+  'freon':      'Фреон',
+};
+
+function _getRashodCategory(p) {
+  var sku = p.sku || '';
+  for (var prefix in RASHOD_CATEGORIES) {
+    if (sku.startsWith(prefix)) return RASHOD_CATEGORIES[prefix];
+  }
+  return p.brand || 'Расходники';
+}
 
 /* ── Группировка товаров ── */
 function _groupProducts() {
   const grouped = {};
   PRODUCTS.forEach(p => {
-    const brand  = p.brand  || 'Без бренда';
-    const series = p.series || 'Без серии';
+    let brand, series;
+    if (p.group === 'rashod') {
+      brand  = _getRashodCategory(p);
+      series = '_flat_';
+    } else {
+      brand  = p.brand  || 'Без бренда';
+      series = p.series || 'Без серии';
+    }
     if (!grouped[brand])         grouped[brand] = {};
     if (!grouped[brand][series]) grouped[brand][series] = [];
     grouped[brand][series].push(p);
@@ -65,13 +90,41 @@ function closePriceModal() {
   if (m) m.remove();
 }
 
-/* ── PDF ── */
-function downloadPricePDF() {
-  const w = window.open('', '', 'width=960,height=1200');
-  w.document.write(_buildPriceHTML());
-  w.document.close();
-  setTimeout(() => { w.print(); }, 300);
+/* ── PDF (html2pdf — без диалога печати) ── */
+async function downloadPricePDF() {
+  if (typeof html2pdf === 'undefined') {
+    alert('Библиотека PDF не загружена. Попробуйте обновить страницу.');
+    return;
+  }
   closePriceModal();
+
+  const html = _buildPriceHTML();
+  const tmp  = new DOMParser().parseFromString(html, 'text/html');
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:960px;background:#fff;';
+
+  const style = document.createElement('style');
+  const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+  if (styleMatch) style.textContent = styleMatch[1];
+  container.appendChild(style);
+
+  const content = document.createElement('div');
+  content.innerHTML = tmp.body.innerHTML;
+  container.appendChild(content);
+
+  document.body.appendChild(container);
+
+  const filename = `splithub-price-${new Date().toLocaleDateString('ru-RU').replace(/\./g,'-')}.pdf`;
+  await html2pdf().set({
+    margin:      [8, 6],
+    filename,
+    image:       { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' },
+  }).from(container).save();
+
+  document.body.removeChild(container);
 }
 
 function _buildPriceHTML() {
@@ -89,8 +142,10 @@ function _buildPriceHTML() {
       if (!items.length) return;
       const info = (items[0].benefits || []).slice(0, 3).join(' · ');
 
-      body += `<div class="series-title"><strong>${series}</strong>${info ? ' — ' + info : ''}</div>
-      <table><thead><tr>
+      if (series !== '_flat_') {
+        body += `<div class="series-title"><strong>${series}</strong>${info ? ' — ' + info : ''}</div>`;
+      }
+      body += `<table><thead><tr>
         <th class="c-num">№</th><th class="c-id">ID</th>
         <th>Модель</th><th class="c-desc">Описание</th>
         <th class="c-price">Цена</th><th class="c-photo">Фото</th><th>Наличие</th>
@@ -153,7 +208,7 @@ ${body}
 </div></body></html>`;
 }
 
-/* ── Excel (SheetJS) ── */
+/* ── Excel (SheetJS + стили) ── */
 function downloadPriceExcel() {
   if (typeof XLSX === 'undefined') {
     alert('Библиотека Excel не загружена. Попробуйте обновить страницу.');
@@ -161,61 +216,103 @@ function downloadPriceExcel() {
   }
 
   const grouped = _groupProducts();
-  const wb = XLSX.utils.book_new();
+  const wb  = XLSX.utils.book_new();
   const rows = [];
+  const meta = [];   // { rowIdx, type: 'title'|'brand'|'series'|'header'|'stock_ok'|'stock_warn'|'stock_no' }
 
-  // Заголовок
-  rows.push(['Прайс-лист СплитХаб', '', '', '', '', '']);
-  rows.push([`Дата: ${new Date().toLocaleDateString('ru-RU')} · Товаров: ${PRODUCTS.length}`, '', '', '', '', '']);
-  rows.push([]);
+  const pushRow = (row, type) => {
+    meta.push({ rowIdx: rows.length, type });
+    rows.push(row);
+  };
 
-  // Шапка таблицы
-  rows.push(['№', 'ID', 'Модель', 'Описание', 'Цена, ₽', 'Наличие']);
+  const COL = 6;
+  const blank = () => Array(COL).fill('');
+
+  // ── Шапка документа ──
+  pushRow(['Прайс-лист СплитХаб', ...Array(COL-1).fill('')], 'title');
+  pushRow([`Оптовые кондиционеры для монтажников · Симферополь`, ...Array(COL-1).fill('')], 'subtitle');
+  pushRow([`Дата: ${new Date().toLocaleDateString('ru-RU')}   Товаров: ${PRODUCTS.length}   zakaz@splithub.ru   +7 978 599-13-69`, ...Array(COL-1).fill('')], 'subtitle');
+  pushRow(blank(), 'empty');
+
+  // ── Шапка таблицы ──
+  pushRow(['№', 'ID', 'Модель / Описание', 'Характеристики', 'Цена, ₽', 'Наличие'], 'header');
 
   let rowNum = 1;
 
   Object.keys(grouped).sort().forEach(brand => {
-    // Заголовок бренда
-    rows.push([brand, '', '', '', '', '']);
+    pushRow(blank(), 'empty');
+    pushRow([brand, ...Array(COL-1).fill('')], 'brand');
 
     Object.keys(grouped[brand]).sort().forEach(series => {
       const items = grouped[brand][series];
       if (!items.length) return;
-      const info = (items[0].benefits || []).slice(0, 3).join(' · ');
 
-      // Заголовок серии
-      rows.push([`  ${series}${info ? ' — ' + info : ''}`, '', '', '', '', '']);
+      if (series !== '_flat_') {
+        const info = (items[0].benefits || []).slice(0, 3).join(' · ');
+        pushRow([`  ${series}${info ? ' — ' + info : ''}`, ...Array(COL-1).fill('')], 'series');
+      }
 
       items.forEach(p => {
-        rows.push([
-          rowNum,
-          p.id,
-          p.model,
-          p.descShort || '',
-          p.price,
-          p.stockLabel,
-        ]);
+        const sc = p.stock === 'in_stock' ? 'stock_ok'
+                 : p.stock.startsWith('days') ? 'stock_warn' : 'stock_no';
+        pushRow([rowNum, p.id, p.model, p.descShort || '', p.price, p.stockLabel], sc);
         rowNum++;
       });
     });
-
-    rows.push([]); // пустая строка между брендами
   });
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
-  // Ширина столбцов
+  // ── Ширина столбцов ──
   ws['!cols'] = [
-    { wch: 5  },  // №
-    { wch: 8  },  // ID
-    { wch: 40 },  // Модель
-    { wch: 28 },  // Описание
-    { wch: 12 },  // Цена
-    { wch: 18 },  // Наличие
+    { wch: 4  },
+    { wch: 8  },
+    { wch: 42 },
+    { wch: 30 },
+    { wch: 12 },
+    { wch: 18 },
   ];
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Прайс');
-  XLSX.writeFile(wb, `splithub-price-${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.xlsx`);
+  // ── Freeze: первые 5 строк (шапка) ──
+  ws['!freeze'] = { xSplit: 0, ySplit: 5, topLeftCell: 'A6', activeCell: 'A6', sqref: 'A6' };
 
+  // ── Стили ячеек (работают в xlsx) ──
+  const S = {
+    title:   { font:{ bold:true, sz:14, color:{rgb:'1A1C22'} }, fill:{ patternType:'solid', fgColor:{rgb:'F59E0B'} } },
+    subtitle:{ font:{ sz:9, color:{rgb:'5A5F6E'} } },
+    header:  { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'} }, fill:{ patternType:'solid', fgColor:{rgb:'1A1C22'} }, alignment:{ wrapText:true } },
+    brand:   { font:{ bold:true, sz:11, color:{rgb:'FFFFFF'} }, fill:{ patternType:'solid', fgColor:{rgb:'D97706'} } },
+    series:  { font:{ bold:true, sz:9,  color:{rgb:'5A5F6E'} }, fill:{ patternType:'solid', fgColor:{rgb:'F5F5F0'} } },
+    stock_ok:  { font:{ color:{rgb:'10B981'}, bold:true } },
+    stock_warn:{ font:{ color:{rgb:'D97706'}, bold:true } },
+    stock_no:  { font:{ color:{rgb:'EF4444'}, bold:true } },
+    price:   { font:{ bold:true, color:{rgb:'D97706'} }, numFmt: '#,##0' },
+  };
+
+  meta.forEach(({ rowIdx, type }) => {
+    for (let c = 0; c < COL; c++) {
+      const ref = XLSX.utils.encode_cell({ r: rowIdx, c });
+      if (!ws[ref]) ws[ref] = { t: 's', v: '' };
+      const base = S[type] || {};
+      ws[ref].s = { ...base };
+      if (c === 4 && (type === 'stock_ok' || type === 'stock_warn' || type === 'stock_no')) {
+        ws[ref].s = S.price;
+      }
+      if (c === 5 && (type === 'stock_ok' || type === 'stock_warn' || type === 'stock_no')) {
+        ws[ref].s = S[type];
+      }
+    }
+  });
+
+  // ── Merge: шапка и заголовки брендов на всю ширину ──
+  ws['!merges'] = [];
+  meta.forEach(({ rowIdx, type }) => {
+    if (type === 'title' || type === 'subtitle' || type === 'brand' || type === 'series') {
+      ws['!merges'].push({ s:{ r:rowIdx, c:0 }, e:{ r:rowIdx, c:COL-1 } });
+    }
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Прайс');
+  XLSX.writeFile(wb, `splithub-price-${new Date().toLocaleDateString('ru-RU').replace(/\./g,'-')}.xlsx`);
   closePriceModal();
 }
