@@ -896,8 +896,12 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .unavail-cart{flex:1;padding:9px;border:1px solid rgba(22,163,74,.3);border-radius:10px;background:rgba(22,163,74,.1);color:#16a34a;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 /* ── Toast action button ── */
 .toast-action{margin-left:8px;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;vertical-align:middle}
-/* ── More items line ── */
-.do-more{font-size:.68rem;color:var(--amber-d);font-weight:600;padding:3px 0}
+/* ── Orders grid (desktop) ── */
+@media(min-width:640px){
+  .orders-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;align-items:start}
+  .do-card{margin-bottom:0}
+  .do-item-name{white-space:normal;word-break:break-word}}
+@media(min-width:1024px){.orders-grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
@@ -1880,24 +1884,23 @@ function renderOrdersList(orders,listEl){
   }
   var sMap={new:'\u041d\u043e\u0432\u044b\u0439',confirmed:'\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d',in_progress:'\u0412 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0435',shipped:'\u041e\u0442\u0433\u0440\u0443\u0436\u0435\u043d',completed:'\u0412\u044b\u043f\u043e\u043b\u043d\u0435\u043d',cancelled:'\u041e\u0442\u043c\u0435\u043d\u0451\u043d'};
   var sClr={new:'#f59e0b',confirmed:'#3b82f6',in_progress:'#8b5cf6',shipped:'#06b6d4',completed:'#16a34a',cancelled:'#ef4444'};
-  var html='';
+  var cards='';
   orders.forEach(function(o){
     var dt=new Date(o.created_at.replace(' ','T'));
     var ds=isNaN(dt.getTime())?o.created_at:dt.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});
     var sc=sClr[o.status]||'#9ca3af', sl=sMap[o.status]||o.status;
     var shNum='SH-'+String(o.id).padStart(5,'0');
-    var items=o.items||[], shown=items.slice(0,2), more=items.length-2;
+    var items=o.items||[];
     var enc=encodeURIComponent(JSON.stringify(items.map(function(it){return {product_name:it.product_name,qty:it.qty};})));
-    html+='<div class="do-card">'
+    cards+='<div class="do-card">'
       +'<div class="do-head"><div class="do-head-left"><span class="do-num">'+shNum+'</span><span class="do-date">'+ds+'</span></div>'
       +'<span class="do-badge" style="background:'+sc+'22;color:'+sc+';border-color:'+sc+'44">'+sl+'</span></div>'
       +'<div class="do-items-list">';
-    shown.forEach(function(it){
-      html+='<div class="do-item-row"><span class="do-item-name">'+it.product_name+'</span>'
+    items.forEach(function(it){
+      cards+='<div class="do-item-row"><span class="do-item-name">'+it.product_name+'</span>'
         +'<span class="do-item-meta">'+it.qty+'\u00a0\u0448\u0442.\u00a0\u00b7\u00a0'+(it.price*it.qty).toLocaleString('ru-RU')+'\u00a0\u20bd</span></div>';
     });
-    if(more>0)html+='<div class="do-more">+ \u0435\u0449\u0451\u00a0'+more+'\u00a0\u043f\u043e\u0437\u0438\u0446\u0438\u0439</div>';
-    html+='</div><div class="do-footer">'
+    cards+='</div><div class="do-footer">'
       +'<div class="do-total-block"><span class="do-total-label">\u0418\u0442\u043e\u0433\u043e</span>'
       +'<span class="do-total-val">'+parseInt(o.total).toLocaleString('ru-RU')+'\u00a0\u20bd</span></div>'
       +(o.bonus_earned>0?'<span class="do-bonus plus">+'+o.bonus_earned+'\u00a0\u0431\u043e\u043d</span>':'')
@@ -1905,6 +1908,7 @@ function renderOrdersList(orders,listEl){
       +'<button class="do-repeat" onclick="repeatOrder('+o.id+',\''+shNum+'\',\''+enc+'\')">\u21ba\u00a0\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c</button>'
       +'</div></div>';
   });
+  var html='<div class="orders-grid">'+cards+'</div>';
   if(_ordersTotal>0){
     var from=((_ordersPage-1)*10)+1,to=Math.min(_ordersPage*10,_ordersTotal);
     html+='<div class="orders-pager"><span class="op-info">\u041f\u043e\u043a\u0430\u0437\u0430\u043d\u043e\u00a0'+from+'\u2013'+to+'\u00a0\u0438\u0437\u00a0'+_ordersTotal+'</span><div class="op-btns">';
