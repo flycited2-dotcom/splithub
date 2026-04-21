@@ -343,9 +343,10 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 .btn-back{flex:1;padding:14px;border:1.5px solid rgba(239,68,68,0.18);border-radius:13px;background:rgba(255,235,235,0.85);color:#9f1239;font-family:'Inter',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;text-align:center;}
 .btn-back:active{background:rgba(255,210,210,0.9);}
 
-.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(70px);background:rgba(16,185,129,0.95);color:#fff;padding:14px 24px;border-radius:14px;font-size:0.88rem;font-weight:700;display:flex;align-items:center;gap:8px;backdrop-filter:blur(12px);z-index:500;transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;box-shadow:0 8px 30px rgba(16,185,129,0.4);}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-130px);background:rgba(16,185,129,0.95);color:#fff;padding:12px 22px;border-radius:14px;font-size:0.88rem;font-weight:700;display:flex;align-items:center;gap:8px;backdrop-filter:blur(12px);z-index:9999;transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;box-shadow:0 8px 30px rgba(16,185,129,0.4);max-width:calc(100vw - 32px);}
 .toast.on{transform:translateX(-50%) translateY(0);}
 .toast.toast-err{background:rgba(239,68,68,0.95);box-shadow:0 8px 30px rgba(239,68,68,0.4);}
+@media(max-width:600px){.toast{white-space:normal;text-align:center;width:calc(100vw - 32px);justify-content:center;padding:12px 14px;font-size:0.84rem;}}
 
 /* UPSELL */
 .upsell-block{margin:6px 0 2px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(255,200,60,0.10));border:1.5px dashed rgba(245,158,11,0.35);}
@@ -807,6 +808,8 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 /* NAV AUTH BTN */
 .nav-auth-btn{border:none;background:rgba(245,158,11,.12);color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
 .nav-auth-btn:hover{background:rgba(245,158,11,.2)}
+.nav-logout-btn{border:none;background:rgba(239,68,68,.1);color:#EF4444;border-radius:8px;padding:6px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:background .18s}
+.nav-logout-btn:hover{background:rgba(239,68,68,.2)}
 .nav-reg-btn{border:1px solid rgba(245,158,11,.35);background:transparent;color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s}
 .nav-reg-btn:hover{background:rgba(245,158,11,.1)}
 
@@ -911,6 +914,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     </div>
     <button class="nav-reg-btn" id="navRegBtn" onclick="openRegister()">Регистрация</button>
     <button class="nav-auth-btn" id="navAuthBtn" onclick="openAuth()">Войти</button>
+    <button class="nav-logout-btn" id="navLogoutBtn" style="display:none" onclick="logout()">Выйти</button>
     <button class="btn-amber nav-order-btn" onclick="openD()">Заявка</button>
   </div>
   <div class="nav-phones-mobile">
@@ -1637,17 +1641,20 @@ var currentUser = null;
 var bonusBalance = 0;
 
 function updateNavAuth() {
-  var btn    = document.getElementById('navAuthBtn');
-  var regBtn = document.getElementById('navRegBtn');
+  var btn       = document.getElementById('navAuthBtn');
+  var regBtn    = document.getElementById('navRegBtn');
+  var logoutBtn = document.getElementById('navLogoutBtn');
   if (!btn) return;
   if (currentUser) {
     btn.textContent = currentUser.name;
     btn.onclick = openDash;
-    if (regBtn) regBtn.style.display = 'none';
+    if (regBtn)    regBtn.style.display    = 'none';
+    if (logoutBtn) logoutBtn.style.display = '';
   } else {
     btn.textContent = 'Войти';
     btn.onclick = openAuth;
-    if (regBtn) regBtn.style.display = '';
+    if (regBtn)    regBtn.style.display    = '';
+    if (logoutBtn) logoutBtn.style.display = 'none';
   }
 }
 
