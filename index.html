@@ -1842,9 +1842,13 @@ function repeatOrder(orderId,shNum,itemsEncoded){
     }else{unavailable.push(it.product_name||it.name||'?');}
   });
   saveCart();renderCart();updateFab();
-  if(unavailable.length){showUnavailModal(shNum,unavailable,added.length);}
-  else if(added.length){showToastWithAction('\u2713\u00a0'+shNum+': '+added.length+'\u00a0\u043f\u043e\u0437. \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e','\u0418\u0434\u0442\u0438 \u0432 \u043a\u043e\u0440\u0437\u0438\u043d\u0443',function(){openD();});}
-  else{showToast('\u0422\u043e\u0432\u0430\u0440\u044b \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0435',true);}
+  if(unavailable.length){
+    closeDash();
+    showUnavailModal(shNum,unavailable,added.length);
+  } else if(added.length){
+    closeDash();
+    openD();
+  } else{showToast('\u0422\u043e\u0432\u0430\u0440\u044b \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0435',true);}
 }
 
 function showUnavailModal(shNum,unavailable,addedCount){
