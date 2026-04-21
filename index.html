@@ -1841,8 +1841,7 @@ function repeatOrder(orderId,shNum,itemsEncoded){
       added.push(prod.model);
     }else{unavailable.push(it.product_name||it.name||'?');}
   });
-  saveCart();renderCart();updateFab();
-  // Мгновенно скрыть модал (без transition) чтобы корзина открылась поверх
+  syncFab(); renderAll();
   var dOv=document.getElementById('dash-ov'), dM=document.getElementById('dash-modal');
   if(dOv){dOv.style.transition='none';dOv.classList.remove('on');setTimeout(function(){dOv.style.transition='';},50);}
   if(dM){dM.style.transition='none';dM.classList.remove('on');setTimeout(function(){dM.style.transition='';},50);}
