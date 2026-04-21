@@ -80,23 +80,7 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 /* Строка телефонов на десктопе — под hero-head */
 .phones-row-desktop{display:none;}
 @media(min-width:640px){
-  /* Телефоны убраны из навбара — показываем в строке под hero */
-  .nav-phones{display:none !important;}
-  .phones-row-desktop{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:8px;
-    max-width:960px;
-    margin:0 auto;
-    padding:10px 32px 0;
-  }
-  .phones-row-desktop .nav-ph{
-    justify-content:center;
-    padding:9px 8px;
-    border-radius:12px;
-    font-size:0.76rem;
-    font-weight:600;
-  }
+  .phones-row-desktop{display:none;}
 }
 
 /* HERO */
@@ -1006,12 +990,6 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Загрузить прайс
     </button>
-  </div>
-  <div class="phones-row-desktop rv" style="transition-delay:0.04s">
-    <a href="tel:+79785991369" class="nav-ph call g">&#128222; <span>+7 978 599-13-69</span></a>
-    <a href="https://t.me/Byttehnikaopt" class="nav-ph tg g" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg> <span>+7 990 002-22-30</span></a>
-    <a href="https://t.me/Byttehopt" class="nav-ph tg g" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg> <span>+7 990 217-03-15</span></a>
-    <a href="https://t.me/tsarev_simf" class="nav-ph tg g" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg> <span>+7 978 839-40-42</span></a>
   </div>
   <div class="quick-row rv" style="transition-delay:0.05s">
     <button class="g qbtn qbtn-full btn-price-dl btn-price-dl--mobile" onclick="openPricelistModal()">
