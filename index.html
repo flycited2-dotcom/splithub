@@ -80,6 +80,8 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 /* Строка телефонов на десктопе — под hero-head */
 .phones-row-desktop{display:none;}
 @media(min-width:640px){
+  /* Телефоны убраны из навбара — показываем в строке под hero */
+  .nav-phones{display:none !important;}
   .phones-row-desktop{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -87,6 +89,13 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
     max-width:960px;
     margin:0 auto;
     padding:10px 32px 0;
+  }
+  .phones-row-desktop .nav-ph{
+    justify-content:center;
+    padding:9px 8px;
+    border-radius:12px;
+    font-size:0.76rem;
+    font-weight:600;
   }
 }
 
