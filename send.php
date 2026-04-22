@@ -130,8 +130,8 @@ try {
                         'price' => intval($i['price'] ?? 0),
                         'qty'  => max(1, intval($i['qty'] ?? 1)), 'group' => $i['group'] ?? ''];
             }, $items);
-            $br          = calculateBonus($total - $bonusSpent, $dbItems);
-            $bonusEarned = $br['bonus'];
+            // Начисление бонусов временно отключено
+            $bonusEarned = 0;
 
             $ins = $db->prepare('INSERT INTO orders (user_id,total,bonus_earned,bonus_spent,status,comment,client_tg) VALUES (?,?,?,?,"new",?,?)');
             $ins->execute([$userId, $total, $bonusEarned, $bonusSpent, $comment, $clientTg]);

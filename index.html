@@ -59,14 +59,13 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .btn-price-dl{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:700;
-  color:#fff;cursor:pointer;border:none;white-space:nowrap;
+  color:#000;cursor:pointer;border:none;white-space:nowrap;
   padding:11px 20px;border-radius:13px;
   background:rgba(13,148,136,0.45);
   backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
   border:1.5px solid rgba(45,212,191,0.70);
   box-shadow:0 4px 22px rgba(20,184,166,0.40),inset 0 1px 0 rgba(255,255,255,0.30),inset 0 0 0 1px rgba(45,212,191,0.15);
   transition:all 0.22s cubic-bezier(0.34,1.4,0.64,1);
-  text-shadow:0 1px 4px rgba(0,0,0,0.20);
 }
 .btn-price-dl:hover{
   background:rgba(13,148,136,0.62);
@@ -79,9 +78,8 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
   background:rgba(13,148,136,0.45);
   backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
   border:1.5px solid rgba(45,212,191,0.70);
-  color:#fff;
+  color:#000;
   box-shadow:0 4px 22px rgba(20,184,166,0.40),inset 0 1px 0 rgba(255,255,255,0.30);
-  text-shadow:0 1px 4px rgba(0,0,0,0.20);
 }
 .qbtn.btn-price-dl:hover{background:rgba(13,148,136,0.62);}
 /* Мобиль: скрыть десктоп-кнопку */
@@ -110,8 +108,14 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .qbtn-cat:hover{background:var(--amber-d);}
 .qbtn-filter{font-size:0.8rem;}
 .qbtn-filter.active{background:rgba(245,158,11,0.15);border-color:var(--amber);color:var(--amber-d);font-weight:700;}
+.qbtn-filter:hover{transform:translateY(-1px);border-color:rgba(245,158,11,0.40);box-shadow:0 6px 22px rgba(0,0,0,0.10),0 0 0 1px rgba(245,158,11,0.12);}
 .qbtn-reset{background:var(--amber)!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 16px rgba(245,158,11,0.4);}
+.qbtn-reset:hover{background:var(--amber-d)!important;transform:translateY(-1px);box-shadow:0 6px 22px rgba(245,158,11,0.55)!important;}
 .qbtn-reset:active{background:var(--amber-d)!important;}
+/* Бледно-розовый glassmorphism для кнопок Инвертор */
+.qbtn-inv{background:rgba(252,207,232,0.60)!important;border-color:rgba(236,72,153,0.38)!important;color:#831843!important;box-shadow:0 4px 16px rgba(236,72,153,0.18),inset 0 1px 0 rgba(255,255,255,0.40)!important;backdrop-filter:blur(16px) saturate(1.4)!important;-webkit-backdrop-filter:blur(16px) saturate(1.4)!important;}
+.qbtn-inv:hover{background:rgba(252,207,232,0.80)!important;border-color:rgba(236,72,153,0.58)!important;transform:translateY(-1px);box-shadow:0 6px 22px rgba(236,72,153,0.30)!important;}
+.qbtn-inv.active{background:rgba(236,72,153,0.25)!important;border-color:rgba(236,72,153,0.60)!important;color:#831843!important;}
 .cat-tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:10px 16px 16px;}
 .ctile{text-decoration:none;color:var(--text);padding:1rem 0.7rem;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;cursor:pointer;transition:all 0.2s;}
 .ctile:active{transform:scale(0.97);}
@@ -1006,10 +1010,10 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     </button>
     <button class="g qbtn qbtn-reset qbtn-full" id="btn-reset" style="display:none" onclick="goFilter(null)">&#10005; Сбросить фильтр &mdash; показать всё</button>
     <a class="g qbtn qbtn-cat qbtn-full" href="#catalog" onclick="goFilter(null)">&#128203; Весь каталог</a>
-    <button class="g qbtn qbtn-filter" data-filter="inv79" onclick="goFilter('inv79')">&#10052; Инвертор 7&ndash;9</button>
-    <button class="g qbtn qbtn-filter" data-filter="inv12" onclick="goFilter('inv12')">&#10052; Инвертор 12</button>
-    <button class="g qbtn qbtn-filter" data-filter="inv18" onclick="goFilter('inv18')">&#10052; Инвертор 18</button>
-    <button class="g qbtn qbtn-filter" data-filter="inv2436" onclick="goFilter('inv2436')">&#10052; Инвертор 24&ndash;36</button>
+    <button class="g qbtn qbtn-filter qbtn-inv" data-filter="inv79" onclick="goFilter('inv79')">&#10052; Инвертор 7&ndash;9</button>
+    <button class="g qbtn qbtn-filter qbtn-inv" data-filter="inv12" onclick="goFilter('inv12')">&#10052; Инвертор 12</button>
+    <button class="g qbtn qbtn-filter qbtn-inv" data-filter="inv18" onclick="goFilter('inv18')">&#10052; Инвертор 18</button>
+    <button class="g qbtn qbtn-filter qbtn-inv" data-filter="inv2436" onclick="goFilter('inv2436')">&#10052; Инвертор 24&ndash;36</button>
     <button class="g qbtn qbtn-filter" data-filter="on79" onclick="goFilter('on79')">&#127744; On/Off 7&ndash;9</button>
     <button class="g qbtn qbtn-filter" data-filter="on12" onclick="goFilter('on12')">&#127744; On/Off 12</button>
     <button class="g qbtn qbtn-filter" data-filter="on18" onclick="goFilter('on18')">&#127744; On/Off 18</button>
@@ -1491,7 +1495,6 @@ function renderD() {
       + '<div class="dtot-s">'+tot.toLocaleString('ru-RU')+' ₽</div>'
     + '</div>'
     + idHtml
-    + '<input class="inp" id="dTg" placeholder="Ваш Telegram (необязательно)" type="text" autocomplete="off">'
     + (currentUser && bonusBalance > 0
       ? '<div class="bonus-row"><span>Бонусный баланс:</span><span class="bonus-bal">' + bonusBalance.toLocaleString('ru-RU') + ' ₽</span></div>'
         + '<div class="bonus-spend-row"><label>Списать бонусы:</label><input type="number" id="dBonus" min="0" max="' + Math.min(bonusBalance, tot) + '" value="0" placeholder="0"><span class="bonus-max" onclick="document.getElementById(\'dBonus\').value=' + Math.min(bonusBalance, tot) + '">Макс</span></div>'
