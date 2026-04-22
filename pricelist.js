@@ -253,7 +253,27 @@ ${body}
 </div>`;
 }
 
-/* ── Excel (ExcelJS — цвета, стили, форматирование) ── */
+/* ── Загрузка изображения → JPEG base64 для встраивания в Excel ── */
+function fetchAsJpeg(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 80; canvas.height = 80;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 80, 80);
+        ctx.drawImage(img, 0, 0, 80, 80);
+        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      } catch(e) { reject(e); }
+    };
+    img.onerror = () => reject(new Error('load'));
+    img.src = url;
+  });
+}
+
+/* ── Excel (ExcelJS — цвета, стили, фото в ячейках) ── */
 async function downloadPriceExcel() {
   if (typeof ExcelJS === 'undefined') {
     alert('Библиотека Excel ещё загружается. Подождите несколько секунд и повторите.');
@@ -265,7 +285,7 @@ async function downloadPriceExcel() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(10,14,26,0.7);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
   overlay.innerHTML = `
     <div style="width:52px;height:52px;border:4px solid rgba(255,255,255,0.2);border-top-color:#1D6F42;border-radius:50%;animation:xlSpin 0.8s linear infinite;"></div>
-    <div style="color:#fff;font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;">Генерируем Excel…</div>
+    <div id="xl-status" style="color:#fff;font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;">Загружаем фото…</div>
     <style>@keyframes xlSpin{to{transform:rotate(360deg)}}</style>`;
   document.body.appendChild(overlay);
 
@@ -313,7 +333,6 @@ async function downloadPriceExcel() {
     const C_OK_FG     = 'FF10B981';
     const C_WARN_FG   = 'FFF59E0B';
     const C_NO_FG     = 'FFEF4444';
-    const C_LINK_FG   = 'FF2563EB';
     const C_ROW_ALT   = 'FFFAFAFA';
 
     function borderThin() {
@@ -366,7 +385,7 @@ async function downloadPriceExcel() {
       const rowBg = isAlt ? C_ROW_ALT : 'FFFFFFFF';
 
       const r = ws.addRow([num, p.id, p.model||'', p.descShort||'', p.price, '', p.stockLabel||'']);
-      r.height = 40;
+      r.height = 55;
 
       r.eachCell((cell, col) => {
         cell.fill   = { type:'pattern', pattern:'solid', fgColor:{argb:rowBg} };
@@ -385,19 +404,29 @@ async function downloadPriceExcel() {
       priceCell.value   = p.price;
       priceCell.font    = { name:'Arial', size:10, bold:true, color:{argb:C_PRICE_FG} };
       priceCell.alignment = { horizontal:'right', vertical:'middle' };
-      // Фото — ссылка
-      if (p.photo) {
-        const photoCell = ws.getCell(`F${r.number}`);
-        photoCell.value = {
-          text: p.photo,
-          hyperlink: `${PRICE_SITE}/assets/img/products/${p.photo}`,
-        };
-        photoCell.font = { name:'Arial', size:9, color:{argb:C_LINK_FG}, underline:true };
-        photoCell.alignment = { horizontal:'center', vertical:'middle' };
+      // Фото — встроенное изображение
+      if (p.photo && photos[p.photo]) {
+        const imgId = wb.addImage({ base64: photos[p.photo], extension: 'jpeg' });
+        ws.addImage(imgId, {
+          tl: { col: 5, row: r.number - 1 },
+          ext: { width: 60, height: 60 },
+          editAs: 'oneCell',
+        });
       }
       // Наличие
       ws.getCell(`G${r.number}`).font = { name:'Arial', size:10, bold:true, color:{argb:scColor} };
     }
+
+    /* Предзагрузка фото → JPEG base64 */
+    const photos = {};
+    const uniquePhotos = [...new Set(PRODUCTS.filter(p => p.photo).map(p => p.photo))];
+    await Promise.allSettled(uniquePhotos.map(async fname => {
+      try {
+        photos[fname] = await fetchAsJpeg(`${PRICE_SITE}/assets/img/products/${fname}`);
+      } catch(_) {}
+    }));
+    const xlStatus = document.getElementById('xl-status');
+    if (xlStatus) xlStatus.textContent = 'Генерируем Excel…';
 
     let rowNum = 1;
     const { ac, rashod, truba } = _groupProducts();
