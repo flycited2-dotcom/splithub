@@ -218,11 +218,15 @@ async function downloadPricePDF() {
   const fname = 'splithub-price-' + date.replace(/\./g, '-') + '.pdf';
   const ui    = _showProgressModal('📄 Генерируем PDF…');
 
-  // Контейнер ниже видимой области — html2canvas его рендерит
+  // Контейнер позади модала — html2canvas его рендерит по DOM-ссылке
   const container = document.createElement('div');
-  container.style.cssText = 'position:absolute;left:0;top:100vh;width:900px;background:#fff;';
+  container.style.cssText = 'position:absolute;left:0;top:0;width:900px;background:#fff;z-index:-9999;';
   container.innerHTML = _buildPriceContent(date);
   document.body.appendChild(container);
+  // Ждём, пока браузер разложит контент (без этого высота = 0 → пустой PDF)
+  await new Promise(r => setTimeout(r, 300));
+
+  const priceWrap = container.querySelector('.price-wrap') || container;
 
   // Псевдо-прогресс пока html2pdf работает (реальный прогресс недоступен)
   ui.update(5, 'Рендерим страницы… это займёт 30–60 сек');
@@ -233,7 +237,7 @@ async function downloadPricePDF() {
 
   try {
     const blob = await html2pdf()
-      .from(container)
+      .from(priceWrap)
       .set({
         margin:      [8, 8, 8, 8],
         image:       { type: 'jpeg', quality: 0.82 },
