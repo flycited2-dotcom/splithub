@@ -847,14 +847,23 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .auth-close{position:absolute;top:10px;right:14px;border:none;background:none;font-size:1.2rem;color:var(--text3);cursor:pointer}
 
 /* NAV AUTH BTN */
-.nav-auth-btn{border:none;background:rgba(245,158,11,.12);color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s}
-.nav-auth-btn:hover{background:rgba(245,158,11,.2)}
-.nav-auth-btn.lk-active{background:rgba(0,188,188,.15);border:1.5px solid rgba(0,188,188,.45);color:rgb(0,130,130);padding:7px 16px;font-size:.78rem;max-width:200px;overflow:hidden;text-overflow:ellipsis}
-.nav-auth-btn.lk-active:hover{background:rgba(0,188,188,.25)}
-.nav-logout-btn{border:none;background:rgba(239,68,68,.1);color:#EF4444;border-radius:8px;padding:6px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:background .18s}
+.nav-auth-btn,.nav-reg-btn{
+  min-width:168px;text-align:center;
+  border-radius:8px;padding:7px 14px;font-size:.74rem;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;
+  transition:all .18s;
+  background:rgba(80,82,90,.13);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(100,102,110,.28);
+  color:var(--text);
+}
+.nav-auth-btn:hover,.nav-reg-btn:hover{background:rgba(80,82,90,.22);border-color:rgba(100,102,110,.45);}
+.nav-auth-btn.lk-active{
+  overflow:hidden;text-overflow:ellipsis;max-width:220px;
+  background:rgba(60,62,70,.16);border-color:rgba(100,102,110,.38);
+}
+.nav-logout-btn{border:none;background:rgba(239,68,68,.1);color:#EF4444;border-radius:8px;padding:7px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:background .18s}
 .nav-logout-btn:hover{background:rgba(239,68,68,.2)}
-.nav-reg-btn{border:1px solid rgba(245,158,11,.35);background:transparent;color:var(--amber-d);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s}
-.nav-reg-btn:hover{background:rgba(245,158,11,.1)}
 
 /* DASHBOARD MODAL */
 .dash-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;opacity:0;pointer-events:none;transition:opacity .25s}
