@@ -159,45 +159,65 @@ function _showProgressModal(title) {
 
 /* ────────────────────────────────────────────────
    УТИЛИТЫ ЗАГРУЗКИ ФОТО
-   Стратегия: fetch + AbortController (надёжный timeout
-   на мобильных), затем blob → object URL → Image → canvas.
-   Канвас 200×200 @ JPEG 0.90 даёт чёткое фото в PDF/Excel
-   при разумном размере (~25 КБ × 60 ≈ 1.5 МБ на прайс).
+   Два прохода:
+   1) Прямой <img src=url> без CORS заголовков — быстро,
+      работает на всех мобильных браузерах (including Samsung).
+   2) fetch → blob → object URL → <img> — если первый упал.
+   Канвас 200×200 @ JPEG 0.90.
+   crossOrigin НЕ ставим: same-origin ресурсы не требуют
+   CORS и img.crossOrigin вызывает onerror в браузерах
+   (Samsung Internet), если сервер не отдаёт ACAO-header.
 ─────────────────────────────────────────────────*/
+function _imgToBase64(src, onDone) {
+  const img = new Image();
+  img.onload = function() {
+    try {
+      const W = 200, H = 200;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(img, 0, 0, W, H);
+      const d = cv.toDataURL('image/jpeg', 0.90);
+      /* защита от anti-fingerprinting (пустой dataURL) */
+      onDone(d && d.length > 100 ? d.split(',')[1] : null);
+    } catch(e) { onDone(null); }
+  };
+  img.onerror = function() { onDone(null); };
+  img.src = src;
+}
+
 function _fetchAsJpegSafe(url, timeoutMs) {
-  return new Promise(resolve => {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), timeoutMs || 25000);
-    let   objUrl = null;
-    const done = (val) => {
-      clearTimeout(tid);
+  return new Promise(function(resolve) {
+    var done = false;
+    var objUrl = null;
+    var timer = setTimeout(function() {
+      if (!done) { done = true; if (objUrl) URL.revokeObjectURL(objUrl); resolve(null); }
+    }, timeoutMs || 25000);
+
+    function finish(val) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
       if (objUrl) URL.revokeObjectURL(objUrl);
       resolve(val);
-    };
+    }
 
-    fetch(url, { credentials: 'same-origin', signal: ctrl.signal, cache: 'force-cache' })
-      .then(r => r.ok ? r.blob() : null)
-      .then(blob => {
-        if (!blob) return done(null);
-        objUrl = URL.createObjectURL(blob);
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          try {
-            const W = 200, H = 200;
-            const canvas = document.createElement('canvas');
-            canvas.width = W; canvas.height = H;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, W, H);
-            ctx.drawImage(img, 0, 0, W, H);
-            done(canvas.toDataURL('image/jpeg', 0.90).split(',')[1]);
-          } catch(e) { done(null); }
-        };
-        img.onerror = () => done(null);
-        img.src = objUrl;
-      })
-      .catch(() => done(null));
+    /* Проход 1: прямой URL — без fetch, без CORS */
+    _imgToBase64(url, function(result) {
+      if (result) return finish(result);
+
+      /* Проход 2: fetch → blob → object URL (обходит кэш / редиректы) */
+      fetch(url, { credentials: 'same-origin' })
+        .then(function(r) { return r.ok ? r.blob() : null; })
+        .then(function(blob) {
+          if (!blob) return finish(null);
+          objUrl = URL.createObjectURL(blob);
+          _imgToBase64(objUrl, finish);
+        })
+        .catch(function() { finish(null); });
+    });
   });
 }
 
