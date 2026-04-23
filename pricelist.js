@@ -272,6 +272,12 @@ function _buildPdfDocDef(date, photos) {
   /* Ширины колонок A4: [№, ID, Модель, Описание, Цена, Фото, Наличие] */
   const WIDTHS = [18, 40, '*', 88, 50, 50, 62];
 
+  /* Регистр изображений — канонический способ pdfmake (надёжнее inline data URI) */
+  const images = {};
+  for (const [fname, b64] of Object.entries(photos)) {
+    images[fname] = 'data:image/jpeg;base64,' + b64;
+  }
+
   const body = [];
   let rowNum = 1;
 
@@ -311,7 +317,7 @@ function _buildPdfDocDef(date, photos) {
       { ...base, text: p.descShort || '', fontSize: 8, color: '#555555' },
       { ...base, text: fmt, alignment: 'right', bold: true, color: C_PRICE, fontSize: 9 },
       photos[p.photo]
-        ? { ...base, image: 'data:image/jpeg;base64,' + photos[p.photo], width: 44, height: 44, alignment: 'center' }
+        ? { ...base, image: p.photo, width: 44, height: 44, alignment: 'center' }
         : { ...base, text: '—', alignment: 'center', color: '#CCCCCC' },
       { ...base, text: p.stockLabel || '', bold: true, color: sc, fontSize: 8 },
     ]);
@@ -350,6 +356,7 @@ function _buildPdfDocDef(date, photos) {
     pageSize: 'A4',
     pageMargins: [28, 28, 18, 24],
     defaultStyle: { font: 'Roboto', fontSize: 9 },
+    images,
     content: [
       { text: 'Прайс-лист СплитХаб', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 4] },
       { text: `Оптовые кондиционеры · Симферополь · ${date} · Товаров: ${PRODUCTS.length}`,
