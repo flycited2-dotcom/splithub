@@ -1,0 +1,19 @@
+{
+  "_instructions": "Скопируйте этот файл в deploy.json и заполните своими данными. Файл deploy.json НЕ должен попасть в git.",
+
+  "host":     "splithub.ru",
+  "port":     22,
+  "username": "sftp-user",
+
+  "_auth_comment": "Используйте ЛИБО password, ЛИБО key_path (путь к SSH-ключу). Второй оставьте пустым.",
+  "password": "ваш-пароль-sftp",
+  "key_path": "",
+
+  "remote_path": "/home/username/public_html",
+
+  "_history_comment": "Сколько последних деплоев хранить в истории (для отката).",
+  "history_keep": 10,
+
+  "_timeout_comment": "Таймаут подключения в секундах.",
+  "timeout": 30
+}
