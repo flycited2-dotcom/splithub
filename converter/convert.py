@@ -192,6 +192,7 @@ class Converter:
             "series":     get("series"),
             "model":      get("model"),
             "group":      get("group"),
+            "type":       get("type") or "split",
             "factory":    get("factory"),
             "color":      get("color") or "white",
             "btu":        btu_val,
@@ -373,12 +374,16 @@ class Converter:
 
         print(f"  Включено: {len(self.products)}  /  Пропущено: {skipped}")
 
-        # 5. Проверка дублей SKU
+        # 5. Проверка дублей SKU — деdup с предупреждением
         seen = {}
+        deduped = []
         for p in self.products:
             if p["sku"] in seen:
-                self.errors.append(f"Дубль SKU: '{p['sku']}'")
-            seen[p["sku"]] = True
+                self.warnings.append(f"Дубль SKU (пропущен): '{p['sku']}'")
+            else:
+                seen[p["sku"]] = True
+                deduped.append(p)
+        self.products = deduped
 
         # 6. Вывод ошибок / предупреждений
         if self.errors:

@@ -7,6 +7,7 @@
   "series": "series",
   "model": "model",
   "catalog_group": "group",
+  "type": "type",
   "factory": "factory",
   "color": "color",
   "btu": "btu",
