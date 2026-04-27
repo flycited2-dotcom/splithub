@@ -34,6 +34,35 @@ function getDB() {
         }
     } catch (Throwable $e) {}
 
+    // product_overrides table
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS product_overrides (
+            sku TEXT PRIMARY KEY,
+            description TEXT DEFAULT '',
+            badge TEXT DEFAULT '',
+            badge_label TEXT DEFAULT '',
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )");
+    } catch (Throwable $e) {}
+
+    // app_settings table
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL DEFAULT ''
+        )");
+        $db->exec("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('bonuses_enabled', '1')");
+    } catch (Throwable $e) {}
+
+    // admin_note column on orders
+    try {
+        $cols2 = $db->query("PRAGMA table_info(orders)")->fetchAll(PDO::FETCH_ASSOC);
+        $colNames2 = array_column($cols2, 'name');
+        if (!in_array('admin_note', $colNames2)) {
+            $db->exec("ALTER TABLE orders ADD COLUMN admin_note TEXT DEFAULT ''");
+        }
+    } catch (Throwable $e) {}
+
     return $db;
 }
 
@@ -172,6 +201,15 @@ function normalizePhone($phone) {
  */
 function calculateBonus($total, $items = []) {
     $db = getDB();
+
+    // Honour global bonuses_enabled flag
+    try {
+        $bs = $db->prepare("SELECT value FROM app_settings WHERE key = 'bonuses_enabled'");
+        $bs->execute();
+        $bsRow = $bs->fetch();
+        if ($bsRow && $bsRow['value'] === '0') return ['bonus' => 0, 'rules' => []];
+    } catch (Throwable $e) {}
+
     $rules = $db->query('SELECT * FROM promo_rules WHERE active = 1')->fetchAll();
 
     $totalBonus = 0;

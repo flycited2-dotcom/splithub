@@ -1,0 +1,25 @@
+{
+  "brand_normalize": {
+    "FUNAI": "Funai",
+    "funai": "Funai",
+    "DAICHI": "Daichi",
+    "daichi": "Daichi",
+    "ULTIMA COMFORT": "ULTIMA COMFORT",
+    "ultima comfort": "ULTIMA COMFORT",
+    "Ultima Comfort": "ULTIMA COMFORT",
+    "EUROHOFF": "Eurohoff",
+    "eurohoff": "Eurohoff"
+  },
+  "stock_normalize": {
+    "В наличии": "in_stock",
+    "в наличии": "in_stock",
+    "1-2 дня": "days_1_2",
+    "1–2 дня": "days_1_2",
+    "3-5 дней": "days_3_5",
+    "3–5 дней": "days_3_5",
+    "под заказ 7": "order_7",
+    "Под заказ 7 дней": "order_7",
+    "под заказ 14": "order_14",
+    "под заказ 30": "order_30"
+  }
+}

@@ -1,0 +1,18 @@
+# Секреты деплоя — не заливать в git
+config/deploy.json
+
+# Не заливать входные данные и выходные файлы
+input/
+out/
+backup/
+logs/
+images/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
