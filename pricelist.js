@@ -136,6 +136,7 @@ function _showProgressModal(title) {
       if (status) status.textContent = text;
     },
     enableSave(blob, filename) {
+      if (window._adminPriceCallback) { window._adminPriceCallback(blob, filename); return; }
       const btn = document.getElementById('pmSave');
       if (!btn) return;
       btn.disabled = false;
