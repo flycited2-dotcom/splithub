@@ -44,6 +44,7 @@ if ($method === 'GET') {
     }
     switch ($action) {
         case 'weekly': doWeeklyReport($emailTo, $botToken, $chatId); break;
+        case 'daily':  doDailyReport($emailTo, $botToken, $chatId); break;
         case 'sheet':  doSheetSync($sheetId, $saKeyPath);            break;
         case 'status': doStatus($sheetId, $saKeyPath, $emailTo);     break;
         default:
@@ -222,6 +223,71 @@ function doWeeklyReport($emailTo, $botToken, $chatId) {
 
     echo json_encode(['ok' => true, 'email' => $emailSent, 'telegram' => $tgSent,
                       'report_preview' => mb_substr($tgText, 0, 200)]);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DAILY DIGEST
+// ══════════════════════════════════════════════════════════════════════════════
+
+function buildDailyText() {
+    try {
+        $db   = getDB();
+        $from = date('Y-m-d') . ' 00:00:00';
+
+        $row = $db->prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(total),0) as sum FROM orders WHERE created_at >= ?");
+        $row->execute([$from]);
+        $stat = $row->fetch();
+
+        $gRow = $db->prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(total),0) as sum FROM guest_orders WHERE created_at >= ?");
+        $gRow->execute([$from]);
+        $gStat = $gRow->fetch();
+
+        $total      = (int)$stat['sum'] + (int)$gStat['sum'];
+        $orderCount = (int)$stat['cnt'] + (int)$gStat['cnt'];
+
+        $clients = $db->prepare("SELECT COUNT(DISTINCT user_id) as cnt FROM orders WHERE created_at >= ?");
+        $clients->execute([$from]);
+        $clientCount = (int)$clients->fetch()['cnt'];
+
+        $dt    = date('d.m.Y');
+        $text  = "📅 *Дайджест СплитХаб — {$dt}*\n";
+        $text .= "━━━━━━━━━━━━━━━━━━\n";
+        $text .= "📦 Заказов за день: *{$orderCount}*\n";
+        $text .= "💰 Выручка: *" . number_format($total, 0, '.', ' ') . " ₽*\n";
+        $text .= "👤 Клиентов: *{$clientCount}*\n";
+
+        if ($orderCount === 0) {
+            $text .= "\n_Заказов сегодня не было._";
+        }
+
+        return $text;
+    } catch (Throwable $e) {
+        return "❌ Ошибка дайджеста: " . $e->getMessage();
+    }
+}
+
+function doDailyReport($emailTo, $botToken, $chatId) {
+    $tgText = buildDailyText();
+
+    $tgSent = false;
+    if ($botToken && $chatId) {
+        $tgSent = tgSend($botToken, $chatId, $tgText);
+    }
+
+    $emailSent = false;
+    if ($emailTo) {
+        $subject = 'Дайджест СплитХаб — ' . date('d.m.Y');
+        $body    = str_replace(['*', '_'], '', $tgText);
+        $body    = nl2br(htmlspecialchars($body));
+        $headers = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=utf-8\r\n"
+                 . "From: =?UTF-8?B?" . base64_encode('СплитХаб') . "?= <noreply@splithub.ru>";
+        $emailSent = mail($emailTo, '=?UTF-8?B?' . base64_encode($subject) . '?=',
+            "<html><body style='font-family:Arial,sans-serif;line-height:1.8;padding:20px'>{$body}</body></html>",
+            $headers);
+    }
+
+    echo json_encode(['ok' => true, 'telegram' => $tgSent, 'email' => $emailSent,
+                      'preview' => mb_substr($tgText, 0, 200)], JSON_UNESCAPED_UNICODE);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

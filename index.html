@@ -946,6 +946,13 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
   .do-card{margin-bottom:0}
   .do-item-name{white-space:normal;word-break:break-word}}
 @media(min-width:1024px){.orders-grid{grid-template-columns:repeat(3,1fr)}}
+
+/* ── PRODUCT BADGES ── */
+.pcard-badge{position:absolute;top:8px;left:8px;border-radius:20px;padding:3px 9px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;z-index:2;white-space:nowrap}
+.pb-new{background:rgba(22,163,74,.9);color:#fff}
+.pb-sale{background:rgba(245,158,11,.95);color:#fff}
+.pb-clearance{background:rgba(239,68,68,.9);color:#fff}
+.pcard-admin-desc{font-size:.72rem;color:#4b5563;margin-top:6px;line-height:1.4;font-style:italic}
 </style>
 </head>
 <body>
@@ -1127,6 +1134,18 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
 <script src="pricelist.js"></script>
 <script>
+// Product overrides (badges + descriptions from admin)
+var PRODUCT_OVERRIDES = {};
+fetch("api/admin.php?action=products_overrides_public")
+  .then(function(r){return r.json();})
+  .then(function(d){if(d.ok)PRODUCT_OVERRIDES=d.overrides||{};})
+  .catch(function(){});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
+<script src="pricelist.js"></script>
+<script>
 // ── Image fallback map ──────────────────────────────────
 var LEGACY = {
   uel: 'assets/img/extracted/img_02_7010b63e1a.jpg',
@@ -1239,11 +1258,18 @@ function cardHtml(p, delay) {
     : (p.stock === 'out'
       ? '<button class="addbtn" style="background:#9CA3AF;box-shadow:none;cursor:not-allowed" disabled>Нет в наличии</button>'
       : '<button class="addbtn" onclick="addItem(\''+p.id+'\');event.stopPropagation()">Заказать</button>');
+  var _ov = PRODUCT_OVERRIDES[p.sku] || {};
+  var _bdg = _ov.badge || '';
+  var _bdgLbl = _ov.badge_label || ({new:'Новинка',sale:'Акция',clearance:'Распродажа'}[_bdg]||'');
+  var _badgeHtml = _bdg ? '<div class="pcard-badge pb-'+_bdg+'">'+_bdgLbl+'</div>' : '';
+  var _descExtra = _ov.description ? '<div class="pcard-admin-desc">'+_ov.description+'</div>' : '';
   return '<div class="pcard rv" role="button" tabindex="0" aria-label="Карточка '+p.model+'" style="transition-delay:'+(delay*0.04)+'s" onclick="openDetail(\''+p.id+'\')">'
-    + '<div class="pcard-img">'+imgHtml+'</div>'
+    + _badgeHtml
+      + '<div class="pcard-img">'+imgHtml+'</div>'
     + '<div class="pcard-body">'
     + '<div class="pcard-name">'+p.model+'</div>'
     + '<div class="pcard-desc">'+p.descShort+'</div>'
+      + _descExtra
     + getStockHtml(p)
     + '<div class="pcard-price"><span class="pcard-price-val">'+p.price.toLocaleString('ru-RU')+'&thinsp;₽</span><small>опт · комплект</small></div>'
     + addBtn

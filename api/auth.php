@@ -100,12 +100,13 @@ switch ($action) {
     case 'login':
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
 
-        $raw = json_decode(file_get_contents('php://input'), true);
-        $phone    = normalizePhone($raw['phone'] ?? '');
+        $raw      = json_decode(file_get_contents('php://input'), true);
+        $rawPhone = trim($raw['phone'] ?? '');
+        $phone    = normalizePhone($rawPhone) ?: $rawPhone; // поддержка текстового логина (напр. "admin")
         $password = $raw['password'] ?? '';
 
         if (!$phone || !$password) {
-            jsonResponse(['ok' => false, 'error' => 'Введите телефон и пароль'], 422);
+            jsonResponse(['ok' => false, 'error' => 'Введите логин и пароль'], 422);
         }
 
         $db = getDB();
@@ -114,7 +115,7 @@ switch ($action) {
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            jsonResponse(['ok' => false, 'error' => 'Неверный телефон или пароль'], 401);
+            jsonResponse(['ok' => false, 'error' => 'Неверный логин или пароль'], 401);
         }
 
         $_SESSION['user_id'] = (int)$user['id'];

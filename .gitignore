@@ -1,5 +1,11 @@
 config.php
+setup_admin.php
 converter/config/deploy.json
+converter/input/
+converter/out/
+converter/logs/
+converter/backup/
+converter/images/
 db/*.sqlite
 db/*.sqlite-wal
 db/*.sqlite-shm
