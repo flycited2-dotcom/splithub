@@ -893,6 +893,7 @@ function doLogout(){
 function initApp(){
   document.getElementById('login-screen').classList.add('hide');
   document.getElementById('app').classList.add('show');
+  try { history.replaceState({tab:'orders'}, '', '#orders'); } catch(e){}
   loadStats();
   loadOrders(1);
   startPolling();
@@ -948,14 +949,50 @@ function loadStats(){
   }).catch(function(){});
 }
 
+// ── History stack для кнопки «Назад» ─────────────────────────────────────────
+// Модалки кладутся в _navStack (закрываются через close-callback при popstate).
+// Вкладки навигируются через history.state.tab — на popstate переключаются без push.
+var _navStack = [];
+var _currentTab = 'orders';
+function navOpen(name, closeFn){
+  if(_navStack.length && _navStack[_navStack.length-1].name===name) return;
+  _navStack.push({name:name, close:closeFn});
+  try { history.pushState({nav:name, depth:_navStack.length}, '', '#'+name); } catch(e){}
+}
+function navClose(name){
+  if(_navStack.length && _navStack[_navStack.length-1].name===name){
+    history.back();
+    return true;
+  }
+  return false;
+}
+window.addEventListener('popstate', function(e){
+  // 1) если открыта модалка — закрываем её
+  if(_navStack.length){
+    var top = _navStack.pop();
+    top.close(true);
+    return;
+  }
+  // 2) иначе — навигация по вкладкам
+  var s = e.state;
+  if(s && s.tab && s.tab !== _currentTab){
+    switchTab(s.tab, true);
+  }
+});
+
 // ── Tabs ─────────────────────────────────────────────────────────────────────
-function switchTab(name){
+function switchTab(name, _fromPop){
+  if(name === _currentTab) return;
   document.querySelectorAll('.tab-btn').forEach(function(b,i){
     b.classList.toggle('active',_tabNames[i]===name);
   });
   document.querySelectorAll('.tab-pane').forEach(function(p){
     p.classList.toggle('active',p.id==='pane-'+name);
   });
+  _currentTab = name;
+  if(!_fromPop){
+    try { history.pushState({tab:name}, '', '#'+name); } catch(e){}
+  }
   if(!_loaded[name]){
     _loaded[name]=true;
     if(name==='guests')loadGuests(1);
@@ -1167,6 +1204,7 @@ function openClientDetail(uid){
   document.getElementById('detailOrders').innerHTML='<div class="loading">Загрузка...</div>';
   document.getElementById('detailLog').innerHTML='';
   document.getElementById('clientModal').classList.add('show');
+  navOpen('modal:clientModal', function(){closeModal('clientModal', true);});
   switchDetailTab('orders');
 
   fetch(api('admin.php?action=user_detail&user_id='+uid))
@@ -1267,8 +1305,12 @@ function openBonusModal(uid,name){
   document.getElementById('bAmt').value='';
   document.getElementById('bDesc').value='';
   document.getElementById('bonusModal').classList.add('show');
+  navOpen('modal:bonusModal', function(){closeModal('bonusModal', true);});
 }
-function closeModal(id){document.getElementById(id).classList.remove('show');}
+function closeModal(id, _fromPop){
+  if(!_fromPop && navClose('modal:'+id)) return;
+  document.getElementById(id).classList.remove('show');
+}
 function submitBonus(){
   var amt=parseInt(document.getElementById('bAmt').value||0);
   var desc=document.getElementById('bDesc').value||'Ручная корректировка';
@@ -1338,6 +1380,7 @@ function openPromoEdit(id,name,pct,min,group){
   document.getElementById('peMin').value=min||0;
   document.getElementById('peGroup').value=group||'';
   document.getElementById('promoEditModal').classList.add('show');
+  navOpen('modal:promoEditModal', function(){closeModal('promoEditModal', true);});
 }
 function submitPromoEdit(){
   var id=parseInt(document.getElementById('peId').value);
@@ -1562,6 +1605,7 @@ function openProdEdit(sku) {
     b.classList.toggle('active', b.getAttribute('data-v') === _peBadge);
   });
   document.getElementById('prodEditModal').classList.add('show');
+  navOpen('modal:prodEditModal', function(){closeModal('prodEditModal', true);});
 }
 
 function selectBadge(el) {
@@ -1660,6 +1704,7 @@ function openEditUser(uid){
     document.getElementById('euKpp').value=u.kpp||'';
     document.getElementById('euAddress').value=u.legal_address||'';
     document.getElementById('editUserModal').classList.add('show');
+    navOpen('modal:editUserModal', function(){closeModal('editUserModal', true);});
   });
 }
 

@@ -1435,9 +1435,11 @@ function openDetail(id) {
   document.getElementById('pd-ov').classList.add('on');
   document.getElementById('pd-modal').classList.add('on');
   document.body.style.overflow = 'hidden';
+  navOpen('detail', closeDetail);
 }
 
-function closeDetail() {
+function closeDetail(_fromPop) {
+  if (!_fromPop && navClose('detail')) return;
   document.getElementById('pd-ov').classList.remove('on');
   document.getElementById('pd-modal').classList.remove('on');
   document.body.style.overflow = '';
@@ -1544,8 +1546,10 @@ function openD() {
   document.getElementById('ov').classList.add('on');
   document.getElementById('dr').classList.add('on');
   document.body.style.overflow = 'hidden';
+  navOpen('cart', closeD);
 }
-function closeD() {
+function closeD(_fromPop) {
+  if (!_fromPop && navClose('cart')) return;
   document.getElementById('ov').classList.remove('on');
   document.getElementById('dr').classList.remove('on');
   document.body.style.overflow = '';
@@ -1748,14 +1752,17 @@ function openAuth() {
   showAuthForm('login');
   document.getElementById('auth-ov').classList.add('on');
   document.getElementById('auth-modal').classList.add('on');
+  navOpen('auth', closeAuth);
 }
 
 function openRegister() {
   showAuthForm('register');
   document.getElementById('auth-ov').classList.add('on');
   document.getElementById('auth-modal').classList.add('on');
+  navOpen('auth', closeAuth);
 }
-function closeAuth() {
+function closeAuth(_fromPop) {
+  if (!_fromPop && navClose('auth')) return;
   document.getElementById('auth-ov').classList.remove('on');
   document.getElementById('auth-modal').classList.remove('on');
 }
@@ -1888,8 +1895,10 @@ function openDash() {
   document.getElementById('dash-ov').classList.add('on');
   document.getElementById('dash-modal').classList.add('on');
   renderDashTab('orders');
+  navOpen('dash', closeDash);
 }
-function closeDash() {
+function closeDash(_fromPop) {
+  if (!_fromPop && navClose('dash')) return;
   document.getElementById('dash-ov').classList.remove('on');
   document.getElementById('dash-modal').classList.remove('on');
 }
@@ -2041,9 +2050,31 @@ function renderDashTab(tab) {
   }
 }
 
+// ── History stack для кнопки «Назад» ──────────────────
+// Каждая открытая модалка кладёт запись в стек и в history.pushState.
+// Кнопка «Назад» в браузере → popstate → закрываем верхний слой,
+// не уходя со страницы, пока стек не пуст.
+var _navStack = [];
+function navOpen(name, closeFn) {
+  if (_navStack.length && _navStack[_navStack.length-1].name === name) return;
+  _navStack.push({name: name, close: closeFn});
+  try { history.pushState({nav: name, depth: _navStack.length}, '', '#' + name); } catch(e) {}
+}
+function navClose(name) {
+  if (_navStack.length && _navStack[_navStack.length-1].name === name) {
+    history.back();
+    return true;
+  }
+  return false;
+}
+window.addEventListener('popstate', function() {
+  var top = _navStack.pop();
+  if (top) top.close(true);
+});
+
 // ── ESC ───────────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
-  if(e.key === 'Escape') { closeD(); closeDetail(); closeAuth(); closeDash(); }
+  if(e.key === 'Escape' && _navStack.length) { history.back(); }
 });
 
 // ── Init ──────────────────────────────────────────────

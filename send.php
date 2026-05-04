@@ -5,10 +5,8 @@
  * Вторичные функции (DB, email) изолированы в try/catch.
  */
 
-// ── Credentials (идентично Desktop send.php) ──
-define('BOT_TOKEN', '8366074996:AAGe0oEpkQ4foTlcJ0zqNFxUv5w1i1Xay78');
-define('CHAT_ID',   '-1003727076862');
-define('EMAIL_TO',  'flycited@gmail.com');
+// ── Credentials — единый источник истины: config.php ──
+require_once __DIR__ . '/config.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');

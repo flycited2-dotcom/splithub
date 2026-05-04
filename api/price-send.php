@@ -18,9 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-define('BOT_TOKEN', '8366074996:AAGe0oEpkQ4foTlcJ0zqNFxUv5w1i1Xay78');
-define('CHAT_ID',   '-1003727076862');
-define('EMAIL_TO',  'flycited@gmail.com');
+require_once __DIR__ . '/../config.php';
 
 $raw  = file_get_contents('php://input');
 $data = json_decode($raw, true);
