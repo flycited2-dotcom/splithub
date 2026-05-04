@@ -1456,7 +1456,12 @@ function pdAddToCart() {
   var p = PRODUCTS.find(function(x){ return x.id===pdCurrentId; }); if(!p) return;
   var ex = cart.find(function(c){ return c.id===p.id; });
   if(ex){ ex.qty += pdQty; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:pdQty}); }
-  closeDetail(); syncFab(); renderAll(); openD();
+  // Атомарный переход detail -> cart: закрыть DOM detail без history.back, удалить detail из стека,
+  // открыть drawer с replaceState — заменяем устаревший #detail на #cart.
+  closeDetail(true);
+  if (_navStack.length && _navStack[_navStack.length-1].name === 'detail') _navStack.pop();
+  syncFab(); renderAll();
+  openD(true);
 }
 
 // ── Drawer ────────────────────────────────────────────
@@ -1541,12 +1546,12 @@ function toggleComment() {
   w.hasAttribute('hidden') ? w.removeAttribute('hidden') : w.setAttribute('hidden', '');
 }
 
-function openD() {
+function openD(replace) {
   renderD();
   document.getElementById('ov').classList.add('on');
   document.getElementById('dr').classList.add('on');
   document.body.style.overflow = 'hidden';
-  navOpen('cart', closeD);
+  navOpen('cart', closeD, replace === true);
 }
 function closeD(_fromPop) {
   if (!_fromPop && navClose('cart')) return;
@@ -2055,10 +2060,14 @@ function renderDashTab(tab) {
 // Кнопка «Назад» в браузере → popstate → закрываем верхний слой,
 // не уходя со страницы, пока стек не пуст.
 var _navStack = [];
-function navOpen(name, closeFn) {
+function navOpen(name, closeFn, replace) {
   if (_navStack.length && _navStack[_navStack.length-1].name === name) return;
   _navStack.push({name: name, close: closeFn});
-  try { history.pushState({nav: name, depth: _navStack.length}, '', '#' + name); } catch(e) {}
+  try {
+    var st = {nav: name, depth: _navStack.length};
+    if (replace) history.replaceState(st, '', '#' + name);
+    else         history.pushState(st, '', '#' + name);
+  } catch(e) {}
 }
 function navClose(name) {
   if (_navStack.length && _navStack[_navStack.length-1].name === name) {
