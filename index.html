@@ -1679,6 +1679,15 @@ function shareSite() {
 }
 
 function go(id) {
+  if (currentFilter) {
+    currentFilter = null;
+    document.querySelectorAll('.qbtn-filter').forEach(function(b){ b.classList.remove('active'); });
+    var bar = document.getElementById('filter-bar');
+    var reset = document.getElementById('btn-reset');
+    if(bar) bar.style.display = 'none';
+    if(reset) reset.style.display = 'none';
+    renderAll();
+  }
   revealCatalogCards();
   var el = document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth'});
 }
