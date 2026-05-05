@@ -11,5 +11,5 @@
   "dry_run": false,
   "required_fields": ["sku", "brand", "model", "group", "price", "stock", "stockLabel", "descShort"],
   "valid_stock_statuses": ["in_stock", "days_1_2", "days_3_5", "order_7", "order_14", "order_30", "out"],
-  "valid_groups": ["inv", "onoff", "truba", "rashod", "poluprom", "multi"]
+  "valid_groups": ["inv", "onoff", "truba", "rashod", "poluprom", "multi", "pac_inv", "pac_onoff"]
 }

@@ -953,6 +953,21 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pb-sale{background:rgba(245,158,11,.95);color:#fff}
 .pb-clearance{background:rgba(239,68,68,.9);color:#fff}
 .pcard-admin-desc{font-size:.72rem;color:#4b5563;margin-top:6px;line-height:1.4;font-style:italic}
+/* ── Полупром modal ── */
+.ppol-ov{position:fixed;inset:0;z-index:500;background:rgba(15,18,28,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.ppol-ov.on{opacity:1;pointer-events:auto}
+.ppol-modal{background:rgba(248,250,252,.97);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid var(--blo);border-radius:22px;padding:22px 18px 16px;width:100%;max-width:360px;box-shadow:0 16px 56px rgba(0,0,0,.22)}
+.ppol-title{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:3px}
+.ppol-sub{font-size:0.74rem;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.ppol-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.ppol-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;border-radius:16px;border:1.5px solid var(--blo);background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);cursor:pointer;transition:all .2s cubic-bezier(.34,1.4,.64,1);text-align:center;font-family:'Inter',sans-serif;overflow:hidden}
+.ppol-btn:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:0 6px 22px rgba(245,158,11,.28)}
+.ppol-btn:active{transform:scale(.96)}
+.ppol-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .3s ease}
+.ppol-btn:hover .ppol-img{transform:scale(1.05)}
+.ppol-lbl{font-size:0.76rem;font-weight:700;color:var(--text);line-height:1.3;padding:8px 6px 10px;width:100%}
+.ppol-close{width:100%;padding:10px;border:none;background:none;color:var(--text3);font-size:0.8rem;cursor:pointer;border-radius:10px;font-family:'Inter',sans-serif;transition:color .15s}
+.ppol-close:hover{color:var(--text)}
 </style>
 </head>
 <body>
@@ -1010,17 +1025,17 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     <button class="g qbtn qbtn-filter" data-filter="on2436" onclick="goFilter('on2436')">&#127744; On/Off 24&ndash;36</button>
     <button class="g qbtn qbtn-filter" data-filter="truba" onclick="goFilter('truba')">&#128295; Медная труба</button>
     <button class="g qbtn qbtn-filter" data-filter="rashod" onclick="goFilter('rashod')">&#9728; Расходники</button>
-    <button class="g qbtn qbtn-filter" data-filter="poluprom" onclick="goFilter('poluprom')">&#127981; Полупром</button>
+    <button class="g qbtn qbtn-filter" data-filter="poluprom" onclick="openPolupromModal()">&#127981; Полупром</button>
     <button class="g qbtn qbtn-filter qbtn-black" data-filter="multi" onclick="goFilter('multi')">&#10054; Чёрные сплиты</button>
   </div>
   <div class="cat-tiles rv" style="transition-delay:0.1s">
     <a class="g ctile ctile-photo" href="#inv" onclick="go('inv')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-inv.jpg" alt="Инверторные"><div class="ctile-ov"><div class="ctile-lbl">&#10052; Инверторные</div></div></a>
     <a class="g ctile ctile-photo" href="#onoff" onclick="go('onoff')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-onoff.jpg" alt="On/Off"><div class="ctile-ov"><div class="ctile-lbl">&#127744; On/Off</div></div></a>
     <a class="g ctile ctile-photo" href="#truba" onclick="go('truba')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-truba.jpg" alt="Медная труба"><div class="ctile-ov"><div class="ctile-lbl">&#128295; Медная труба</div></div></a>
-    <a class="g ctile" href="https://t.me/Byttehnikaopt" target="_blank">
-      <div class="ctile-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg></div>
-      <div class="ctile-label">Написать в Telegram</div>
-    </a>
+    <div class="g ctile ctile-photo" onclick="openPolupromModal()" style="cursor:pointer">
+      <img loading="lazy" class="ctile-bg" src="assets/img/ppol/poluprom.png" alt="Полупром">
+      <div class="ctile-ov"><div class="ctile-lbl">&#127981; Полупром</div></div>
+    </div>
   </div>
 </section>
 
@@ -1239,12 +1254,25 @@ var FILTER_MAP = {
   'on2436': {label:'On/Off 24–36 BTU',  test:function(p){ return p.group==='onoff'&&(p.btu==='24'||p.btu==='28'||p.btu==='30'||p.btu==='36'); }},
   'truba':  {label:'Медная труба',       test:function(p){ return p.group==='truba'; }},
   'rashod': {label:'Расходники',         test:function(p){ return p.group==='rashod'; }},
-  'poluprom':{label:'Полупром',          test:function(p){ return p.group==='poluprom'; }},
+  'poluprom':{label:'Полупром',          test:function(p){ return p.group==='poluprom'||p.group==='pac_inv'||p.group==='pac_onoff'; }},
+  'pac_kasseta':{label:'Полупром — Кассетные', test:function(p){
+    if(p.group!=='pac_inv'&&p.group!=='pac_onoff') return false;
+    return p.type==='cassette' || /кассет|cassette/i.test(p.series||'');
+  }},
+  'pac_kanalny':{label:'Полупром — Канальные', test:function(p){
+    if(p.group!=='pac_inv'&&p.group!=='pac_onoff') return false;
+    return p.type==='duct' || /канальн|duct/i.test(p.series||'');
+  }},
+  'pac_napolno':{label:'Полупром — Напольно-потолочные', test:function(p){
+    if(p.group!=='pac_inv'&&p.group!=='pac_onoff') return false;
+    return p.type==='floor-ceiling' || /напольно-потолочн|floor.?ceiling/i.test(p.series||'');
+  }},
+  'pac_multi':{label:'Мультисплит-системы', test:function(p){ return p.group==='multi' || p.type==='mult'; }},
   'multi':  {label:'Чёрные сплиты',     test:function(p){ return p.group==='multi'||p.group==='black'||p.color==='black'; }}
 };
 
-var GROUP_ORDER  = ['inv','onoff','truba','poluprom','rashod','multi'];
-var GROUP_LABELS = {inv:'ИНВЕРТОРНЫЕ',onoff:'ON/OFF',truba:'МЕДНАЯ ТРУБА',poluprom:'ПОЛУПРОМ',rashod:'РАСХОДНИКИ',multi:'ЧЁРНЫЕ СПЛИТЫ'};
+var GROUP_ORDER  = ['inv','onoff','pac_inv','pac_onoff','truba','poluprom','rashod','multi'];
+var GROUP_LABELS = {inv:'ИНВЕРТОРНЫЕ',onoff:'ON/OFF',pac_inv:'ПОЛУПРОМ ИНВЕРТОР',pac_onoff:'ПОЛУПРОМ ON/OFF',truba:'МЕДНАЯ ТРУБА',poluprom:'ПОЛУПРОМ',rashod:'РАСХОДНИКИ',multi:'ЧЁРНЫЕ СПЛИТЫ'};
 
 // ── Card HTML ─────────────────────────────────────────
 function cardHtml(p, delay) {
@@ -2097,8 +2125,15 @@ window.addEventListener('popstate', function() {
 
 // ── ESC ───────────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
-  if(e.key === 'Escape' && _navStack.length) { history.back(); }
+  if(e.key === 'Escape') {
+    if(document.getElementById('ppolOv') && document.getElementById('ppolOv').classList.contains('on')) { closePolupromModal(); return; }
+    if(_navStack.length) { history.back(); }
+  }
 });
+
+// ── Полупром modal ────────────────────────────────────
+function openPolupromModal(){ document.getElementById('ppolOv').classList.add('on'); }
+function closePolupromModal(){ document.getElementById('ppolOv').classList.remove('on'); }
 
 // ── Init ──────────────────────────────────────────────
 renderAll();
@@ -2116,6 +2151,33 @@ syncFab();
       <button class="unavail-ok" onclick="closeUnavailModal()">Понятно</button>
       <button class="unavail-cart" id="unavailCartBtn">Перейти в корзину</button>
     </div>
+  </div>
+</div>
+
+<!-- ПОЛУПРОМ MODAL -->
+<div class="ppol-ov" id="ppolOv" onclick="if(event.target===this)closePolupromModal()">
+  <div class="ppol-modal">
+    <div class="ppol-title">&#127981; Полупром</div>
+    <div class="ppol-sub">Выберите тип оборудования</div>
+    <div class="ppol-grid">
+      <button class="ppol-btn" onclick="closePolupromModal();goFilter('pac_kasseta')">
+        <img class="ppol-img" src="assets/img/ppol/kasseta.png" alt="Кассетные">
+        <span class="ppol-lbl">Кассетные</span>
+      </button>
+      <button class="ppol-btn" onclick="closePolupromModal();goFilter('pac_kanalny')">
+        <img class="ppol-img" src="assets/img/ppol/kanal.png" alt="Канальные">
+        <span class="ppol-lbl">Канальные</span>
+      </button>
+      <button class="ppol-btn" onclick="closePolupromModal();goFilter('pac_napolno')">
+        <img class="ppol-img" src="assets/img/ppol/napol.png" alt="Напольно-потолочные">
+        <span class="ppol-lbl">Напольно-потолочные</span>
+      </button>
+      <button class="ppol-btn" onclick="closePolupromModal();goFilter('pac_multi')">
+        <img class="ppol-img" src="assets/img/ppol/multi.png" alt="Мультисплит">
+        <span class="ppol-lbl">Мультисплит-системы</span>
+      </button>
+    </div>
+    <button class="ppol-close" onclick="closePolupromModal()">&#10005; Закрыть</button>
   </div>
 </div>
 </body>
