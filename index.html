@@ -786,7 +786,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pd.on{transform:translateY(0)}
 .pd-handle{width:100%;padding:12px 0 4px;display:flex;justify-content:center;flex-shrink:0;cursor:pointer}
 .pd-handle-bar{width:40px;height:4px;border-radius:2px;background:rgba(0,0,0,.12)}
-.pd-head{display:flex;align-items:flex-start;gap:10px;padding:6px 16px 10px;flex-shrink:0}
+.pd-head{display:flex;align-items:flex-start;gap:10px;padding:6px 0 10px;flex-shrink:0}
 .pd-head-info{flex:1;min-width:0}
 .pd-brand{font-size:.62rem;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
 .pd-title{font-size:1rem;font-weight:800;color:var(--text);line-height:1.2;letter-spacing:-.02em}
@@ -797,8 +797,9 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .si-35 {background:rgba(255,196,215,.55);color:#9d174d;border-color:rgba(236,72,153,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
 .si-7  {background:rgba(254,243,199,.65);color:#b45309;border-color:rgba(245,158,11,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
 .si-out{background:rgba(241,245,249,.55);color:#6b7280;border-color:rgba(156,163,175,.25)}
-.pd-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text2);flex-shrink:0;border:none;cursor:pointer;transition:background .2s}
-.pd-close:hover{background:rgba(0,0,0,.12)}
+.pd-close{position:absolute;top:12px;right:12px;z-index:6;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text2);flex-shrink:0;border:none;cursor:pointer;transition:background .2s}
+.pd-close:hover{background:rgba(0,0,0,.18)}
+.pd-media{display:block}
 .pd-scroll{overflow-y:auto;flex:1;padding:0 16px 8px;-webkit-overflow-scrolling:touch}
 .pd-img-wrap{border-radius:16px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(220,230,250,.4));margin-bottom:14px}
 .pd-img{width:100%;max-height:210px;object-fit:contain;padding:14px;display:block}
@@ -835,6 +836,27 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 @media(min-width:640px){
   .pd{max-width:560px;width:92vw;left:50%;top:50%;bottom:auto;border-radius:20px;transform:translate(-50%,-50%) scale(0.95);opacity:0;pointer-events:none;transition:transform .3s ease,opacity .3s ease;max-height:88vh;}
   .pd.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto;}
+  .pd-handle{display:none}
+}
+/* Десктоп: горизонтальная раскладка карточки — фото слева, инфо справа */
+@media(min-width:820px){
+  .pd{max-width:940px;}
+  .pd-scroll{
+    display:grid;
+    grid-template-columns:1.5fr 1fr;
+    grid-template-areas:"media head" "media action" "media specs" "media features" "media share";
+    align-content:start;column-gap:24px;padding:26px 28px 16px;
+  }
+  .pd-media{grid-area:media;align-self:stretch;display:flex;align-items:center;justify-content:center}
+  .pd-head{grid-area:head;padding:0 0 8px}
+  .pd-action-row{grid-area:action;margin-bottom:14px}
+  .pd-specs-row{grid-area:specs}
+  .pd-features-block{grid-area:features}
+  .pd-share-row{grid-area:share;margin-top:8px}
+  .pd-img-wrap{margin-bottom:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  .pd-img{max-height:none;width:100%;height:auto;max-width:100%;padding:28px}
+  .pd-title{font-size:1.35rem}
+  .pd-price{font-size:1.55rem}
 }
 
 /* SCROLL-TOP & SHARE */
@@ -1450,17 +1472,17 @@ function openDetail(id) {
 
   document.getElementById('pd-inner').innerHTML =
     '<div class="pd-handle" onclick="closeDetail()"><div class="pd-handle-bar"></div></div>'
-    + '<div class="pd-head">'
-      + '<div class="pd-head-info">'
-        + '<div class="pd-brand">'+p.brand+'</div>'
-        + '<div class="pd-title">'+p.model+'</div>'
-        + '<div class="pd-series">'+p.descShort+'</div>'
-      + '</div>'
-      + getStockInline(p)
-      + '<button class="pd-close" onclick="closeDetail()">✕</button>'
-    + '</div>'
+    + '<button class="pd-close" onclick="closeDetail()">✕</button>'
     + '<div class="pd-scroll">'
-      + imgH
+      + '<div class="pd-head">'
+        + '<div class="pd-head-info">'
+          + '<div class="pd-brand">'+p.brand+'</div>'
+          + '<div class="pd-title">'+p.model+'</div>'
+          + '<div class="pd-series">'+p.descShort+'</div>'
+        + '</div>'
+        + getStockInline(p)
+      + '</div>'
+      + '<div class="pd-media">' + imgH + '</div>'
       + '<div class="pd-action-row">'
         + '<div class="pd-price">'+p.price.toLocaleString('ru-RU')+' ₽<span class="pd-price-sub">опт · комплект</span></div>'
         + orderBtn
