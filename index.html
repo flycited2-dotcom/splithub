@@ -821,6 +821,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pd-share-btn:active{transform:scale(.96)}
 .pd-share-btn.tg{background:rgba(34,158,217,.12);border-color:rgba(34,158,217,.3);color:#1c8fc4}
 .pd-share-btn.em{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--amber-d)}
+.pd-share-btn.cp{background:rgba(107,114,128,.1);border-color:rgba(107,114,128,.3);color:var(--text2)}
 .pd-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 14px;border-top:1px solid rgba(0,0,0,.07);flex-shrink:0}
 .pd-back{color:var(--text2);font-size:.78rem;font-weight:600;background:rgba(0,0,0,.06);border-radius:10px;padding:9px 14px;border:none;cursor:pointer}
 .pd-qty-row{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);border-radius:12px;padding:4px 6px;border:1px solid var(--blo)}
@@ -1468,6 +1469,7 @@ function openDetail(id) {
         + '<button class="pd-share-btn" onclick="shareProduct()">&#128228; Ещё</button>'
         + '<button class="pd-share-btn tg" onclick="shareProductTo(\'tg\')">Telegram</button>'
         + '<button class="pd-share-btn em" onclick="shareProductTo(\'email\')">Почта</button>'
+        + '<button class="pd-share-btn cp" onclick="shareProductTo(\'copy\')">&#128279; Ссылка</button>'
       + '</div>'
     + '</div>'
     + '<div class="pd-foot">'
@@ -1522,6 +1524,18 @@ function shareProductTo(ch) {
     window.open('https://t.me/share/url?url='+encodeURIComponent(d.url)+'&text='+encodeURIComponent(d.text), '_blank');
   } else if(ch === 'email') {
     window.location.href = 'mailto:?subject='+encodeURIComponent(d.title+' — СплитХаб')+'&body='+encodeURIComponent(d.text+'\n'+d.url);
+  } else if(ch === 'copy') {
+    var done = function(){ showToast('Ссылка на товар скопирована'); };
+    var fail = function(){ showToast('Не удалось скопировать', true); };
+    if(navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(d.url).then(done).catch(fail);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = d.url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch(e){ fail(); }
+      document.body.removeChild(ta);
+    }
   }
 }
 
