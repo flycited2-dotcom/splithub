@@ -840,26 +840,28 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 }
 /* Десктоп: горизонтальная раскладка карточки — фото слева, инфо справа */
 @media(min-width:820px){
-  .pd{max-width:1160px;}
+  .pd{max-width:1160px;max-height:92vh;}
   .pd-scroll{
     display:grid;
     grid-template-columns:1.45fr 1fr;
     grid-template-areas:"media head" "media action" "media specs" "media features" "media share";
-    align-content:start;column-gap:28px;padding:26px 30px 16px;
+    align-content:start;column-gap:28px;padding:20px 30px 12px;
   }
-  .pd-media{grid-area:media;align-self:stretch;display:flex;align-items:center;justify-content:center}
+  .pd-media{grid-area:media;align-self:start;display:flex;align-items:center;justify-content:center;max-height:62vh}
   .pd-head{grid-area:head;padding:0 0 6px}
   .pd-brand{font-size:1rem;margin-bottom:5px}
   .pd-action-row{grid-area:action;margin-bottom:14px}
   .pd-specs-row{grid-area:specs}
   .pd-features-block{grid-area:features}
   .pd-features-list{display:block;columns:2;column-gap:24px}
-  .pd-feat-item{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:6px}
+  .pd-feat-item{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:4px;font-size:.76rem}
+  .pd-features-block{margin-bottom:6px}
+  .pd-specs-row{margin-bottom:10px}
   .pd-share-row{grid-area:share;margin-top:8px;padding-top:12px}
   .pd-share-btn{flex-direction:row;gap:7px;padding:8px 6px;border-radius:10px;font-size:.72rem}
   .pd-share-btn svg{width:16px;height:16px}
-  .pd-img-wrap{margin-bottom:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-  .pd-img{max-height:none;width:100%;height:auto;max-width:100%;padding:28px}
+  .pd-img-wrap{margin-bottom:0;width:100%;max-height:62vh;display:flex;align-items:center;justify-content:center}
+  .pd-img{max-height:62vh;width:100%;height:auto;max-width:100%;padding:22px;object-fit:contain}
   .pd-title{font-size:1.4rem}
   .pd-price{font-size:1.55rem}
 }
