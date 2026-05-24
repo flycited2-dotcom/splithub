@@ -840,24 +840,33 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 }
 /* Десктоп: горизонтальная раскладка карточки — фото слева, инфо справа */
 @media(min-width:820px){
-  .pd{max-width:940px;}
+  .pd{max-width:1160px;}
   .pd-scroll{
     display:grid;
-    grid-template-columns:1.5fr 1fr;
+    grid-template-columns:1.45fr 1fr;
     grid-template-areas:"media head" "media action" "media specs" "media features" "media share";
-    align-content:start;column-gap:24px;padding:26px 28px 16px;
+    align-content:start;column-gap:28px;padding:26px 30px 16px;
   }
   .pd-media{grid-area:media;align-self:stretch;display:flex;align-items:center;justify-content:center}
-  .pd-head{grid-area:head;padding:0 0 8px}
+  .pd-head{grid-area:head;padding:0 0 6px}
+  .pd-brand{font-size:1rem;margin-bottom:5px}
   .pd-action-row{grid-area:action;margin-bottom:14px}
   .pd-specs-row{grid-area:specs}
   .pd-features-block{grid-area:features}
-  .pd-share-row{grid-area:share;margin-top:8px}
+  .pd-features-list{display:block;columns:2;column-gap:24px}
+  .pd-feat-item{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:8px}
+  .pd-share-row{grid-area:share;margin-top:10px}
   .pd-img-wrap{margin-bottom:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
   .pd-img{max-height:none;width:100%;height:auto;max-width:100%;padding:28px}
-  .pd-title{font-size:1.35rem}
+  .pd-title{font-size:1.4rem}
   .pd-price{font-size:1.55rem}
 }
+/* Лайтбокс — фото товара на весь экран */
+.imglb-ov{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.93);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;cursor:zoom-out}
+.imglb-ov.on{opacity:1;pointer-events:auto}
+.imglb-ov img{max-width:96vw;max-height:94vh;object-fit:contain;border-radius:8px;box-shadow:0 12px 60px rgba(0,0,0,.5)}
+.imglb-close{position:fixed;top:18px;right:20px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.imglb-close:hover{background:rgba(255,255,255,.28)}
 
 /* SCROLL-TOP & SHARE */
 .scroll-top{position:fixed;bottom:82px;left:10px;z-index:198;display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:999px;border:1px solid var(--blo);background:rgba(255,255,255,.88);backdrop-filter:blur(12px);color:var(--text2);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.1);opacity:0;transform:translateY(8px);pointer-events:none;transition:all .3s cubic-bezier(.34,1.4,.64,1)}
@@ -1450,7 +1459,7 @@ function openDetail(id) {
   pdCurrentId = id; pdQty = 1;
   var src = getImg(p);
   var imgH = src
-    ? '<div class="pd-img-wrap"><img class="pd-img" loading="lazy" src="'+src+'" alt="'+p.model+'" onerror="this.style.display=\'none\'"></div>'
+    ? '<div class="pd-img-wrap"><img class="pd-img" loading="lazy" src="'+src+'" alt="'+p.model+'" style="cursor:zoom-in" onclick="openImgLightbox(\''+src+'\')" onerror="this.style.display=\'none\'"></div>'
     : '';
   var specs = [];
   if(p.btu && p.btu!=='-')           specs.push({ico:'⚡',t:'Мощность',v:p.btu+' BTU'});
@@ -1521,6 +1530,18 @@ function pdChange(d) {
   pdQty = Math.max(1, pdQty+d);
   var el = document.getElementById('pdQtyVal');
   if(el) el.textContent = pdQty;
+}
+
+// ── Полноэкранный просмотр фото товара ────────────────
+function openImgLightbox(src) {
+  var lb = document.getElementById('imgLb');
+  if(!lb) return;
+  document.getElementById('imgLbImg').src = src;
+  lb.classList.add('on');
+}
+function closeImgLightbox() {
+  var lb = document.getElementById('imgLb');
+  if(lb) lb.classList.remove('on');
 }
 
 // ── Поделиться карточкой товара ───────────────────────
@@ -2206,6 +2227,7 @@ window.addEventListener('popstate', function() {
 // ── ESC ───────────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
   if(e.key === 'Escape') {
+    if(document.getElementById('imgLb') && document.getElementById('imgLb').classList.contains('on')) { closeImgLightbox(); return; }
     if(document.getElementById('ppolOv') && document.getElementById('ppolOv').classList.contains('on')) { closePolupromModal(); return; }
     if(_navStack.length) { history.back(); }
   }
@@ -2240,6 +2262,12 @@ syncFab();
       <button class="unavail-cart" id="unavailCartBtn">Перейти в корзину</button>
     </div>
   </div>
+</div>
+
+<!-- ФОТО НА ВЕСЬ ЭКРАН -->
+<div class="imglb-ov" id="imgLb" onclick="closeImgLightbox()">
+  <img id="imgLbImg" src="" alt="Фото товара">
+  <button class="imglb-close" onclick="closeImgLightbox()">✕</button>
 </div>
 
 <!-- ПОЛУПРОМ MODAL -->
