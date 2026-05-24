@@ -1589,17 +1589,22 @@ function renderD() {
   var tQty = cart.reduce(function(s,p){ return s+p.qty; }, 0);
   var tot  = cart.reduce(function(s,p){ return s+p.price*p.qty; }, 0);
 
+  // Эффективные данные клиента: профиль (активная сессия) > localStorage.
+  // Авторизованный клиент не видит поля имя/телефон — они берутся из аккаунта.
+  var effName  = (currentUser && currentUser.name)  ? currentUser.name  : savedName;
+  var effPhone = (currentUser && currentUser.phone) ? currentUser.phone : savedPhone;
+
   // Update header: title + phone, logout button visibility
   var titleEl = document.getElementById('dhTitle');
-  if(titleEl) titleEl.textContent = savedName ? 'Заявка \u2014 '+savedName : 'Ваша заявка';
+  if(titleEl) titleEl.textContent = effName ? 'Заявка \u2014 '+effName : 'Ваша заявка';
   var phoneEl = document.getElementById('dhPhone');
-  if(phoneEl) phoneEl.textContent = savedPhone || '';
+  if(phoneEl) phoneEl.textContent = effPhone || '';
   var lb = document.getElementById('logoutBtn');
-  if(lb) lb.style.display = savedName ? '' : 'none';
+  if(lb) lb.style.display = (currentUser || effName) ? '' : 'none';
 
-  // Guest inputs (only shown when not identified)
-  var idHtml = savedName ? '' : '<input class="inp" id="dN" placeholder="Ваше имя" type="text" autocomplete="name">';
-  idHtml += savedPhone ? '' : '<input class="inp" id="dP" placeholder="+7 (___) ___-__-__" type="tel" autocomplete="tel">';
+  // Поля имя/телефон — только для гостей (не авторизован и нет сохранённых данных)
+  var idHtml = effName ? '' : '<input class="inp" id="dN" placeholder="Ваше имя" type="text" autocomplete="name">';
+  idHtml += effPhone ? '' : '<input class="inp" id="dP" placeholder="+7 (___) ___-__-__" type="tel" autocomplete="tel">';
 
   df.innerHTML =
     '<div class="dtot">'
@@ -1674,8 +1679,8 @@ function showToastWithAction(msg, actionLabel, actionFn) {
 // ── Send ──────────────────────────────────────────────
 function sendOrder() {
   var nEl = document.getElementById('dN'), pEl = document.getElementById('dP');
-  var n = nEl ? nEl.value.trim() : savedName;
-  var p = pEl ? pEl.value.trim() : savedPhone;
+  var n = nEl ? nEl.value.trim() : ((currentUser && currentUser.name)  || savedName);
+  var p = pEl ? pEl.value.trim() : ((currentUser && currentUser.phone) || savedPhone);
   if(!n || !p) { showToast('Укажите имя и телефон', true); return; }
   var comment = (document.getElementById('dC') || {}).value || '';
   var tg      = (document.getElementById('dTg') || {}).value || '';
@@ -1935,7 +1940,7 @@ function doLogin() {
       savedName = d.user.name; savedPhone = d.user.phone;
       localStorage.setItem('sh_name', d.user.name);
       localStorage.setItem('sh_phone', d.user.phone);
-      closeAuth(); updateNavAuth();
+      closeAuth(); updateNavAuth(); renderD();
       showToast('Добро пожаловать, ' + d.user.name + '!');
     } else {
       err.textContent = d.error || 'Ошибка входа';
@@ -1962,7 +1967,7 @@ function doRegister() {
       savedName = d.user.name; savedPhone = d.user.phone;
       localStorage.setItem('sh_name', d.user.name);
       localStorage.setItem('sh_phone', d.user.phone);
-      closeAuth(); updateNavAuth();
+      closeAuth(); updateNavAuth(); renderD();
       showToast('Регистрация успешна!');
     } else {
       err.textContent = d.error || 'Ошибка регистрации';
@@ -1991,7 +1996,7 @@ fetch('api/auth.php?action=profile')
     savedName = d.user.name; savedPhone = d.user.phone;
     localStorage.setItem('sh_name', d.user.name);
     localStorage.setItem('sh_phone', d.user.phone);
-    updateNavAuth();
+    updateNavAuth(); renderD();
   }
 }).catch(function(){});
 
