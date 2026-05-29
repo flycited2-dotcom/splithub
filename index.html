@@ -1734,7 +1734,14 @@ function sendOrder() {
     client_tg: tg.trim(),
     items: cart.map(function(x){
       var prod = PRODUCTS.find(function(pr){ return pr.id===x.id; });
-      return {name:x.name, brand:x.brand||'', price:x.price, qty:x.qty, group: prod ? prod.group : ''};
+      var nm = x.name;
+      // Трубы: тип стенки (Средняя / Толстая ГОСТ) есть только в series, а model у них
+      // одинаков — без этого менеджер не отличит ГОСТ от средней. Добавляем тип стенки.
+      if (prod && prod.group === 'truba' && prod.series) {
+        var wall = prod.series.replace(/\s*\d+\s*м\.?\s*$/i, '').trim();
+        if (wall && nm.indexOf(wall) === -1) nm = nm + ' · ' + wall;
+      }
+      return {name:nm, brand:x.brand||'', price:x.price, qty:x.qty, group: prod ? prod.group : ''};
     })
   };
   fetch('send.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
