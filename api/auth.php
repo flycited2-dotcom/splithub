@@ -141,7 +141,9 @@ switch ($action) {
 
     // ── Profile ──
     case 'profile':
-        $uid = authRequire();
+        // Гость — не ошибка: 200 {authorized:false} вместо 401, чтобы не шуметь в консоли при каждой загрузке
+        $uid = authCheck();
+        if (!$uid) jsonResponse(['ok' => false, 'authorized' => false], 200);
         $db = getDB();
 
         $stmt = $db->prepare('SELECT id, name, phone, telegram, role, created_at FROM users WHERE id = ?');
