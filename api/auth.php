@@ -229,6 +229,84 @@ switch ($action) {
         jsonResponse(['ok' => true, 'items' => $it->fetchAll()]);
         break;
 
+    // ── Cancel order by client (only while status='new') ──
+    case 'cancel_order':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $uid = authRequire();
+        $db  = getDB();
+
+        $raw     = json_decode(file_get_contents('php://input'), true);
+        $orderId = (int)($raw['orderId'] ?? 0);
+        $reason  = trim($raw['reason'] ?? '');
+        if (!$orderId)        jsonResponse(['ok' => false, 'error' => 'orderId required'], 422);
+        if ($reason === '')   jsonResponse(['ok' => false, 'error' => 'Укажите причину отмены'], 422);
+
+        // Заказ должен принадлежать пользователю
+        $chk = $db->prepare('SELECT o.id, o.status, o.total, u.name, u.phone
+                             FROM orders o JOIN users u ON u.id = o.user_id
+                             WHERE o.id = ? AND o.user_id = ?');
+        $chk->execute([$orderId, $uid]);
+        $order = $chk->fetch();
+        if (!$order) jsonResponse(['ok' => false, 'error' => 'Заказ не найден'], 404);
+
+        // Самоотмена доступна только пока заказ «новый»
+        if ($order['status'] !== 'new') {
+            jsonResponse(['ok' => false, 'error' => 'Заказ уже в работе — отмена только через менеджера'], 409);
+        }
+
+        $db->prepare("UPDATE orders SET status = 'cancelled', cancel_reason = ? WHERE id = ?")
+           ->execute([$reason, $orderId]);
+
+        // ── Уведомление менеджеру: Telegram + email (TG ненадёжен → дублируем) ──
+        $cfgFile = __DIR__ . '/../config.php';
+        if (file_exists($cfgFile)) require_once $cfgFile;
+        $shNum  = 'SH-' . str_pad((string)$orderId, 5, '0', STR_PAD_LEFT);
+        $totalf = number_format((int)$order['total'], 0, '.', ' ');
+        $cName  = $order['name'];
+        $cPhone = $order['phone'];
+
+        if (defined('BOT_TOKEN') && defined('CHAT_ID') && BOT_TOKEN && CHAT_ID) {
+            // plain-text (без Markdown), чтобы причина клиента не ломала разметку
+            $tg  = "❌ Отмена заказа клиентом\n";
+            $tg .= "Заказ: {$shNum}  ({$totalf} ₽)\n";
+            $tg .= "Клиент: {$cName}\n";
+            $tg .= "Телефон: {$cPhone}\n";
+            $tg .= "Причина: {$reason}\n";
+            $tg .= "\nВозможно, удержим — перезвоните";
+            $ch = curl_init("https://api.telegram.org/bot" . BOT_TOKEN . "/sendMessage");
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode(['chat_id' => CHAT_ID, 'text' => $tg], JSON_UNESCAPED_UNICODE),
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_SSL_VERIFYPEER => false,
+            ]);
+            curl_exec($ch); curl_close($ch);
+        }
+
+        if (defined('EMAIL_TO') && EMAIL_TO) {
+            $emailHtml = '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">'
+                . '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+                . '<body style="font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;padding:16px;margin:0">'
+                . '<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden">'
+                . '<div style="background:#ef4444;padding:14px 18px;color:#fff;font-weight:700">&#10060; Отмена заказа клиентом</div>'
+                . '<div style="padding:16px 18px;font-size:14px;color:#1f2937;line-height:1.7">'
+                . '<div><b>Заказ:</b> ' . $shNum . ' (' . $totalf . ' &#8381;)</div>'
+                . '<div><b>Клиент:</b> ' . htmlspecialchars($cName) . '</div>'
+                . '<div><b>Телефон:</b> ' . htmlspecialchars($cPhone) . '</div>'
+                . '<div><b>Причина:</b> ' . htmlspecialchars($reason) . '</div>'
+                . '<div style="margin-top:10px;color:#6b7280">Возможно, удержим — перезвоните.</div>'
+                . '</div></div></body></html>';
+            $headers  = "From: =?UTF-8?B?" . base64_encode("СплитХаб") . "?= <zakaz@splithub.ru>\r\n";
+            $headers .= "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n";
+            $subj = "=?UTF-8?B?" . base64_encode("Отмена заказа {$shNum} — {$cName}") . "?=";
+            @mail(EMAIL_TO, $subj, $emailHtml, $headers);
+        }
+
+        jsonResponse(['ok' => true]);
+        break;
+
     // ── Bonus log ──
     case 'bonus':
         $uid = authRequire();

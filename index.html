@@ -958,6 +958,43 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .do-repeat{width:100%;margin-top:9px;padding:8px 0;border-radius:9px;background:rgba(37,99,235,.1);color:#1d4ed8;font-size:.74rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid rgba(37,99,235,.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .18s;}
 .do-repeat:hover{background:rgba(37,99,235,.18);}
 .do-repeat:active{transform:scale(0.98);}
+/* ── Order status tracker / cancel (ЛК) ── */
+.do-head-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.do-upd{font-size:.55rem;font-weight:800;color:#b45309;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.4);padding:2px 7px;border-radius:20px;white-space:nowrap;letter-spacing:.03em;text-transform:uppercase}
+.do-track{display:flex;align-items:flex-start;justify-content:space-between;margin:2px 2px 11px;padding:0 4px}
+.dt-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;width:58px}
+.dt-dot{width:13px;height:13px;border-radius:50%;background:#d1d5db;transition:all .2s}
+.dt-lbl{font-size:.57rem;font-weight:700;color:#9ca3af;white-space:nowrap;text-align:center}
+.dt-step.done .dt-dot{background:#16a34a}
+.dt-step.done .dt-lbl{color:#16a34a}
+.dt-step.cur .dt-dot{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.18)}
+.dt-step.cur .dt-lbl{color:#b45309}
+.dt-line{flex:1;height:2px;background:#e5e7eb;margin:6px -6px 0}
+.dt-line.done{background:#16a34a}
+.do-card.cancelled{opacity:.6}
+.do-cancel{width:100%;margin-top:9px;padding:8px 0;border-radius:9px;background:rgba(239,68,68,.08);color:#dc2626;font-size:.74rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid rgba(239,68,68,.22);transition:all .18s}
+.do-cancel:hover{background:rgba(239,68,68,.15)}
+.do-cancel:active{transform:scale(.98)}
+.do-cancel-hint{width:100%;margin-top:8px;font-size:.66rem;color:var(--text3);line-height:1.4;text-align:center}
+/* ── Cancel reason modal ── */
+.cxl-ov{position:fixed;inset:0;z-index:520;background:rgba(15,18,28,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.cxl-ov.on{opacity:1;pointer-events:auto}
+.cxl-box{background:rgba(248,250,252,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;padding:20px 18px;max-width:340px;width:100%;border:1px solid var(--blo);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.cxl-title{font-weight:700;font-size:.9rem;margin-bottom:4px;color:var(--text)}
+.cxl-sub{font-size:.74rem;color:var(--text2);margin-bottom:14px;line-height:1.5}
+.cxl-reasons{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.cxl-reason{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--blo);border-radius:11px;background:rgba(255,255,255,.6);font-size:.78rem;color:var(--text);cursor:pointer;transition:all .15s;text-align:left;font-family:'Inter',sans-serif;width:100%}
+.cxl-reason:hover{border-color:var(--amber)}
+.cxl-reason.sel{border-color:var(--amber);background:rgba(245,158,11,.12);font-weight:600}
+.cxl-radio{width:16px;height:16px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;transition:all .15s}
+.cxl-reason.sel .cxl-radio{border-color:var(--amber);background:var(--amber);box-shadow:inset 0 0 0 3px #fff}
+.cxl-other{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--blo);border-radius:10px;background:rgba(255,255,255,.8);font-family:'Inter',sans-serif;font-size:.78rem;color:var(--text);outline:none;margin-bottom:12px;resize:vertical;min-height:44px;display:none}
+.cxl-other.on{display:block}
+.cxl-other:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,158,11,.1)}
+.cxl-btns{display:flex;gap:8px}
+.cxl-back{flex:1;padding:10px;border:1px solid var(--blo);border-radius:10px;background:rgba(255,255,255,.6);font-size:.78rem;font-weight:600;color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif}
+.cxl-confirm{flex:1;padding:10px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.cxl-confirm:disabled{opacity:.45;cursor:not-allowed}
 
 /* ── Order history filters ── */
 .orders-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
@@ -2126,6 +2163,10 @@ function renderOrdersList(orders,listEl){
   }
   var sMap={new:'\u041d\u043e\u0432\u044b\u0439',confirmed:'\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d',in_progress:'\u0412 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0435',shipped:'\u041e\u0442\u0433\u0440\u0443\u0436\u0435\u043d',completed:'\u0412\u044b\u043f\u043e\u043b\u043d\u0435\u043d',cancelled:'\u041e\u0442\u043c\u0435\u043d\u0451\u043d'};
   var sClr={new:'#f59e0b',confirmed:'#3b82f6',in_progress:'#8b5cf6',shipped:'#06b6d4',completed:'#16a34a',cancelled:'#ef4444'};
+  // Клиентский трекер: 6 внутренних статусов → 3 этапа
+  var STAGE_OF={new:0,confirmed:1,in_progress:1,shipped:2,completed:2};
+  var STAGE_LBL=['Новый','Подтверждён','Выполнен'];
+  var seen={};try{seen=JSON.parse(localStorage.getItem('sh_order_status')||'{}')||{};}catch(e){}
   var cards='';
   orders.forEach(function(o){
     var dt=new Date(o.created_at.replace(' ','T'));
@@ -2134,10 +2175,23 @@ function renderOrdersList(orders,listEl){
     var shNum='SH-'+String(o.id).padStart(5,'0');
     var items=o.items||[];
     var enc=encodeURIComponent(JSON.stringify(items.map(function(it){return {product_name:it.product_name,qty:it.qty};})));
-    cards+='<div class="do-card">'
+    var isCancelled=(o.status==='cancelled');
+    var stage=STAGE_OF[o.status];
+    var changed=(seen[o.id]!==undefined && seen[o.id]!==o.status);
+    cards+='<div class="do-card'+(isCancelled?' cancelled':'')+'">'
       +'<div class="do-head"><div class="do-head-left"><span class="do-num">'+shNum+'</span><span class="do-date">'+ds+'</span></div>'
-      +'<span class="do-badge" style="background:'+sc+'22;color:'+sc+';border-color:'+sc+'44">'+sl+'</span></div>'
-      +'<div class="do-items-list">';
+      +'<div class="do-head-right"><span class="do-badge" style="background:'+sc+'22;color:'+sc+';border-color:'+sc+'44">'+sl+'</span>'
+      +(changed?'<span class="do-upd">обновлено</span>':'')
+      +'</div></div>';
+    if(!isCancelled && stage!==undefined){
+      cards+='<div class="do-track">';
+      for(var st=0;st<3;st++){
+        cards+='<div class="dt-step'+(st<stage?' done':(st===stage?' cur':''))+'"><span class="dt-dot"></span><span class="dt-lbl">'+STAGE_LBL[st]+'</span></div>';
+        if(st<2)cards+='<span class="dt-line'+(st<stage?' done':'')+'"></span>';
+      }
+      cards+='</div>';
+    }
+    cards+='<div class="do-items-list">';
     items.forEach(function(it){
       cards+='<div class="do-item-row"><span class="do-item-name">'+it.product_name+'</span>'
         +'<span class="do-item-meta">'+it.qty+'\u00a0\u0448\u0442.\u00a0\u00b7\u00a0'+(it.price*it.qty).toLocaleString('ru-RU')+'\u00a0\u20bd</span></div>';
@@ -2145,9 +2199,16 @@ function renderOrdersList(orders,listEl){
     cards+='</div><div class="do-footer">'
       +'<div class="do-total-block"><span class="do-total-label">\u0418\u0442\u043e\u0433\u043e</span>'
       +'<span class="do-total-val">'+parseInt(o.total).toLocaleString('ru-RU')+'\u00a0\u20bd</span></div>'
-      +'<button class="do-repeat" onclick="repeatOrder('+o.id+',\''+shNum+'\',\''+enc+'\')">\u21ba\u00a0\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c</button>'
-      +'</div></div>';
+      +'<button class="do-repeat" onclick="repeatOrder('+o.id+',\''+shNum+'\',\''+enc+'\')">\u21ba\u00a0\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c</button>';
+    if(o.status==='new'){
+      cards+='<button class="do-cancel" onclick="openCancelModal('+o.id+',\''+shNum+'\')">\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0437\u0430\u043a\u0430\u0437</button>';
+    }else if(!isCancelled && o.status!=='completed'){
+      cards+='<div class="do-cancel-hint">\u0414\u043b\u044f \u043e\u0442\u043c\u0435\u043d\u044b \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d\u043d\u043e\u0433\u043e \u0437\u0430\u043a\u0430\u0437\u0430 \u043f\u043e\u0437\u0432\u043e\u043d\u0438\u0442\u0435: +7\u00a0978\u00a0599-13-69</div>';
+    }
+    cards+='</div></div>';
   });
+  // запомнить текущие статусы — для метки «обновлено» при следующем заходе
+  try{var _ns=JSON.parse(localStorage.getItem('sh_order_status')||'{}')||{};orders.forEach(function(o){_ns[o.id]=o.status;});localStorage.setItem('sh_order_status',JSON.stringify(_ns));}catch(e){}
   var html='<div class="orders-grid">'+cards+'</div>';
   if(_ordersTotal>0){
     var from=((_ordersPage-1)*10)+1,to=Math.min(_ordersPage*10,_ordersTotal);
@@ -2163,6 +2224,46 @@ function renderOrdersList(orders,listEl){
 }
 
 
+
+// ── Отмена заказа клиентом (только статус 'new') ──
+var _cancelOrderId=null;
+function openCancelModal(orderId, shNum){
+  _cancelOrderId=orderId;
+  var num=document.getElementById('cxlNum'); if(num)num.textContent=shNum;
+  document.querySelectorAll('#cxlReasons .cxl-reason').forEach(function(b){b.classList.remove('sel');});
+  var ot=document.getElementById('cxlOther'); if(ot){ot.value='';ot.classList.remove('on');}
+  var cf=document.getElementById('cxlConfirm'); if(cf){cf.disabled=true;cf.textContent='Отменить заказ';}
+  document.getElementById('cxlOv').classList.add('on');
+}
+function closeCancelModal(){document.getElementById('cxlOv').classList.remove('on');}
+function selCancelReason(btn){
+  document.querySelectorAll('#cxlReasons .cxl-reason').forEach(function(b){b.classList.remove('sel');});
+  btn.classList.add('sel');
+  var ot=document.getElementById('cxlOther');
+  if(btn.getAttribute('data-r')==='__other__'){ot.classList.add('on');ot.focus();}
+  else{ot.classList.remove('on');}
+  updCancelBtn();
+}
+function updCancelBtn(){
+  var sel=document.querySelector('#cxlReasons .cxl-reason.sel');
+  var isOther=sel&&sel.getAttribute('data-r')==='__other__';
+  var ok=!!sel&&(!isOther||document.getElementById('cxlOther').value.trim().length>0);
+  document.getElementById('cxlConfirm').disabled=!ok;
+}
+function submitCancel(){
+  var sel=document.querySelector('#cxlReasons .cxl-reason.sel');
+  if(!sel)return;
+  var reason=sel.getAttribute('data-r')==='__other__'?document.getElementById('cxlOther').value.trim():sel.getAttribute('data-r');
+  if(!reason)return;
+  var btn=document.getElementById('cxlConfirm');btn.disabled=true;btn.textContent='Отмена...';
+  fetch('api/auth.php?action=cancel_order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderId:_cancelOrderId,reason:reason})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){closeCancelModal();showToast('Заказ отменён',false);loadOrders();}
+      else{showToast(d.error||'Не удалось отменить',true);btn.disabled=false;btn.textContent='Отменить заказ';}
+    })
+    .catch(function(){showToast('Ошибка сети',true);btn.disabled=false;btn.textContent='Отменить заказ';});
+}
 
 function renderDashTab(tab) {
   var body = document.getElementById('dashBody');
@@ -2271,6 +2372,25 @@ syncFab();
     <div class="unavail-btns">
       <button class="unavail-ok" onclick="closeUnavailModal()">Понятно</button>
       <button class="unavail-cart" id="unavailCartBtn">Перейти в корзину</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОТМЕНА ЗАКАЗА -->
+<div class="cxl-ov" id="cxlOv" onclick="if(event.target===this)closeCancelModal()">
+  <div class="cxl-box">
+    <div class="cxl-title">Отменить заказ <span id="cxlNum"></span>?</div>
+    <div class="cxl-sub">Укажите причину — это обязательно. Возможно, менеджер предложит вариант выгоднее и перезвонит.</div>
+    <div class="cxl-reasons" id="cxlReasons">
+      <button class="cxl-reason" data-r="Заказал по ошибке" onclick="selCancelReason(this)"><span class="cxl-radio"></span>Заказал по ошибке</button>
+      <button class="cxl-reason" data-r="Нашёл дешевле" onclick="selCancelReason(this)"><span class="cxl-radio"></span>Нашёл дешевле</button>
+      <button class="cxl-reason" data-r="Нужна другая мощность/модель" onclick="selCancelReason(this)"><span class="cxl-radio"></span>Нужна другая мощность/модель</button>
+      <button class="cxl-reason" data-r="__other__" onclick="selCancelReason(this)"><span class="cxl-radio"></span>Другое</button>
+    </div>
+    <textarea class="cxl-other" id="cxlOther" placeholder="Опишите причину..." oninput="updCancelBtn()"></textarea>
+    <div class="cxl-btns">
+      <button class="cxl-back" onclick="closeCancelModal()">Назад</button>
+      <button class="cxl-confirm" id="cxlConfirm" disabled onclick="submitCancel()">Отменить заказ</button>
     </div>
   </div>
 </div>

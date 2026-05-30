@@ -61,6 +61,9 @@ function getDB() {
         if (!in_array('admin_note', $colNames2)) {
             $db->exec("ALTER TABLE orders ADD COLUMN admin_note TEXT DEFAULT ''");
         }
+        if (!in_array('cancel_reason', $colNames2)) {
+            $db->exec("ALTER TABLE orders ADD COLUMN cancel_reason TEXT DEFAULT ''");
+        }
     } catch (Throwable $e) {}
 
     return $db;
