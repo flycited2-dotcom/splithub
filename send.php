@@ -126,6 +126,24 @@ try {
 
             $ii = $db->prepare('INSERT INTO order_items (order_id,product_name,price,qty,product_id) VALUES (?,?,?,?,?)');
             foreach ($dbItems as $di) $ii->execute([$orderId, $di['name'], $di['price'], $di['qty'], $di['id']]);
+
+            // ── Telegram-пульт: кнопки управления статусом под уведомлением ──
+            $mid = $tgResult['result']['result']['message_id'] ?? null;
+            if ($tgOk && $mid) {
+                $kb = ['inline_keyboard' => [[
+                    ['text' => '✅ Подтвердить', 'callback_data' => 'st:confirmed:' . $orderId],
+                    ['text' => '❌ Отменить',   'callback_data' => 'st:cancelled:' . $orderId],
+                ]]];
+                $eh = curl_init("https://api.telegram.org/bot" . BOT_TOKEN . "/editMessageReplyMarkup");
+                curl_setopt_array($eh, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => ['chat_id' => CHAT_ID, 'message_id' => $mid, 'reply_markup' => json_encode($kb)],
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => 10,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                ]);
+                curl_exec($eh); curl_close($eh);
+            }
         } else {
             // Гостевой заказ
             $db = getDB();
