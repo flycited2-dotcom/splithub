@@ -3,6 +3,7 @@ require_once __DIR__ . '/lib/catalog.php';
 require_once __DIR__ . '/lib/mobile_auth.php';
 require_once __DIR__ . '/lib/order_service.php';
 require_once __DIR__ . '/lib/manager_notify.php';
+require_once __DIR__ . '/lib/push.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -80,6 +81,28 @@ try {
         $stmt = getDB()->prepare('SELECT id,name,phone,telegram,role,created_at FROM users WHERE id=?');
         $stmt->execute([$uid]);
         ok(['user' => $stmt->fetch()]);
+    }
+
+    if ($action === 'register_device' || $action === 'notification_preferences') {
+        requirePost();
+        $uid = requireMobileUser();
+        $data = body();
+        upsertMobileDevice(
+            $uid,
+            (string)($data['expo_token'] ?? ''),
+            (string)($data['platform'] ?? ''),
+            $data
+        );
+        ok();
+    }
+
+    if ($action === 'remove_device') {
+        requirePost();
+        $uid = requireMobileUser();
+        $data = body();
+        getDB()->prepare('DELETE FROM mobile_devices WHERE user_id=? AND expo_token=?')
+               ->execute([$uid, (string)($data['expo_token'] ?? '')]);
+        ok();
     }
 
     if ($action === 'create_order') {

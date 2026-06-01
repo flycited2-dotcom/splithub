@@ -78,6 +78,24 @@ try {
     $profile = Invoke-Mobile 'profile' 'GET' @{} $token
     Assert-True ($profile.Status -eq 200 -and $profile.Data.user.phone -eq '79780000003') 'profile uses bearer token'
 
+    $device = Invoke-Mobile 'register_device' 'POST' @{
+        expo_token = 'ExpoPushToken[smoke]'
+        platform = 'android'
+        order_status_enabled = $true
+        promotions_enabled = $true
+        manager_messages_enabled = $true
+    } $token
+    Assert-True ($device.Status -eq 200 -and $device.Data.ok) 'device token registered'
+
+    $preferences = Invoke-Mobile 'notification_preferences' 'POST' @{
+        expo_token = 'ExpoPushToken[smoke]'
+        platform = 'android'
+        order_status_enabled = $true
+        promotions_enabled = $false
+        manager_messages_enabled = $true
+    } $token
+    Assert-True ($preferences.Status -eq 200 -and $preferences.Data.ok) 'notification preferences updated'
+
     $changed = Invoke-Mobile 'create_order' 'POST' @{
         items = @(@{ id = '1001'; price = 1; qty = 2 })
     } $token
@@ -101,6 +119,9 @@ try {
 
     $cancel = Invoke-Mobile 'cancel_order' 'POST' @{ order_id = $orderId; reason = 'smoke' } $token
     Assert-True ($cancel.Status -eq 200 -and $cancel.Data.ok) 'new order can be cancelled'
+
+    $removed = Invoke-Mobile 'remove_device' 'POST' @{ expo_token = 'ExpoPushToken[smoke]' } $token
+    Assert-True ($removed.Status -eq 200 -and $removed.Data.ok) 'device token removed'
 } finally {
     Stop-Process -Id $server.Id -Force -ErrorAction SilentlyContinue
     foreach ($path in @($tmpDb, "$tmpDb-wal", "$tmpDb-shm", $requestFile, $responseFile)) {
