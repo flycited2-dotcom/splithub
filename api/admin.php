@@ -406,6 +406,37 @@ switch ($action) {
         jsonResponse(['ok' => true]);
         break;
 
+    // ── Mobile push notifications ──
+    case 'push_promotion':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $title = trim($raw['title'] ?? '');
+        $body = trim($raw['body'] ?? '');
+        if ($title === '' || $body === '') jsonResponse(['ok' => false, 'error' => 'title and body required'], 422);
+        $target = ['category' => trim($raw['category'] ?? '')];
+        $users = $db->query('SELECT DISTINCT user_id FROM mobile_devices WHERE active=1 AND promotions_enabled=1')->fetchAll();
+        foreach ($users as $user) sendUserPush((int)$user['user_id'], 'promotion', $title, $body, $target);
+        jsonResponse(['ok' => true, 'users' => count($users)]);
+        break;
+
+    case 'push_manager_message':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $uid = (int)($raw['user_id'] ?? 0);
+        $body = trim($raw['body'] ?? '');
+        if (!$uid || $body === '') jsonResponse(['ok' => false, 'error' => 'user_id and body required'], 422);
+        $exists = $db->prepare('SELECT id FROM users WHERE id=?');
+        $exists->execute([$uid]);
+        if (!$exists->fetch()) jsonResponse(['ok' => false, 'error' => 'user not found'], 404);
+        sendUserPush($uid, 'manager_message', 'Message from SplitHub manager', $body, ['telegram_url' => 'https://t.me/Byttehnikaopt']);
+        jsonResponse(['ok' => true]);
+        break;
+
+    case 'push_log':
+        $rows = $db->query('SELECT * FROM push_campaigns ORDER BY id DESC LIMIT 100')->fetchAll();
+        jsonResponse(['ok' => true, 'campaigns' => $rows]);
+        break;
+
     default:
         jsonResponse(['ok' => false, 'error' => 'Unknown action'], 400);
 }
