@@ -7,6 +7,7 @@
 
 // ── Credentials — единый источник истины: внешний config.php ──
 require_once __DIR__ . '/api/lib/app_config.php';
+require_once __DIR__ . '/api/lib/catalog.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -25,11 +26,19 @@ $comment  = trim($data['comment']  ?? '');
 $clientTg = trim($data['client_tg'] ?? '');
 $items    = $data['items'] ?? [];
 
-if (!$name || !$phone || empty($items)) {
+if (!$name || !$phone || !is_array($items) || empty($items)) {
     http_response_code(422);
     echo json_encode(['ok' => false, 'error' => 'Заполните все поля']);
     exit;
 }
+
+$validation = validateCatalogItems($items);
+if (!$validation['ok']) {
+    http_response_code(409);
+    echo json_encode($validation, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+$items = $validation['items'];
 
 $date  = date('d.m.Y H:i', time() + 3 * 3600);
 $total = 0;
