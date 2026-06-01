@@ -264,8 +264,7 @@ switch ($action) {
     // ── Send Telegram report on demand ──
     case 'send_report':
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
-        $cfgFile = __DIR__ . '/../config.php';
-        if (file_exists($cfgFile)) require_once $cfgFile;
+        require_once __DIR__ . '/lib/app_config.php';
         $token  = defined('BOT_TOKEN') ? BOT_TOKEN : '';
         $chatId = defined('CHAT_ID')   ? CHAT_ID   : '';
         if (!$token || !$chatId) jsonResponse(['ok' => false, 'error' => 'Bot not configured'], 500);
@@ -310,7 +309,8 @@ switch ($action) {
 
     // ── Settings get ──
     case 'settings_get':
-        $cfgFile = __DIR__ . '/../config.php';
+        require_once __DIR__ . '/lib/app_config.php';
+        $cfgFile = appConfigPath();
         $cfg = [];
         if (file_exists($cfgFile)) {
             $lines = file($cfgFile, FILE_IGNORE_NEW_LINES);
@@ -333,9 +333,10 @@ switch ($action) {
     // ── Settings save ──
     case 'settings_save':
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        require_once __DIR__ . '/lib/app_config.php';
         $raw = json_decode(file_get_contents('php://input'), true);
         $allowed_keys = ['BOT_TOKEN','CHAT_ID','TG_ADMIN_ID','EMAIL_TO','CRON_SECRET','ALLOWED_ORIGIN'];
-        $cfgFile = __DIR__ . '/../config.php';
+        $cfgFile = appConfigPath();
 
         $content = "<?php\n";
         foreach ($allowed_keys as $key) {

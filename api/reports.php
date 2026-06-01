@@ -11,6 +11,7 @@
  *   0 9 * * 1  curl -s "https://splithub.ru/api/reports.php?action=weekly&secret=CRON_SECRET"
  */
 
+require_once __DIR__ . '/lib/app_config.php';
 require_once __DIR__ . '/../db/init.php';
 
 // ── Конфиг (дополнить в config.php) ───────────────────────────────────────────

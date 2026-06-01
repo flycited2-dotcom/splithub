@@ -5,8 +5,8 @@
  * Вторичные функции (DB, email) изолированы в try/catch.
  */
 
-// ── Credentials — единый источник истины: config.php ──
-require_once __DIR__ . '/config.php';
+// ── Credentials — единый источник истины: внешний config.php ──
+require_once __DIR__ . '/api/lib/app_config.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');

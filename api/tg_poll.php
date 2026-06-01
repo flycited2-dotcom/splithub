@@ -14,7 +14,7 @@
  * сохраняется ВСЕГДА (даже при сбоях отдельных апдейтов), чтобы не зацикливаться.
  */
 
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/lib/app_config.php';
 require_once __DIR__ . '/../db/init.php';
 header('Content-Type: text/plain; charset=utf-8');
 
