@@ -16,6 +16,7 @@
 
 require_once __DIR__ . '/lib/app_config.php';
 require_once __DIR__ . '/../db/init.php';
+require_once __DIR__ . '/lib/push.php';
 header('Content-Type: text/plain; charset=utf-8');
 
 $TOKEN  = defined('BOT_TOKEN') ? BOT_TOKEN : '';
@@ -105,6 +106,7 @@ try {
             }
 
             $db->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$status, $oid]);
+            sendOrderStatusPush($oid, $status);
             tgApi($TOKEN, 'answerCallbackQuery', ['callback_query_id' => $cqId, 'text' => 'Статус: ' . $labels[$status]]);
             $mk = ($status === 'confirmed')
                 ? ['inline_keyboard' => [[

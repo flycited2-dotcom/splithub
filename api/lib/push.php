@@ -163,3 +163,32 @@ function applyExpoReceipts(array $deliveries, array $receipts): int {
     }
     return $processed;
 }
+
+function sendOrderStatusPush(int $orderId, string $status): void {
+    $stmt = getDB()->prepare('SELECT user_id FROM orders WHERE id=?');
+    $stmt->execute([$orderId]);
+    $order = $stmt->fetch();
+    if (!$order) {
+        return;
+    }
+
+    $labels = [
+        'new' => 'New',
+        'confirmed' => 'Confirmed',
+        'in_progress' => 'In progress',
+        'shipped' => 'Shipped',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+    ];
+    try {
+        sendUserPush(
+            (int)$order['user_id'],
+            'order_status',
+            'Order status changed',
+            $labels[$status] ?? $status,
+            ['order_id' => $orderId]
+        );
+    } catch (Throwable $e) {
+        error_log('Order status push failed: ' . $e->getMessage());
+    }
+}

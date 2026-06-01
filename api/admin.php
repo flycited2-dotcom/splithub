@@ -4,6 +4,7 @@
  */
 
 require __DIR__ . '/../db/init.php';
+require_once __DIR__ . '/lib/push.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -198,6 +199,7 @@ switch ($action) {
         $allowed = ['new','confirmed','in_progress','shipped','completed','cancelled'];
         if (!$orderId || !in_array($status, $allowed)) jsonResponse(['ok' => false, 'error' => 'Некорректные данные'], 422);
         $db->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$status, $orderId]);
+        sendOrderStatusPush($orderId, $status);
         jsonResponse(['ok' => true]);
         break;
 
@@ -211,6 +213,7 @@ switch ($action) {
         if (empty($ids) || !in_array($status, $allowed)) jsonResponse(['ok' => false, 'error' => 'order_ids и status обязательны'], 422);
         $ph = implode(',', array_fill(0, count($ids), '?'));
         $db->prepare("UPDATE orders SET status = ? WHERE id IN ($ph)")->execute(array_merge([$status], $ids));
+        foreach ($ids as $orderId) sendOrderStatusPush($orderId, $status);
         jsonResponse(['ok' => true, 'updated' => count($ids)]);
         break;
 

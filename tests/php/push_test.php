@@ -54,3 +54,15 @@ $processed = applyExpoReceipts([$delivery], [
 assertSame(1, $processed, 'receipt processed');
 $active = $db->query("SELECT active FROM mobile_devices WHERE expo_token='ExponentPushToken[test-token]'")->fetchColumn();
 assertSame(0, (int)$active, 'unregistered device deactivated');
+
+$db->prepare('INSERT INTO users(name,phone,password_hash) VALUES(?,?,?)')
+   ->execute(['Status User', '79780000005', password_hash('pass123', PASSWORD_BCRYPT)]);
+$statusUid = (int)$db->lastInsertId();
+$db->prepare('INSERT INTO orders(user_id,total,status) VALUES(?,?,?)')
+   ->execute([$statusUid, 24900, 'confirmed']);
+$orderId = (int)$db->lastInsertId();
+
+sendOrderStatusPush($orderId, 'confirmed');
+$campaign = $db->query("SELECT type,target_json FROM push_campaigns WHERE user_id=$statusUid ORDER BY id DESC LIMIT 1")->fetch();
+assertSame('order_status', $campaign['type'], 'status helper creates order-status campaign');
+assertSame($orderId, json_decode($campaign['target_json'], true)['order_id'], 'status helper targets order details');
