@@ -77,6 +77,28 @@ function getDB() {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )");
+        $db->exec("CREATE TABLE IF NOT EXISTS push_campaigns (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            target_json TEXT NOT NULL DEFAULT '{}',
+            user_id INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )");
+        $db->exec("CREATE TABLE IF NOT EXISTS push_deliveries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            campaign_id INTEGER,
+            device_id INTEGER NOT NULL,
+            expo_ticket_id TEXT,
+            status TEXT NOT NULL DEFAULT 'queued',
+            error TEXT DEFAULT '',
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (campaign_id) REFERENCES push_campaigns(id),
+            FOREIGN KEY (device_id) REFERENCES mobile_devices(id)
+        )");
     } catch (Throwable $e) {}
 
     // admin_note column on orders
