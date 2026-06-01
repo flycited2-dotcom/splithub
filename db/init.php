@@ -8,7 +8,7 @@ function getDB() {
     static $db = null;
     if ($db) return $db;
 
-    $dbPath = __DIR__ . '/splithub.sqlite';
+    $dbPath = getenv('SPLITHUB_DB_PATH') ?: __DIR__ . '/splithub.sqlite';
     $isNew = !file_exists($dbPath);
 
     $db = new PDO('sqlite:' . $dbPath);
@@ -52,6 +52,31 @@ function getDB() {
             value TEXT NOT NULL DEFAULT ''
         )");
         $db->exec("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('bonuses_enabled', '1')");
+    } catch (Throwable $e) {}
+
+    // Mobile bearer sessions and push-notification devices
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS mobile_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token_hash TEXT NOT NULL UNIQUE,
+            expires_at TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )");
+        $db->exec("CREATE TABLE IF NOT EXISTS mobile_devices (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            expo_token TEXT NOT NULL UNIQUE,
+            platform TEXT NOT NULL,
+            order_status_enabled INTEGER NOT NULL DEFAULT 1,
+            promotions_enabled INTEGER NOT NULL DEFAULT 1,
+            manager_messages_enabled INTEGER NOT NULL DEFAULT 1,
+            active INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )");
     } catch (Throwable $e) {}
 
     // admin_note column on orders
