@@ -9,6 +9,11 @@ $db->prepare('INSERT INTO users(name,phone,password_hash) VALUES(?,?,?)')
 $login = issueMobileToken('79780000001', 'pass123');
 assertTrue(isset($login['token']), 'login returns bearer token');
 assertSame(1, requireMobileUser($login['token']), 'token authorizes user');
+assertSame(
+    'springhost-token',
+    bearerToken([], ['Authorization' => 'Bearer springhost-token']),
+    'bearer token falls back to web server headers'
+);
 revokeMobileToken($login['token']);
 assertSame(null, findMobileUser($login['token']), 'logout revokes token');
 

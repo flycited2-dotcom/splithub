@@ -1,8 +1,18 @@
 <?php
 require_once __DIR__ . '/../../db/init.php';
 
-function bearerToken(): string {
-    $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+function bearerToken(?array $server = null, ?array $headers = null): string {
+    $server ??= $_SERVER;
+    $header = (string)($server['HTTP_AUTHORIZATION'] ?? '');
+    if ($header === '') {
+        $headers ??= function_exists('getallheaders') ? getallheaders() : [];
+        foreach ($headers as $name => $value) {
+            if (strcasecmp((string)$name, 'Authorization') === 0) {
+                $header = (string)$value;
+                break;
+            }
+        }
+    }
     return preg_match('/^Bearer\s+(.+)$/i', $header, $matches) ? trim($matches[1]) : '';
 }
 

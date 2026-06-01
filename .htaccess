@@ -2,3 +2,8 @@
 <Files "config.php">
     Require all denied
 </Files>
+
+# Prevent direct downloads of SQLite databases and sidecar files.
+<FilesMatch "\.(?:db|sqlite|sqlite3)(?:-(?:wal|shm))?$">
+    Require all denied
+</FilesMatch>

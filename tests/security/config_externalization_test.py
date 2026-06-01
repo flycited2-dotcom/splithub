@@ -53,6 +53,14 @@ class ConfigExternalizationTest(unittest.TestCase):
         )
         self.assertEqual(0, result.returncode, "config.php must stay ignored")
 
+    def test_database_files_are_denied_by_apache(self):
+        apache_rules = (ROOT / ".htaccess").read_text(encoding="utf-8")
+
+        self.assertIn("FilesMatch", apache_rules)
+        self.assertIn("db|sqlite|sqlite3", apache_rules)
+        self.assertIn("wal|shm", apache_rules)
+        self.assertIn("Require all denied", apache_rules)
+
 
 if __name__ == "__main__":
     unittest.main()
