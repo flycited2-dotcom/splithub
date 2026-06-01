@@ -223,13 +223,17 @@ class Converter:
 
     # ── Generate JS ──────────────────────────────────────
 
-    def generate_js(self):
-        # Убираем служебное поле _sortOrder
-        clean_products = []
-        for p in self.products:
-            cp = {k: v for k, v in p.items() if k != "_sortOrder"}
-            clean_products.append(cp)
+    def clean_products(self):
+        return [
+            {k: v for k, v in product.items() if k != "_sortOrder"}
+            for product in self.products
+        ]
 
+    def generate_json(self):
+        return json.dumps(self.clean_products(), ensure_ascii=False, indent=2) + "\n"
+
+    def generate_js(self):
+        clean_products = self.clean_products()
         lines = ["var PRODUCTS = ["]
         for i, p in enumerate(clean_products):
             comma = "," if i < len(clean_products) - 1 else ""
@@ -276,6 +280,9 @@ class Converter:
             products_js = self.out_dir / "products.js"
             if products_js.exists():
                 zf.write(products_js, "products.js")
+            products_json = self.out_dir / "products.json"
+            if products_json.exists():
+                zf.write(products_json, "products.json")
 
             # 2. Фото из out/assets/img/products/
             photo_out = self.out_dir / "assets" / "img" / "products"
@@ -299,8 +306,8 @@ class Converter:
                 rel = item.relative_to(PROJECT_DIR).as_posix()
                 if rel in EXCLUDE_FILES:
                     continue
-                if rel == "products.js":
-                    continue  # уже добавили сгенерированный
+                if rel in {"products.js", "products.json"}:
+                    continue  # уже добавили сгенерированные артефакты
 
                 zf.write(item, rel)
 
@@ -309,11 +316,13 @@ class Converter:
     # ── Backup ───────────────────────────────────────────
 
     def backup_existing(self):
-        src = self.out_dir / "products.js"
-        if src.exists():
+        sources = [self.out_dir / "products.js", self.out_dir / "products.json"]
+        if any(src.exists() for src in sources):
             dst = self.backup_dir / TIMESTAMP
             dst.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dst / "products.js")
+            for src in sources:
+                if src.exists():
+                    shutil.copy2(src, dst / src.name)
             print(f"  Резервная копия: converter/backup/{TIMESTAMP}/")
 
     # ── Write logs ───────────────────────────────────────
@@ -417,12 +426,15 @@ class Converter:
         # 10. Записать products.js в out/
         self.out_dir.mkdir(exist_ok=True)
         js_content = self.generate_js()
+        json_content = self.generate_json()
         (self.out_dir / "products.js").write_text(js_content, encoding="utf-8")
-        print(f"\nСгенерировано: converter/out/products.js  ({len(self.products)} товаров)")
+        (self.out_dir / "products.json").write_text(json_content, encoding="utf-8")
+        print(f"\nСгенерировано: converter/out/products.js и products.json  ({len(self.products)} товаров)")
 
         # 11. Скопировать products.js в корень проекта (для git)
         shutil.copy2(self.out_dir / "products.js", PROJECT_DIR / "products.js")
-        print(f"Скопировано:   products.js  → корень проекта")
+        shutil.copy2(self.out_dir / "products.json", PROJECT_DIR / "products.json")
+        print(f"Скопировано:   products.js и products.json  → корень проекта")
 
         # 12. Фото
         copied = self.copy_photos()
