@@ -17,26 +17,48 @@ except ImportError:
 
 BASE_DIR = Path(__file__).parent
 cfg = json.loads((BASE_DIR / "config" / "deploy.json").read_text(encoding="utf-8"))
-local = BASE_DIR / "out" / "products.js"
 
-if not local.exists():
+local_js   = BASE_DIR / "out" / "products.js"
+local_json = BASE_DIR / "out" / "products.json"
+
+if not local_js.exists():
     print("[ОШИБКА] out/products.js не найден — сначала запустите конвертер")
     sys.exit(1)
+
+# remote_path может быть каталогом сайта (.../public_html) ИЛИ полным путём к products.js
+remote = str(cfg["remote_path"]).rstrip("/")
+site_dir = remote.rsplit("/", 1)[0] if remote.endswith(".js") else remote
+js_remote   = site_dir + "/products.js"
+json_remote = site_dir + "/products.json"
 
 print(f"\nПодключаюсь к {cfg['host']}...")
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect(cfg["host"], port=cfg["port"], username=cfg["username"], password=cfg["password"], timeout=15)
-
-ssh.exec_command(f'cp {cfg["remote_path"]} {cfg["remote_path"]}.bak')
+ssh.connect(cfg["host"], port=cfg["port"], username=cfg["username"],
+            password=cfg["password"], timeout=cfg.get("timeout", 15))
 
 sftp = ssh.open_sftp()
-sftp.put(str(local), cfg["remote_path"])
+
+def deploy_one(local_path, remote_path):
+    if not local_path.exists():
+        print(f"  пропуск: {local_path.name} не найден в out/ (запустите конвертер)")
+        return
+    # бэкап текущего файла на сервере (дожидаемся завершения cp)
+    _, out, _ = ssh.exec_command(f'cp -p "{remote_path}" "{remote_path}.bak" 2>/dev/null')
+    out.channel.recv_exit_status()
+    sftp.put(str(local_path), remote_path)
+    print(f"  загружено: {remote_path.split('/')[-1]}  ({local_path.stat().st_size // 1024} КБ)")
+
+# products.js (витрина) и products.json (серверный каталог) — синхронно, чтобы не расходились
+deploy_one(local_js, js_remote)
+deploy_one(local_json, json_remote)
 sftp.close()
 
-_, stdout, _ = ssh.exec_command(f'wc -l {cfg["remote_path"]}')
-lines = stdout.read().decode().strip().split()[0]
+_, stdout, _ = ssh.exec_command(f'wc -l "{js_remote}"')
+try:
+    lines = int(stdout.read().decode().strip().split()[0]) - 2
+except Exception:
+    lines = 0
 ssh.close()
 
-print(f"Загружено:  {local.stat().st_size // 1024} КБ  ({int(lines)-2} товаров на сайте)")
-print(f"Сайт:       https://splithub.ru")
+print(f"\nСайт:       https://splithub.ru  (≈{max(lines, 0)} товаров на витрине)")

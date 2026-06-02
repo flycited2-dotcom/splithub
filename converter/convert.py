@@ -237,6 +237,20 @@ class Converter:
         lines.append("];")
         return "\n".join(lines) + "\n"
 
+    # ── Generate JSON (серверный каталог) ────────────────
+
+    def generate_json(self):
+        """
+        products.json — серверный каталог для валидации заявок
+        (api/lib/catalog.php). Тот же состав товаров, что и products.js,
+        чтобы сервер и витрина никогда не расходились по id/ценам.
+        """
+        clean_products = [
+            {k: v for k, v in p.items() if k != "_sortOrder"}
+            for p in self.products
+        ]
+        return json.dumps(clean_products, ensure_ascii=False, indent=2) + "\n"
+
     # ── Copy photos ──────────────────────────────────────
 
     def copy_photos(self):
@@ -423,6 +437,12 @@ class Converter:
         # 11. Скопировать products.js в корень проекта (для git)
         shutil.copy2(self.out_dir / "products.js", PROJECT_DIR / "products.js")
         print(f"Скопировано:   products.js  → корень проекта")
+
+        # 11b. products.json — серверный каталог (рядом с products.js, тот же состав)
+        json_content = self.generate_json()
+        (self.out_dir / "products.json").write_text(json_content, encoding="utf-8")
+        shutil.copy2(self.out_dir / "products.json", PROJECT_DIR / "products.json")
+        print(f"Сгенерировано: converter/out/products.json + корень  ({len(self.products)} товаров)")
 
         # 12. Фото
         copied = self.copy_photos()
