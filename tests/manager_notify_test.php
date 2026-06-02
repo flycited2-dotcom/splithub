@@ -14,26 +14,29 @@ $items = [
 
 $telegram = mobileOrderTelegramText(
     47,
-    'Test_mob',
+    'Test_mob <client>',
     '79781234567',
     $items,
     37540,
-    'Нужен звонок',
+    'Нужен звонок & счёт',
     '@test',
     '02.06.2026 23:01'
 );
 
-assertContainsText('🛒 *Новая заявка — СплитХаб*', $telegram);
-assertContainsText('*Номер:* SH-00047', $telegram);
-assertContainsText('*Имя:* Test_mob', $telegram);
-assertContainsText('*Телефон:* 79781234567', $telegram);
-assertContainsText('*Telegram:* @test', $telegram);
+assertContainsText('🛒 <b>Новая заявка — СплитХаб</b>', $telegram);
+assertContainsText('<b>Номер:</b> SH-00047', $telegram);
+assertContainsText('<b>Имя:</b> Test_mob &lt;client&gt;', $telegram);
+assertContainsText('<b>Телефон:</b> 79781234567', $telegram);
+assertContainsText('<b>Telegram:</b> @test', $telegram);
 assertContainsText('MIDEA MSAG1-09HRN8-I on/off — 28 990 ₽ × 1 шт. = 28 990 ₽', $telegram);
-assertContainsText('*Итого:* 37 540 ₽', $telegram);
-assertContainsText('*Комментарий:* Нужен звонок', $telegram);
+assertContainsText('<b>Итого:</b> 37 540 ₽', $telegram);
+assertContainsText('<b>Комментарий:</b> Нужен звонок &amp; счёт', $telegram);
 assertContainsText('Клиент ждёт звонка', $telegram);
 if (strpos($telegram, 'New mobile order') !== false || strpos($telegram, 'Total:') !== false) {
     throw new RuntimeException('Telegram text must not use the old English mobile template');
+}
+if (strpos($telegram, '*Номер:*') !== false || strpos($telegram, '_Клиент ждёт звонка_') !== false) {
+    throw new RuntimeException('Telegram text must not use Markdown formatting');
 }
 
 $markup = mobileOrderReplyMarkup(47);

@@ -12,6 +12,10 @@ function mobileOrderHtmlMoney(int $amount): string {
     return str_replace(' ', '&nbsp;', mobileOrderMoney($amount));
 }
 
+function mobileOrderTelegramEscape(string $value): string {
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
 function mobileOrderItemName(array $item): string {
     $brand = trim((string)($item['brand'] ?? ''));
     $name = trim((string)($item['name'] ?? '—'));
@@ -41,30 +45,30 @@ function mobileOrderTelegramText(
         $lines .= sprintf(
             "  %d. %s — %s ₽ × %d шт. = %s ₽\n",
             $num++,
-            mobileOrderItemName($item),
+            mobileOrderTelegramEscape(mobileOrderItemName($item)),
             mobileOrderMoney($price),
             $qty,
             mobileOrderMoney($subtotal)
         );
     }
 
-    $text  = "🛒 *Новая заявка — СплитХаб*\n";
+    $text  = "🛒 <b>Новая заявка — СплитХаб</b>\n";
     $text .= "━━━━━━━━━━━━━━━━━━\n";
-    $text .= "🧾 *Номер:* " . mobileOrderNumber($orderId) . "\n";
-    $text .= "👤 *Имя:* {$name}\n";
-    $text .= "📞 *Телефон:* {$phone}\n";
+    $text .= "🧾 <b>Номер:</b> " . mobileOrderNumber($orderId) . "\n";
+    $text .= "👤 <b>Имя:</b> " . mobileOrderTelegramEscape($name) . "\n";
+    $text .= "📞 <b>Телефон:</b> " . mobileOrderTelegramEscape($phone) . "\n";
     if ($clientTg !== '') {
-        $text .= "💬 *Telegram:* {$clientTg}\n";
+        $text .= "💬 <b>Telegram:</b> " . mobileOrderTelegramEscape($clientTg) . "\n";
     }
-    $text .= "📅 *Время:* {$date}\n";
+    $text .= "📅 <b>Время:</b> " . mobileOrderTelegramEscape($date) . "\n";
     $text .= "━━━━━━━━━━━━━━━━━━\n";
-    $text .= "📦 *Позиции (" . count($items) . " шт.):*\n{$lines}";
+    $text .= "📦 <b>Позиции (" . count($items) . " шт.):</b>\n{$lines}";
     $text .= "━━━━━━━━━━━━━━━━━━\n";
-    $text .= "💰 *Итого:* " . mobileOrderMoney($total) . " ₽\n";
+    $text .= "💰 <b>Итого:</b> " . mobileOrderMoney($total) . " ₽\n";
     if ($comment !== '') {
-        $text .= "━━━━━━━━━━━━━━━━━━\n💬 *Комментарий:* {$comment}\n";
+        $text .= "━━━━━━━━━━━━━━━━━━\n💬 <b>Комментарий:</b> " . mobileOrderTelegramEscape($comment) . "\n";
     }
-    $text .= "\n_Клиент ждёт звонка_";
+    $text .= "\n<i>Клиент ждёт звонка</i>";
 
     return $text;
 }
@@ -142,7 +146,7 @@ function sendMobileOrderTelegram(string $text, int $orderId): bool {
         CURLOPT_POSTFIELDS => json_encode([
             'chat_id' => CHAT_ID,
             'text' => $text,
-            'parse_mode' => 'Markdown',
+            'parse_mode' => 'HTML',
             'reply_markup' => mobileOrderReplyMarkup($orderId),
         ], JSON_UNESCAPED_UNICODE),
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
