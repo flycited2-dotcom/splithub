@@ -32,9 +32,44 @@
   каталога. `products.json` генерируется ИЗ него (см. `converter/`), а не наоборот. Не выгружай
   все 678 товаров (часть деактивирована по наличию у поставщика) и не меняй цены.
 
-## Каталог — один источник
-`products.js` (витрина) и `products.json` (серверная проверка) собираются из одного источника
-(Excel → `converter/`) в одном деплое. Никогда не обновляй один без другого.
+## Каталог товаров — подробно (читай внимательно)
+
+**Источник правды — `products.js` (витрина), НЕ `products.json`.**
+- `products.js` = **275 активных** товаров с верными ценами владельца. Формат: JavaScript,
+  начинается с `var PRODUCTS = [` и заканчивается `];`.
+- `products.json` (читает `api/lib/catalog.php`) — **производный**: генерируется ИЗ `products.js`,
+  тем же составом, просто в формате JSON. Никогда не обновляй его в обход `products.js`.
+- `products.generated.json` — старый аудит-артефакт (апрель), не использовать.
+
+**Почему 275, а не 678:** владелец сознательно держит на витрине только активные товары;
+остальные деактивированы по наличию у поставщика (в Excel колонка `active`; `convert.py`
+пропускает строки с `active != 1`). Полный каталог 678 и завышенные цены — **неверный** источник
+(именно из-за выгрузки всех 678 с другими ценами 02.06 сломался приём заявок: например ELYSIUM
+ELB-I07PN на витрине 16 890 ₽, а в ошибочном каталоге стало 24 900 ₽; по ряду позиций +40-50%).
+
+**Как получать `products.json` правильно** (без изменения состава и цен):
+- `tools/products_js_to_json.py` — чистый конвертер формата (`products.js` → `products.json`).
+- либо `converter/convert.py` — генерит И `products.js`, И `products.json` из одного Excel
+  в одном прогоне.
+
+**Пайплайн данных:** `converter/input/*.xlsx` (мастер владельца) → `converter/convert.py`
+(берёт только `active=1`) → `products.js` + `products.json` → `converter/deploy.py` заливает оба.
+
+**Валидатор `validateCatalogItems` (`api/lib/catalog.php`):** читает `products.json`, индексирует
+по `id`; для товара заявки проверяет наличие `id`, `qty` 1..999, `stock != 'out'`, совпадение
+цены (иначе `CATALOG_CHANGED`); возвращает серверные `id, name(=model), brand, price, qty, group`.
+На витрине проверка **НЕ блокирующая** (в `send.php` обёрнута в `try/catch`, fail-open).
+
+**Поля товара:** id, sku, brandCode, brand, series, model, group, type, factory, color, btu,
+area, price, stock, stockLabel, descShort, cardBenef, benefits[], compressor, freon, photo.
+`group`: inv/onoff/accessory/truba/krepezh. `stock`: in_stock/days_1_2/days_3_5/order_7 (`out`=нет).
+Витрина (`index.html`) шлёт в заявку: `{id, name, brand, price, qty, group}`.
+
+**Мобильному приложению** использовать тот же каталог (`products.json`, производный от
+`products.js`: 275 активных, цены владельца). Нужен свой формат — генерируй его тоже из `products.js`.
+
+**Нельзя:** выгружать все 678 товаров; менять цены; обновлять `products.json` мимо `products.js`;
+делать каталог-проверку блокирующей на витрине.
 
 ## Дисциплина деплоя
 1. Не катай в прод половину интеграции (бэкенд без парного фронта).
