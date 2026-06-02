@@ -114,11 +114,13 @@ try {
             $status = in_array($validation['code'], ['CATALOG_CHANGED', 'PRODUCT_UNAVAILABLE'], true) ? 409 : 422;
             fail($validation['code'], $status, $validation);
         }
+        $comment = trim((string)($data['comment'] ?? ''));
+        $clientTg = trim((string)($data['client_tg'] ?? ''));
         $created = createRegisteredOrder(
             $uid,
             $validation['items'],
-            trim((string)($data['comment'] ?? '')),
-            trim((string)($data['client_tg'] ?? ''))
+            $comment,
+            $clientTg
         );
         $profile = getDB()->prepare('SELECT name,phone FROM users WHERE id=?');
         $profile->execute([$uid]);
@@ -128,7 +130,9 @@ try {
             (string)$user['name'],
             (string)$user['phone'],
             $validation['items'],
-            $created['total']
+            $created['total'],
+            $comment,
+            $clientTg
         );
         ok($created);
     }
