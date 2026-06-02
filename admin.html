@@ -439,6 +439,7 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
     <button class="tab-btn" onclick="switchTab('guests')">&#128100; Гостевые</button>
     <button class="tab-btn" onclick="switchTab('users')">&#128101; Клиенты</button>
     <button class="tab-btn" onclick="switchTab('promo')">&#127381; Промо</button>
+    <button class="tab-btn" onclick="switchTab('notifications')">&#128276; &#1059;&#1074;&#1077;&#1076;&#1086;&#1084;&#1083;&#1077;&#1085;&#1080;&#1103;</button>
     <button class="tab-btn" onclick="switchTab('analytics')">&#128202; Аналитика</button>
     <button class="tab-btn" onclick="switchTab('catalog')">&#128230; Каталог</button>
     <button class="tab-btn" onclick="switchTab('products')">&#9998; Товары</button>
@@ -503,6 +504,31 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
           <input class="form-inp" id="pMin"     type="number" placeholder="Мин. сумма ₽" min="0" style="max-width:140px">
         </div>
         <button class="form-btn" onclick="createPromo()">Создать правило</button>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="tab-pane" id="pane-notifications">
+      <div class="promo-form">
+        <h4>&#1055;&#1088;&#1086;&#1084;&#1086;-&#1091;&#1074;&#1077;&#1076;&#1086;&#1084;&#1083;&#1077;&#1085;&#1080;&#1077;</h4>
+        <div class="form-row">
+          <input class="form-inp" id="pushPromoTitle" placeholder="&#1047;&#1072;&#1075;&#1086;&#1083;&#1086;&#1074;&#1086;&#1082;">
+          <input class="form-inp" id="pushPromoCategory" placeholder="&#1050;&#1072;&#1090;&#1077;&#1075;&#1086;&#1088;&#1080;&#1103; &#1082;&#1072;&#1090;&#1072;&#1083;&#1086;&#1075;&#1072; (&#1085;&#1077;&#1086;&#1073;&#1103;&#1079;&#1072;&#1090;&#1077;&#1083;&#1100;&#1085;&#1086;)">
+        </div>
+        <textarea class="note-area" id="pushPromoBody" placeholder="&#1058;&#1077;&#1082;&#1089;&#1090; &#1091;&#1074;&#1077;&#1076;&#1086;&#1084;&#1083;&#1077;&#1085;&#1080;&#1103;"></textarea>
+        <button class="form-btn" onclick="sendPromotionPush()">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1080;&#1090;&#1100; &#1087;&#1088;&#1086;&#1084;&#1086;</button>
+      </div>
+      <div class="promo-form">
+        <h4>&#1051;&#1080;&#1095;&#1085;&#1086;&#1077; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077; &#1084;&#1077;&#1085;&#1077;&#1076;&#1078;&#1077;&#1088;&#1072;</h4>
+        <div class="form-row">
+          <input class="form-inp" id="pushUserId" type="number" placeholder="ID &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;">
+        </div>
+        <textarea class="note-area" id="pushManagerBody" placeholder="&#1058;&#1077;&#1082;&#1089;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;"></textarea>
+        <button class="form-btn" onclick="sendManagerPush()">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1080;&#1090;&#1100; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</button>
+      </div>
+      <div class="promo-form">
+        <h4>&#1046;&#1091;&#1088;&#1085;&#1072;&#1083; &#1082;&#1072;&#1084;&#1087;&#1072;&#1085;&#1080;&#1081;</h4>
+        <div id="pushLog"></div>
       </div>
     </div>
 
@@ -820,8 +846,8 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 var _ordPage=1, _gstPage=1, _ordSearchTimer=null;
 var _bonusUserId=0;
 var _charts={};
-var _tabNames=['orders','guests','users','promo','analytics','catalog','products','settings'];
-var _loaded={orders:false,guests:false,users:false,promo:false,analytics:false,catalog:false,products:false,settings:false};
+var _tabNames=['orders','guests','users','promo','notifications','analytics','catalog','products','settings'];
+var _loaded={orders:false,guests:false,users:false,promo:false,notifications:false,analytics:false,catalog:false,products:false,settings:false};
 var _pollInterval=null, _lastNewCount=-1;
 var _bulkMode=false, _bulkSelected={};
 var _gstBulkMode=false, _gstBulkSelected={};
@@ -832,6 +858,11 @@ function fmt(n){return parseInt(n||0).toLocaleString('ru-RU');}
 function fmtDate(s){
   var d=new Date((s||'').replace(' ','T'));
   return isNaN(d.getTime())?s:d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function escHtml(s){
+  var el=document.createElement('div');
+  el.textContent=s==null?'':String(s);
+  return el.innerHTML;
 }
 var SMAP={new:'Новый',confirmed:'Подтверждён',in_progress:'В работе',shipped:'Отгружен',completed:'Выполнен',cancelled:'Отменён'};
 
@@ -998,6 +1029,7 @@ function switchTab(name, _fromPop){
     if(name==='guests')loadGuests(1);
     if(name==='users')loadUsers();
     if(name==='promo')loadPromo();
+    if(name==='notifications')loadPushLog();
     if(name==='analytics')loadAnalytics(7);
     if(name==='catalog')checkCatalogStatus();
     if(name==='products')loadProducts();
@@ -1970,6 +2002,47 @@ function exportGuestCSV(){
 }
 
 // ── Admin Pricelist Send ──────────────────────────────────────────────────────
+// Mobile push notifications
+function postAdmin(action,payload){
+  return fetch(api('admin.php?action='+action),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)}).then(function(r){return r.json();});
+}
+
+function sendPromotionPush(){
+  postAdmin('push_promotion',{
+    title:document.getElementById('pushPromoTitle').value.trim(),
+    body:document.getElementById('pushPromoBody').value.trim(),
+    category:document.getElementById('pushPromoCategory').value.trim()
+  }).then(function(d){
+    if(d.ok){toast('\u041f\u0440\u043e\u043c\u043e \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e: '+d.users);loadPushLog();}
+    else toast(d.error||'\u041e\u0448\u0438\u0431\u043a\u0430',false);
+  });
+}
+
+function sendManagerPush(){
+  postAdmin('push_manager_message',{
+    user_id:parseInt(document.getElementById('pushUserId').value||0),
+    body:document.getElementById('pushManagerBody').value.trim()
+  }).then(function(d){
+    if(d.ok){toast('\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e');loadPushLog();}
+    else toast(d.error||'\u041e\u0448\u0438\u0431\u043a\u0430',false);
+  });
+}
+
+function loadPushLog(){
+  fetch(api('admin.php?action=push_log'))
+  .then(function(r){return r.json();}).then(function(d){
+    if(!d.ok)return;
+    var el=document.getElementById('pushLog');
+    if(!d.campaigns.length){el.innerHTML='<div class="empty">\u041a\u0430\u043c\u043f\u0430\u043d\u0438\u0439 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442</div>';return;}
+    el.innerHTML=d.campaigns.map(function(row){
+      return '<div class="promo-card"><div class="promo-name">'+escHtml(row.title)
+        +'<div class="promo-detail">'+escHtml(row.type)+' \u00b7 '+escHtml(fmtDate(row.created_at))+'</div></div>'
+        +'<div class="promo-detail">'+escHtml(row.body)+'</div></div>';
+    }).join('');
+  });
+}
+
 function adminSendPricelist(channel){
   if(typeof downloadPriceExcel==='undefined'){
     toast('Прайс-лист не загружен. Перезагрузите страницу.',false);return;

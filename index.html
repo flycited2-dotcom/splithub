@@ -1778,7 +1778,7 @@ function sendOrder() {
         var wall = prod.series.replace(/\s*\d+\s*м\.?\s*$/i, '').trim();
         if (wall && nm.indexOf(wall) === -1) nm = nm + ' · ' + wall;
       }
-      return {name:nm, brand:x.brand||'', price:x.price, qty:x.qty, group: prod ? prod.group : ''};
+      return {id:x.id, name:nm, brand:x.brand||'', price:x.price, qty:x.qty, group: prod ? prod.group : ''};
     })
   };
   fetch('send.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})

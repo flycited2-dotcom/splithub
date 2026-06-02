@@ -4,6 +4,7 @@
  */
 
 require __DIR__ . '/../db/init.php';
+require_once __DIR__ . '/lib/push.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -198,6 +199,7 @@ switch ($action) {
         $allowed = ['new','confirmed','in_progress','shipped','completed','cancelled'];
         if (!$orderId || !in_array($status, $allowed)) jsonResponse(['ok' => false, 'error' => 'Некорректные данные'], 422);
         $db->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$status, $orderId]);
+        sendOrderStatusPush($orderId, $status);
         jsonResponse(['ok' => true]);
         break;
 
@@ -211,6 +213,7 @@ switch ($action) {
         if (empty($ids) || !in_array($status, $allowed)) jsonResponse(['ok' => false, 'error' => 'order_ids и status обязательны'], 422);
         $ph = implode(',', array_fill(0, count($ids), '?'));
         $db->prepare("UPDATE orders SET status = ? WHERE id IN ($ph)")->execute(array_merge([$status], $ids));
+        foreach ($ids as $orderId) sendOrderStatusPush($orderId, $status);
         jsonResponse(['ok' => true, 'updated' => count($ids)]);
         break;
 
@@ -264,8 +267,7 @@ switch ($action) {
     // ── Send Telegram report on demand ──
     case 'send_report':
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
-        $cfgFile = __DIR__ . '/../config.php';
-        if (file_exists($cfgFile)) require_once $cfgFile;
+        require_once __DIR__ . '/lib/app_config.php';
         $token  = defined('BOT_TOKEN') ? BOT_TOKEN : '';
         $chatId = defined('CHAT_ID')   ? CHAT_ID   : '';
         if (!$token || !$chatId) jsonResponse(['ok' => false, 'error' => 'Bot not configured'], 500);
@@ -290,7 +292,7 @@ switch ($action) {
             }
         }
         $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
-        curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode(['chat_id'=>$chatId,'text'=>$msg,'parse_mode'=>'Markdown']),CURLOPT_HTTPHEADER=>['Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>10,CURLOPT_SSL_VERIFYPEER=>false]);
+        curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode(['chat_id'=>$chatId,'text'=>$msg,'parse_mode'=>'Markdown']),CURLOPT_HTTPHEADER=>['Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>5,CURLOPT_SSL_VERIFYPEER=>false,CURLOPT_RESOLVE=>['api.telegram.org:443:'.(defined('TG_FORCE_IP')?TG_FORCE_IP:'149.154.167.220')]]);
         $res = curl_exec($ch); curl_close($ch);
         $ok  = (bool)(json_decode($res,true)['ok'] ?? false);
         jsonResponse(['ok' => $ok]);
@@ -310,7 +312,8 @@ switch ($action) {
 
     // ── Settings get ──
     case 'settings_get':
-        $cfgFile = __DIR__ . '/../config.php';
+        require_once __DIR__ . '/lib/app_config.php';
+        $cfgFile = appConfigPath();
         $cfg = [];
         if (file_exists($cfgFile)) {
             $lines = file($cfgFile, FILE_IGNORE_NEW_LINES);
@@ -333,9 +336,10 @@ switch ($action) {
     // ── Settings save ──
     case 'settings_save':
         if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        require_once __DIR__ . '/lib/app_config.php';
         $raw = json_decode(file_get_contents('php://input'), true);
         $allowed_keys = ['BOT_TOKEN','CHAT_ID','TG_ADMIN_ID','EMAIL_TO','CRON_SECRET','ALLOWED_ORIGIN'];
-        $cfgFile = __DIR__ . '/../config.php';
+        $cfgFile = appConfigPath();
 
         $content = "<?php\n";
         foreach ($allowed_keys as $key) {
@@ -400,6 +404,37 @@ switch ($action) {
         $db->prepare("INSERT OR REPLACE INTO product_overrides (sku, description, badge, badge_label, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)")
             ->execute([$sku, $desc, $badge, $blabel]);
         jsonResponse(['ok' => true]);
+        break;
+
+    // ── Mobile push notifications ──
+    case 'push_promotion':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $title = trim($raw['title'] ?? '');
+        $body = trim($raw['body'] ?? '');
+        if ($title === '' || $body === '') jsonResponse(['ok' => false, 'error' => 'title and body required'], 422);
+        $target = ['category' => trim($raw['category'] ?? '')];
+        $users = $db->query('SELECT DISTINCT user_id FROM mobile_devices WHERE active=1 AND promotions_enabled=1')->fetchAll();
+        foreach ($users as $user) sendUserPush((int)$user['user_id'], 'promotion', $title, $body, $target);
+        jsonResponse(['ok' => true, 'users' => count($users)]);
+        break;
+
+    case 'push_manager_message':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $uid = (int)($raw['user_id'] ?? 0);
+        $body = trim($raw['body'] ?? '');
+        if (!$uid || $body === '') jsonResponse(['ok' => false, 'error' => 'user_id and body required'], 422);
+        $exists = $db->prepare('SELECT id FROM users WHERE id=?');
+        $exists->execute([$uid]);
+        if (!$exists->fetch()) jsonResponse(['ok' => false, 'error' => 'user not found'], 404);
+        sendUserPush($uid, 'manager_message', 'Message from SplitHub manager', $body, ['telegram_url' => 'https://t.me/Byttehnikaopt']);
+        jsonResponse(['ok' => true]);
+        break;
+
+    case 'push_log':
+        $rows = $db->query('SELECT * FROM push_campaigns ORDER BY id DESC LIMIT 100')->fetchAll();
+        jsonResponse(['ok' => true, 'campaigns' => $rows]);
         break;
 
     default:

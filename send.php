@@ -5,8 +5,9 @@
  * Вторичные функции (DB, email) изолированы в try/catch.
  */
 
-// ── Credentials — единый источник истины: config.php ──
-require_once __DIR__ . '/config.php';
+// ── Credentials — единый источник истины: внешний config.php ──
+require_once __DIR__ . '/api/lib/app_config.php';
+require_once __DIR__ . '/api/lib/catalog.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -25,10 +26,19 @@ $comment  = trim($data['comment']  ?? '');
 $clientTg = trim($data['client_tg'] ?? '');
 $items    = $data['items'] ?? [];
 
-if (!$name || !$phone || empty($items)) {
+if (!$name || !$phone || !is_array($items) || empty($items)) {
     http_response_code(422);
     echo json_encode(['ok' => false, 'error' => 'Заполните все поля']);
     exit;
+}
+
+// Сайт: каталог-проверка НЕ блокирует заявку (фронт может слать без id или со старой ценой).
+// Берём серверный выверенный состав, если он есть; иначе — что прислал клиент. Заказ всегда проходит.
+try {
+    $validation = validateCatalogItems($items);
+    if (!empty($validation['items'])) $items = $validation['items'];
+} catch (Throwable $e) {
+    error_log('[SplitHub] catalog validate skipped: ' . $e->getMessage());
 }
 
 $date  = date('d.m.Y H:i', time() + 3 * 3600);
@@ -75,8 +85,9 @@ function sendTg($token, $chatId, $text) {
         ]),
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_TIMEOUT        => 5,
         CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
     ]);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -139,8 +150,9 @@ try {
                     CURLOPT_POST           => true,
                     CURLOPT_POSTFIELDS     => ['chat_id' => CHAT_ID, 'message_id' => $mid, 'reply_markup' => json_encode($kb)],
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 10,
+                    CURLOPT_TIMEOUT        => 5,
                     CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
                 ]);
                 curl_exec($eh); curl_close($eh);
             }

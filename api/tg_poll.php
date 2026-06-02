@@ -14,8 +14,9 @@
  * сохраняется ВСЕГДА (даже при сбоях отдельных апдейтов), чтобы не зацикливаться.
  */
 
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/lib/app_config.php';
 require_once __DIR__ . '/../db/init.php';
+require_once __DIR__ . '/lib/push.php';
 header('Content-Type: text/plain; charset=utf-8');
 
 $TOKEN  = defined('BOT_TOKEN') ? BOT_TOKEN : '';
@@ -44,6 +45,7 @@ function tgApi($token, $method, $params) {
     curl_setopt_array($ch, [
         CURLOPT_POST => true, CURLOPT_POSTFIELDS => $params,
         CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 25, CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RESOLVE => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
     ]);
     $r = curl_exec($ch); curl_close($ch);
     return $r;
@@ -105,6 +107,7 @@ try {
             }
 
             $db->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$status, $oid]);
+            sendOrderStatusPush($oid, $status);
             tgApi($TOKEN, 'answerCallbackQuery', ['callback_query_id' => $cqId, 'text' => 'Статус: ' . $labels[$status]]);
             $mk = ($status === 'confirmed')
                 ? ['inline_keyboard' => [[

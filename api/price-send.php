@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/lib/app_config.php';
 
 $raw  = file_get_contents('php://input');
 $data = json_decode($raw, true);
@@ -59,8 +59,9 @@ if ($method === 'tg') {
         ]),
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_TIMEOUT        => 5,
         CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
     ]);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);

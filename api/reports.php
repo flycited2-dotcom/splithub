@@ -11,6 +11,7 @@
  *   0 9 * * 1  curl -s "https://splithub.ru/api/reports.php?action=weekly&secret=CRON_SECRET"
  */
 
+require_once __DIR__ . '/lib/app_config.php';
 require_once __DIR__ . '/../db/init.php';
 
 // ── Конфиг (дополнить в config.php) ───────────────────────────────────────────
@@ -429,8 +430,9 @@ function tgSend($token, $chatId, $text) {
         CURLOPT_POSTFIELDS     => json_encode(['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'Markdown']),
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_TIMEOUT        => 5,
         CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
     ]);
     $resp = json_decode(curl_exec($ch), true);
     curl_close($ch);

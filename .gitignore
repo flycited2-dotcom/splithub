@@ -13,3 +13,7 @@ db/*.sqlite-shm
 .claude/
 node_modules/
 *.zip
+
+# базы данных (не версионируем)
+*.db
+db/*.db

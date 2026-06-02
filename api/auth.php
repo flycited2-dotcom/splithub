@@ -258,8 +258,7 @@ switch ($action) {
            ->execute([$reason, $orderId]);
 
         // ── Уведомление менеджеру: Telegram + email (TG ненадёжен → дублируем) ──
-        $cfgFile = __DIR__ . '/../config.php';
-        if (file_exists($cfgFile)) require_once $cfgFile;
+        require_once __DIR__ . '/lib/app_config.php';
         $shNum  = 'SH-' . str_pad((string)$orderId, 5, '0', STR_PAD_LEFT);
         $totalf = number_format((int)$order['total'], 0, '.', ' ');
         $cName  = $order['name'];
@@ -279,8 +278,9 @@ switch ($action) {
                 CURLOPT_POSTFIELDS     => json_encode(['chat_id' => CHAT_ID, 'text' => $tg], JSON_UNESCAPED_UNICODE),
                 CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_TIMEOUT        => 5,
                 CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
             ]);
             curl_exec($ch); curl_close($ch);
         }
