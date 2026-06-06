@@ -9,20 +9,23 @@ function upsertMobileDevice(int $uid, string $expoToken, string $platform, array
         throw new RuntimeException('INVALID_DEVICE_PLATFORM');
     }
 
-    getDB()->prepare("INSERT INTO mobile_devices(
+    $orderStatus = !empty($preferences['order_status_enabled']) ? 1 : 0;
+    $promotions = !empty($preferences['promotions_enabled']) ? 1 : 0;
+    $managerMessages = !empty($preferences['manager_messages_enabled']) ? 1 : 0;
+
+    // UPSERT without "ON CONFLICT ... DO UPDATE" so it also works on SQLite < 3.24
+    // (the shared host runs an older SQLite that rejects that syntax with
+    // "near \"ON\": syntax error"). expo_token is UNIQUE, so INSERT OR IGNORE skips an
+    // existing row and the following UPDATE refreshes it.
+    $db = getDB();
+    $db->prepare("INSERT OR IGNORE INTO mobile_devices(
         user_id,expo_token,platform,order_status_enabled,promotions_enabled,manager_messages_enabled,active,updated_at
-    ) VALUES(?,?,?,?,?,?,1,CURRENT_TIMESTAMP)
-    ON CONFLICT(expo_token) DO UPDATE SET user_id=excluded.user_id,platform=excluded.platform,
-        order_status_enabled=excluded.order_status_enabled,promotions_enabled=excluded.promotions_enabled,
-        manager_messages_enabled=excluded.manager_messages_enabled,active=1,updated_at=CURRENT_TIMESTAMP")
-      ->execute([
-          $uid,
-          $expoToken,
-          $platform,
-          !empty($preferences['order_status_enabled']) ? 1 : 0,
-          !empty($preferences['promotions_enabled']) ? 1 : 0,
-          !empty($preferences['manager_messages_enabled']) ? 1 : 0,
-      ]);
+    ) VALUES(?,?,?,?,?,?,1,CURRENT_TIMESTAMP)")
+      ->execute([$uid, $expoToken, $platform, $orderStatus, $promotions, $managerMessages]);
+    $db->prepare("UPDATE mobile_devices SET user_id=?,platform=?,order_status_enabled=?,
+        promotions_enabled=?,manager_messages_enabled=?,active=1,updated_at=CURRENT_TIMESTAMP
+        WHERE expo_token=?")
+      ->execute([$uid, $platform, $orderStatus, $promotions, $managerMessages, $expoToken]);
 }
 
 function devicesForUser(int $uid, string $type): array {
