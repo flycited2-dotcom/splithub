@@ -22,8 +22,11 @@
 ## Контекст кодовой базы
 
 - Канонический модуль БД — `db/init.php` (функция `getDB()`, инкрементальные миграции на каждом
-  запросе). Его подключают `api_admin.php` и `send.php`. Корневой `db_init.php` — устаревшая
+  запросе). Его подключают `api/admin.php` и `send.php`. Корневой `db_init.php` — устаревшая
   неиспользуемая копия; **не трогаем**.
+- **Активный admin-API — `api/admin.php`** (его вызывает фронт: `admin.html`, `index.html`).
+  Корневой `api_admin.php` — устаревшая копия; **не трогаем**. Все правки admin-API идут в
+  `api/admin.php`.
 - БД — SQLite (`db/splithub.sqlite`), таблицы: `users`, `orders`, `order_items`, `guest_orders`,
   `bonus_log`, `promo_rules`, `app_settings`, `monthly_reports`, `product_overrides`.
 - Заявки обрабатывает `send.php`: авторизованный → `orders`/`order_items`, гость → `guest_orders`,
@@ -152,7 +155,7 @@ CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at);
 
 ### Новый admin-action `export_xlsx`
 
-В `api_admin.php` добавляется ветка `export_xlsx` (по аналогии с `export_orders_csv`: правильные
+В `api/admin.php` добавляется ветка `export_xlsx` (по аналогии с `export_orders_csv`: правильные
 заголовки Content-Type до проверки auth, но с `adminRequire()`). Формирует файл
 `splithub_export_YYYY-MM-DD.xlsx` с тремя листами:
 
@@ -190,10 +193,10 @@ CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at);
 - `db/init.php` — миграции: таблицы `visitors`, `visits` + индексы.
 - `index.html` — сниппет Метрики, плашка cookie, JS-маячок, передача `sh_vid` в `send.php`.
 - `send.php` — приём `sh_vid`, привязка визита к клиенту (`linked_phone/name`).
-- `api_admin.php` — action `export_xlsx`, action `visitors_list`.
+- `api/admin.php` — action `export_xlsx`, action `visitors_list`.
 - `admin.html` — кнопка экспорта xlsx, раздел «Посетители».
 
-**Не трогаем:** `db_init.php` (устаревшая копия).
+**Не трогаем:** `db_init.php` и `api_admin.php` (устаревшие копии).
 
 ## Обработка ошибок
 
