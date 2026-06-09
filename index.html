@@ -1050,6 +1050,19 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .ppol-close{width:100%;padding:10px;border:none;background:none;color:var(--text3);font-size:0.8rem;cursor:pointer;border-radius:10px;font-family:'Inter',sans-serif;transition:color .15s}
 .ppol-close:hover{color:var(--text)}
 </style>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109740770', 'ym');
+
+    ym(109740770, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/109740770" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 </head>
 <body>
 <!-- NAV -->
@@ -1769,6 +1782,7 @@ function sendOrder() {
     name: n, phone: p,
     comment: comment.trim(),
     client_tg: tg.trim(),
+    sh_vid: (window.shGetVid ? window.shGetVid() : ''),
     items: cart.map(function(x){
       var prod = PRODUCTS.find(function(pr){ return pr.id===x.id; });
       var nm = x.name;
@@ -2427,5 +2441,55 @@ syncFab();
     <button class="ppol-close" onclick="closePolupromModal()">&#10005; Закрыть</button>
   </div>
 </div>
+<!-- Cookie notice (уведомление без блокировки) -->
+<div id="shCookieBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#1A1C22;color:#fff;padding:12px 16px;font-size:0.82rem;line-height:1.4;box-shadow:0 -2px 12px rgba(0,0,0,.2)">
+  <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center">
+    <span style="flex:1;min-width:220px">Мы используем cookie и Яндекс.Метрику для аналитики и улучшения сайта.</span>
+    <button id="shCookieOk" style="background:#F59E0B;color:#1A1C22;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer">Понятно</button>
+  </div>
+</div>
+<script>
+(function(){
+  try {
+    if (!localStorage.getItem('sh_cookie_ok')) {
+      var bar = document.getElementById('shCookieBar');
+      if (bar) {
+        bar.style.display = 'block';
+        var btn = document.getElementById('shCookieOk');
+        if (btn) btn.addEventListener('click', function(){
+          try { localStorage.setItem('sh_cookie_ok','1'); } catch(e){}
+          bar.style.display = 'none';
+        });
+      }
+    }
+  } catch(e){}
+})();
+</script>
+<!-- /Cookie notice -->
+<!-- Visitor tracking beacon -->
+<script>
+(function(){
+  try {
+    function getCookie(n){ var m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)'); return m?m.pop():''; }
+    var qs = new URLSearchParams(location.search);
+    var payload = {
+      page: location.pathname + location.search,
+      referrer: document.referrer || '',
+      utm_source: qs.get('utm_source') || '',
+      utm_medium: qs.get('utm_medium') || '',
+      utm_campaign: qs.get('utm_campaign') || '',
+      device: (window.matchMedia && window.matchMedia('(max-width:768px)').matches) ? 'mobile' : 'desktop'
+    };
+    var body = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('api/track.php', new Blob([body], {type:'application/json'}));
+    } else {
+      fetch('api/track.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:body, keepalive:true}).catch(function(){});
+    }
+    window.shGetVid = function(){ return getCookie('sh_vid'); };
+  } catch(e){}
+})();
+</script>
+<!-- /Visitor tracking beacon -->
 </body>
 </html>
