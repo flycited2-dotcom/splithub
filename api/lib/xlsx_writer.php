@@ -21,7 +21,10 @@ class SimpleXlsxWriter {
     }
 
     private function esc($s) {
-        return htmlspecialchars((string)$s, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        // Удаляем символы, недопустимые в XML 1.0 (иначе .xlsx не откроется),
+        // т.к. referrer/UTM/user-agent приходят из внешнего ввода.
+        $s = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', (string)$s);
+        return htmlspecialchars($s, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 
     private function colLetter($n) { // 0 -> A, 26 -> AA

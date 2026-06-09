@@ -42,6 +42,7 @@ try {
             'expires'  => time() + 365 * 24 * 3600,
             'path'     => '/',
             'samesite' => 'Lax',
+            'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
         ]);
     }
 
