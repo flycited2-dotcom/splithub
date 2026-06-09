@@ -25,6 +25,7 @@ $phone    = trim($data['phone']    ?? '');
 $comment  = trim($data['comment']  ?? '');
 $clientTg = trim($data['client_tg'] ?? '');
 $items    = $data['items'] ?? [];
+$shVid    = trim($data['sh_vid'] ?? '');
 
 if (!$name || !$phone || !is_array($items) || empty($items)) {
     http_response_code(422);
@@ -162,6 +163,15 @@ try {
             $db->exec('CREATE TABLE IF NOT EXISTS guest_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT NOT NULL, total INTEGER NOT NULL DEFAULT 0, items_json TEXT NOT NULL DEFAULT "[]", comment TEXT DEFAULT "", client_tg TEXT DEFAULT "", created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
             $db->prepare('INSERT INTO guest_orders (name,phone,total,items_json,comment,client_tg) VALUES (?,?,?,?,?,?)')->execute([$name, $phone, $total, json_encode($items, JSON_UNESCAPED_UNICODE), $comment, $clientTg]);
             $guestSaved = true;
+        }
+
+        // Привязка визита (cookie sh_vid) к оставившему заявку клиенту
+        if ($shVid !== '' && preg_match('/^[a-f0-9\-]{8,40}$/i', $shVid)) {
+            try {
+                if (!isset($db)) $db = getDB();
+                $db->prepare('UPDATE visitors SET linked_phone=?, linked_name=? WHERE vid=?')
+                   ->execute([$phone, $name, $shVid]);
+            } catch (Throwable $e) { error_log('[SplitHub link vid] ' . $e->getMessage()); }
         }
     }
 } catch (Throwable $e) {
