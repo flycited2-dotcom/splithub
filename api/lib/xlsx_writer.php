@@ -50,7 +50,10 @@ class SimpleXlsxWriter {
                 $cell = $this->colLetter($ci) . $rn;
                 $isHeader = ($ri === 0);
                 $style = $isHeader ? ' s="1"' : '';
-                if (is_int($val) || (is_string($val) && $val !== '' && preg_match('/^-?\d{1,15}$/', $val))) {
+                // Числа храним числами только когда вызывающий код передал настоящий int/float.
+                // Любая строка (телефон, ИНН/КПП с ведущим нулём, ID) остаётся текстом —
+                // иначе Excel потеряет ведущие нули и уведёт длинные номера в экспоненту.
+                if (is_int($val) || is_float($val)) {
                     $xml .= '<c r="' . $cell . '"' . $style . '><v>' . $this->esc($val) . '</v></c>';
                 } else {
                     $xml .= '<c r="' . $cell . '"' . $style . ' t="inlineStr"><is><t xml:space="preserve">' . $this->esc($val) . '</t></is></c>';
@@ -110,6 +113,7 @@ class SimpleXlsxWriter {
         $styles .= '<borders count="1"><border/></borders>';
         $styles .= '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>';
         $styles .= '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>';
+        $styles .= '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>';
         $styles .= '</styleSheet>';
 
         $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
