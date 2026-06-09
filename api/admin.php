@@ -30,12 +30,32 @@ if ($action === 'export_orders_csv') {
     exit;
 }
 
+if ($action === 'export_xlsx') {
+    adminRequire();
+    require_once __DIR__ . '/lib/xlsx_writer.php';
+    exportXlsx(getDB());
+    exit;
+}
+
 adminRequire();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $db = getDB();
 
 switch ($action) {
+
+    // ── Список посетителей (постранично) ──
+    case 'visitors_list':
+        $page  = max(1, (int)($_GET['page'] ?? 1));
+        $limit = 50;
+        $off   = ($page - 1) * $limit;
+        $total = (int)$db->query('SELECT COUNT(*) FROM visitors')->fetchColumn();
+        $stmt  = $db->prepare('SELECT vid, first_seen, last_seen, visits_count, first_referrer, first_utm_source, first_utm_medium, first_utm_campaign, device, last_ip, linked_name, linked_phone FROM visitors ORDER BY last_seen DESC LIMIT ? OFFSET ?');
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(2, $off, PDO::PARAM_INT);
+        $stmt->execute();
+        jsonResponse(['ok' => true, 'visitors' => $stmt->fetchAll(), 'total' => $total, 'page' => $page, 'pages' => (int)ceil($total / $limit)]);
+        break;
 
     // ── List promo rules ──
     case 'promo_list':
@@ -478,4 +498,97 @@ function exportOrdersCsv($db) {
         ], ';');
     }
     fclose($out);
+}
+
+function exportXlsx($db) {
+    $smap = ['new'=>'Новый','confirmed'=>'Подтверждён','in_progress'=>'В работе','shipped'=>'Отгружен','completed'=>'Выполнен','cancelled'=>'Отменён'];
+
+    // ── Лист «Клиенты» ──
+    $clients = [[
+        'ID','Тип','Имя','Телефон','Telegram','Компания','ИНН','КПП','Юр.адрес',
+        'Дата регистрации','Кол-во заказов','Сумма заказов ₽'
+    ]];
+    $urows = $db->query("
+        SELECT u.id, u.name, u.phone, u.telegram,
+               COALESCE(u.company_name,'') company_name, COALESCE(u.inn,'') inn,
+               COALESCE(u.kpp,'') kpp, COALESCE(u.legal_address,'') legal_address,
+               u.created_at,
+               (SELECT COUNT(*) FROM orders WHERE user_id=u.id) oc,
+               (SELECT COALESCE(SUM(total),0) FROM orders WHERE user_id=u.id) os
+        FROM users u ORDER BY u.created_at DESC
+    ")->fetchAll();
+    foreach ($urows as $r) {
+        $clients[] = [
+            (int)$r['id'], 'Зарегистрирован', $r['name'], $r['phone'], $r['telegram'],
+            $r['company_name'], $r['inn'], $r['kpp'], $r['legal_address'],
+            $r['created_at'], (int)$r['oc'], (int)$r['os']
+        ];
+    }
+    $grows = $db->query("
+        SELECT name, phone, COUNT(*) cnt, COALESCE(SUM(total),0) sm, MIN(created_at) first_at
+        FROM guest_orders GROUP BY phone ORDER BY first_at DESC
+    ")->fetchAll();
+    foreach ($grows as $r) {
+        $clients[] = [
+            '', 'Гость', $r['name'], $r['phone'], '', '', '', '', '',
+            $r['first_at'], (int)$r['cnt'], (int)$r['sm']
+        ];
+    }
+
+    // ── Лист «Заказы» ──
+    $orders = [[
+        '№','Тип','Дата','Клиент','Телефон','Telegram','Сумма ₽','Статус',
+        'Бонусов начислено','Бонусов списано','Заметка','Комментарий','Источник'
+    ]];
+    $orows = $db->query("
+        SELECT o.id, o.created_at, u.name, u.phone, u.telegram, o.total, o.status,
+               o.bonus_earned, o.bonus_spent, COALESCE(o.admin_note,'') admin_note, o.comment
+        FROM orders o JOIN users u ON o.user_id=u.id ORDER BY o.created_at DESC LIMIT 10000
+    ")->fetchAll();
+    $srcByPhone = [];
+    try {
+        foreach ($db->query("SELECT linked_phone, first_utm_source, first_referrer FROM visitors WHERE linked_phone!=''")->fetchAll() as $v) {
+            $src = $v['first_utm_source'] !== '' ? $v['first_utm_source'] : ($v['first_referrer'] !== '' ? $v['first_referrer'] : '');
+            if ($src !== '') $srcByPhone[$v['linked_phone']] = $src;
+        }
+    } catch (Throwable $e) {}
+    foreach ($orows as $r) {
+        $orders[] = [
+            'SH-'.str_pad($r['id'],5,'0',STR_PAD_LEFT), 'Клиент', $r['created_at'],
+            $r['name'], $r['phone'], $r['telegram'], (int)$r['total'],
+            $smap[$r['status']] ?? $r['status'], (int)$r['bonus_earned'], (int)$r['bonus_spent'],
+            $r['admin_note'], $r['comment'], $srcByPhone[$r['phone']] ?? ''
+        ];
+    }
+    $gord = $db->query("SELECT id, created_at, name, phone, total, COALESCE(comment,'') comment FROM guest_orders ORDER BY created_at DESC LIMIT 10000")->fetchAll();
+    foreach ($gord as $r) {
+        $orders[] = [
+            'G-'.str_pad($r['id'],5,'0',STR_PAD_LEFT), 'Гость', $r['created_at'],
+            $r['name'], $r['phone'], '', (int)$r['total'], '—', 0, 0, '', $r['comment'],
+            $srcByPhone[$r['phone']] ?? ''
+        ];
+    }
+
+    // ── Лист «Посетители» ──
+    $visitors = [[
+        'ID посетителя','Первый визит','Последний визит','Кол-во визитов','Источник (referrer)',
+        'UTM source','UTM medium','UTM campaign','Устройство','IP','Привязанный клиент'
+    ]];
+    try {
+        $vrows = $db->query("SELECT * FROM visitors ORDER BY last_seen DESC LIMIT 20000")->fetchAll();
+        foreach ($vrows as $r) {
+            $linked = trim(($r['linked_name'] ?? '') . ' ' . ($r['linked_phone'] ?? ''));
+            $visitors[] = [
+                $r['vid'], $r['first_seen'], $r['last_seen'], (int)$r['visits_count'],
+                $r['first_referrer'], $r['first_utm_source'], $r['first_utm_medium'],
+                $r['first_utm_campaign'], $r['device'], $r['last_ip'], $linked
+            ];
+        }
+    } catch (Throwable $e) {}
+
+    $w = new SimpleXlsxWriter();
+    $w->addSheet('Клиенты', $clients);
+    $w->addSheet('Заказы', $orders);
+    $w->addSheet('Посетители', $visitors);
+    $w->download('splithub_export_' . date('Y-m-d') . '.xlsx');
 }
