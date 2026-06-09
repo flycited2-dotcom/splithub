@@ -113,6 +113,39 @@ function getDB() {
         }
     } catch (Throwable $e) {}
 
+    // visitors / visits — собственный трекинг посетителей
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS visitors (
+            vid TEXT PRIMARY KEY,
+            first_seen TEXT DEFAULT CURRENT_TIMESTAMP,
+            last_seen  TEXT DEFAULT CURRENT_TIMESTAMP,
+            visits_count INTEGER DEFAULT 0,
+            first_referrer TEXT DEFAULT '',
+            first_utm_source TEXT DEFAULT '',
+            first_utm_medium TEXT DEFAULT '',
+            first_utm_campaign TEXT DEFAULT '',
+            device TEXT DEFAULT '',
+            user_agent TEXT DEFAULT '',
+            last_ip TEXT DEFAULT '',
+            linked_phone TEXT DEFAULT '',
+            linked_name  TEXT DEFAULT ''
+        )");
+        $db->exec("CREATE TABLE IF NOT EXISTS visits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            vid TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            page TEXT DEFAULT '',
+            referrer TEXT DEFAULT '',
+            utm_source TEXT DEFAULT '',
+            utm_medium TEXT DEFAULT '',
+            utm_campaign TEXT DEFAULT '',
+            device TEXT DEFAULT '',
+            ip TEXT DEFAULT ''
+        )");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_visits_vid ON visits(vid)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at)");
+    } catch (Throwable $e) {}
+
     return $db;
 }
 
