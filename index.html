@@ -2279,11 +2279,44 @@ function submitCancel(){
     .catch(function(){showToast('Ошибка сети',true);btn.disabled=false;btn.textContent='Отменить заказ';});
 }
 
+function saveRequisites(){
+  var btn = document.getElementById('rqSaveBtn');
+  var msg = document.getElementById('rqMsg');
+  var payload = {
+    company_name: (document.getElementById('rqCompany')||{}).value || '',
+    inn:          (document.getElementById('rqInn')||{}).value || '',
+    kpp:          (document.getElementById('rqKpp')||{}).value || '',
+    legal_address:(document.getElementById('rqAddr')||{}).value || ''
+  };
+  if (btn) { btn.disabled = true; btn.textContent = 'Сохранение...'; }
+  fetch('api/auth.php?action=update_requisites', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (btn) { btn.disabled = false; btn.textContent = 'Сохранить реквизиты'; }
+    if (d.ok) {
+      if (currentUser) {
+        currentUser.company_name = d.requisites.company_name;
+        currentUser.inn = d.requisites.inn;
+        currentUser.kpp = d.requisites.kpp;
+        currentUser.legal_address = d.requisites.legal_address;
+      }
+      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✓ Реквизиты сохранены'; }
+    } else {
+      if (msg) { msg.style.color = '#EF4444'; msg.textContent = d.error || 'Ошибка сохранения'; }
+    }
+  })
+  .catch(function(){
+    if (btn) { btn.disabled = false; btn.textContent = 'Сохранить реквизиты'; }
+    if (msg) { msg.style.color = '#EF4444'; msg.textContent = 'Ошибка сети'; }
+  });
+}
+
 function renderDashTab(tab) {
   var body = document.getElementById('dashBody');
   var tabs = '<div class="dash-tabs">'
     + '<div class="dash-tab' + (tab==='orders'?' active':'') + '" onclick="renderDashTab(\'orders\')">Заказы</div>'
     + '<div class="dash-tab' + (tab==='profile'?' active':'') + '" onclick="renderDashTab(\'profile\')">Профиль</div>'
+    + '<div class="dash-tab' + (tab==='requisites'?' active':'') + '" onclick="renderDashTab(\'requisites\')">Реквизиты</div>'
     + '</div>';
 
   if (tab === 'orders') {
@@ -2321,6 +2354,26 @@ function renderDashTab(tab) {
       + '<div><b>Дата регистрации:</b> ' + (u.created_at||'—') + '</div>'
       + '</div>'
       + '<button class="auth-btn" style="background:#EF4444;box-shadow:0 3px 14px rgba(239,68,68,.3);margin-top:12px" onclick="doLogout()">Выйти из аккаунта</button>';
+
+  } else if (tab === 'requisites') {
+    var u = currentUser || {};
+    function rq(v){ return String(v==null?'':v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    body.innerHTML = tabs
+      + '<div style="font-size:.78rem;line-height:1.5;color:var(--text2);background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.30);border-radius:10px;padding:10px 12px;margin-bottom:14px">'
+      + 'Заполните, если вы <b>юридическое лицо</b> — реквизиты сохранятся в вашем профиле для выставления счетов. Физлицам заполнять не нужно. Можно изменить в любой момент.'
+      + '</div>'
+      + '<label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">Наименование организации</label>'
+      + '<input class="inp" id="rqCompany" type="text" placeholder="ООО Компания" value="' + rq(u.company_name) + '">'
+      + '<div style="display:flex;gap:10px">'
+      + '<div style="flex:1"><label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">ИНН</label>'
+      + '<input class="inp" id="rqInn" type="text" inputmode="numeric" placeholder="10 или 12 цифр" value="' + rq(u.inn) + '"></div>'
+      + '<div style="flex:1"><label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">КПП</label>'
+      + '<input class="inp" id="rqKpp" type="text" inputmode="numeric" placeholder="9 цифр" value="' + rq(u.kpp) + '"></div>'
+      + '</div>'
+      + '<label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">Юридический адрес</label>'
+      + '<input class="inp" id="rqAddr" type="text" placeholder="г. Москва, ул. ..." value="' + rq(u.legal_address) + '">'
+      + '<button class="auth-btn" id="rqSaveBtn" style="margin-top:6px" onclick="saveRequisites()">Сохранить реквизиты</button>'
+      + '<div id="rqMsg" style="margin-top:10px;font-size:.8rem;text-align:center"></div>';
   }
 }
 
