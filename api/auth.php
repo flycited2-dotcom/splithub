@@ -121,10 +121,14 @@ switch ($action) {
         $_SESSION['user_id'] = (int)$user['id'];
 
         jsonResponse(['ok' => true, 'user' => [
-            'id'   => (int)$user['id'],
-            'name' => $user['name'],
+            'id'    => (int)$user['id'],
+            'name'  => $user['name'],
             'phone' => $user['phone'],
-            'role'  => $user['role']
+            'role'  => $user['role'],
+            'company_name'  => $user['company_name'] ?? '',
+            'inn'           => $user['inn'] ?? '',
+            'kpp'           => $user['kpp'] ?? '',
+            'legal_address' => $user['legal_address'] ?? ''
         ]]);
         break;
 
@@ -146,7 +150,7 @@ switch ($action) {
         if (!$uid) jsonResponse(['ok' => false, 'authorized' => false], 200);
         $db = getDB();
 
-        $stmt = $db->prepare('SELECT id, name, phone, telegram, role, created_at FROM users WHERE id = ?');
+        $stmt = $db->prepare("SELECT id, name, phone, telegram, role, created_at, COALESCE(company_name,'') company_name, COALESCE(inn,'') inn, COALESCE(kpp,'') kpp, COALESCE(legal_address,'') legal_address FROM users WHERE id = ?");
         $stmt->execute([$uid]);
         $user = $stmt->fetch();
 
@@ -156,6 +160,33 @@ switch ($action) {
         $balance = (int)$bal->fetch()['balance'];
 
         jsonResponse(['ok' => true, 'user' => $user, 'bonus_balance' => $balance]);
+        break;
+
+    // ── Обновление реквизитов юр.лица (self-service в кабинете) ──
+    case 'update_requisites':
+        $uid = authRequire();
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($raw)) $raw = [];
+        $company = mb_substr(trim($raw['company_name'] ?? ''), 0, 255);
+        $inn     = trim($raw['inn'] ?? '');
+        $kpp     = trim($raw['kpp'] ?? '');
+        $addr    = mb_substr(trim($raw['legal_address'] ?? ''), 0, 500);
+        if ($inn !== '' && !preg_match('/^\d{10}(\d{2})?$/', $inn)) {
+            jsonResponse(['ok' => false, 'error' => 'ИНН должен содержать 10 или 12 цифр'], 422);
+        }
+        if ($kpp !== '' && !preg_match('/^\d{9}$/', $kpp)) {
+            jsonResponse(['ok' => false, 'error' => 'КПП должен содержать 9 цифр'], 422);
+        }
+        $db = getDB();
+        $db->prepare('UPDATE users SET company_name = ?, inn = ?, kpp = ?, legal_address = ? WHERE id = ?')
+           ->execute([$company, $inn, $kpp, $addr, $uid]);
+        jsonResponse(['ok' => true, 'requisites' => [
+            'company_name'  => $company,
+            'inn'           => $inn,
+            'kpp'           => $kpp,
+            'legal_address' => $addr
+        ]]);
         break;
 
     // ── Order history (with pagination + filters) ──
