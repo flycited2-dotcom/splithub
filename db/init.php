@@ -52,6 +52,9 @@ function getDB() {
             value TEXT NOT NULL DEFAULT ''
         )");
         $db->exec("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('bonuses_enabled', '1')");
+        // Поэтапный выкат: email в регистрации сначала опционален ('0'),
+        // флип на обязательный ('1') — после готовности фронтов сайта и приложения.
+        $db->exec("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('email_required', '0')");
     } catch (Throwable $e) {}
 
     // Mobile bearer sessions and push-notification devices
@@ -111,6 +114,24 @@ function getDB() {
         if (!in_array('cancel_reason', $colNames2)) {
             $db->exec("ALTER TABLE orders ADD COLUMN cancel_reason TEXT DEFAULT ''");
         }
+    } catch (Throwable $e) {}
+
+    // email column on users + password_resets table
+    try {
+        $ucols = array_column($db->query("PRAGMA table_info(users)")->fetchAll(PDO::FETCH_ASSOC), 'name');
+        if (!in_array('email', $ucols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''");
+        }
+        $db->exec("CREATE TABLE IF NOT EXISTS password_resets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            code_hash TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            used INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )");
     } catch (Throwable $e) {}
 
     return $db;

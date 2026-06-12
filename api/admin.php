@@ -120,7 +120,7 @@ switch ($action) {
     // ── List users ──
     case 'users':
         $users = $db->query('
-            SELECT u.id, u.name, u.phone, u.telegram, u.role, u.created_at,
+            SELECT u.id, u.name, u.phone, u.telegram, u.role, u.email, u.created_at,
                    COALESCE((SELECT SUM(amount) FROM bonus_log WHERE user_id = u.id), 0) as bonus_balance,
                    (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count,
                    (SELECT COALESCE(SUM(total), 0) FROM orders WHERE user_id = u.id) as total_spent
@@ -261,6 +261,26 @@ switch ($action) {
         $role = trim($raw['role'] ?? '');
         if (!$uid || !in_array($role, ['client','admin'])) jsonResponse(['ok' => false, 'error' => 'Некорректные данные'], 422);
         $db->prepare('UPDATE users SET role = ? WHERE id = ?')->execute([$role, $uid]);
+        jsonResponse(['ok' => true]);
+        break;
+
+    // ── Reset client password (+ optionally attach email) ──
+    case 'reset_client_password':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw     = json_decode(file_get_contents('php://input'), true);
+        $uid     = intval($raw['user_id'] ?? 0);
+        $newPass = (string)($raw['password'] ?? '');
+        $email   = trim((string)($raw['email'] ?? ''));
+        if (!$uid || strlen($newPass) < 4) jsonResponse(['ok' => false, 'error' => 'Нужен клиент и пароль от 4 символов'], 422);
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) jsonResponse(['ok' => false, 'error' => 'Некорректный email'], 422);
+        if ($email !== '') {
+            $db->prepare('UPDATE users SET password_hash = ?, email = ? WHERE id = ?')
+               ->execute([password_hash($newPass, PASSWORD_BCRYPT), $email, $uid]);
+        } else {
+            $db->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+               ->execute([password_hash($newPass, PASSWORD_BCRYPT), $uid]);
+        }
+        try { $db->prepare('DELETE FROM mobile_sessions WHERE user_id = ?')->execute([$uid]); } catch (Throwable $e) {}
         jsonResponse(['ok' => true]);
         break;
 

@@ -451,6 +451,19 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 .nav-phones  { display: none; }  /* скрыты на мобиле */
 .nav-order-btn { font-size: 0.76rem; padding: 7px 14px; }
 
+/* ── Продвижение мобильного приложения ── */
+.nav-app-btn { display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; font-weight:700; text-decoration:none; padding:7px 11px; border-radius:10px; flex-shrink:0; color:#0a7d2c; background:rgba(16,160,60,0.10); border:1px solid rgba(16,160,60,0.28); white-space:nowrap; }
+.hero-app-cta { display:flex; align-items:center; gap:12px; text-decoration:none; margin:10px 12px 0; padding:12px 16px; border-radius:14px; background:linear-gradient(135deg,rgba(16,160,60,0.12),rgba(16,160,60,0.04)); border:1px solid rgba(16,160,60,0.28); color:var(--text); }
+.hero-app-cta .hero-app-ic { font-size:1.5rem; line-height:1; }
+.hero-app-cta .hero-app-tx { display:flex; flex-direction:column; flex:1; min-width:0; }
+.hero-app-cta .hero-app-tx b { font-size:0.86rem; font-weight:700; }
+.hero-app-cta .hero-app-tx small { font-size:0.7rem; color:var(--text2); }
+.hero-app-cta .hero-app-go { flex-shrink:0; font-size:0.8rem; font-weight:800; color:#fff; padding:9px 15px; border-radius:12px; border:1px solid rgba(255,255,255,0.45); background:linear-gradient(180deg,#ff5a5f 0%,#e11d2a 55%,#c70f1c 100%); text-shadow:0 1px 1px rgba(120,0,0,0.45); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 5px rgba(140,0,10,0.4), 0 4px 12px rgba(225,29,42,0.5), 0 1px 2px rgba(0,0,0,0.22); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); transition:transform 0.12s ease, box-shadow 0.12s ease; }
+.hero-app-cta:hover .hero-app-go { transform:translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 5px rgba(140,0,10,0.4), 0 7px 18px rgba(225,29,42,0.6), 0 1px 2px rgba(0,0,0,0.22); }
+.hero-app-cta:active .hero-app-go { transform:translateY(1px); box-shadow: inset 0 2px 5px rgba(140,0,10,0.5), 0 2px 6px rgba(225,29,42,0.4); }
+@media (min-width:640px) { .nav-app-btn { font-size:0.8rem; padding:8px 14px; } .hero-app-cta { margin:14px auto 0; max-width:960px; } }
+@media (max-width:639px) { .nav-app-btn span { display:none; } .nav-app-btn { padding:7px 9px; } }
+
 /* ── Строка 2: телефоны 2×2 (только мобиль) ── */
 .nav-phones-mobile {
   display: grid;
@@ -1057,6 +1070,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
   <div class="nav-top">
     <a class="logo" href="#">Сплит<em>Хаб</em></a>
     <span class="nav-slogan">Кондиционеры, медь и расходники для монтажников и B2B</span>
+    <a class="nav-app-btn" href="/app/" aria-label="Скачать приложение SplitHub">&#128241; <span>Приложение</span></a>
     <div class="nav-phones">
       <a href="tel:+79785991369" class="nav-ph call">&#128222; <span>+7 978 599-13-69</span></a>
       <a href="https://t.me/Byttehnikaopt" class="nav-ph tg" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.889z"/></svg> <span>+7 990 002-22-30</span></a>
@@ -1089,6 +1103,11 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
       Загрузить прайс
     </button>
   </div>
+  <a class="hero-app-cta rv" href="/app/" style="transition-delay:0.03s">
+    <span class="hero-app-ic">&#128241;</span>
+    <span class="hero-app-tx"><b>Установите приложение СплитХаб</b><small>Каталог, заказы и бонусы в телефоне &middot; Android</small></span>
+    <span class="hero-app-go">Установить &rarr;</span>
+  </a>
   <div class="quick-row rv" style="transition-delay:0.05s">
     <button class="g qbtn qbtn-full btn-price-dl btn-price-dl--mobile" onclick="openPricelistModal()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1973,17 +1992,48 @@ function showAuthForm(mode) {
       + '<input class="inp" id="authPass" placeholder="Пароль" type="password">'
       + '<div id="authErr" style="color:#EF4444;font-size:.76rem;margin-bottom:6px"></div>'
       + '<button class="auth-btn" onclick="doLogin()">Войти</button>'
-      + '<div class="auth-switch" onclick="showAuthForm(\'register\')">Нет аккаунта? <b>Регистрация</b></div>';
+      + '<div class="auth-switch" onclick="showAuthForm(\'register\')">Нет аккаунта? <b>Регистрация</b></div>'
+      + '<div class="auth-switch" onclick="showAuthForm(\'reset\')">Забыли пароль?</div>';
+  } else if (mode === 'reset') {
+    title.textContent = 'Восстановление доступа';
+    body.innerHTML =
+      '<input class="inp" id="authIdent" placeholder="Ваш email" type="email" autocomplete="email">'
+      + '<div style="font-size:.72rem;color:#888;margin-bottom:6px">Введите email, привязанный к аккаунту — пришлём на него 6-значный код</div>'
+      + '<div id="authErr" style="color:#EF4444;font-size:.76rem;margin-bottom:6px"></div>'
+      + '<button class="auth-btn" onclick="doResetRequest()">Получить код</button>'
+      + '<div class="auth-switch" onclick="showAuthForm(\'login\')">← Назад ко входу</div>';
+  } else if (mode === 'resetCode') {
+    title.textContent = 'Введите код';
+    body.innerHTML =
+      '<div id="authInfo" style="color:#0a7d2c;font-size:.76rem;margin-bottom:6px"></div>'
+      + '<input class="inp" id="authCode" placeholder="Код из письма" type="text" inputmode="numeric" maxlength="6">'
+      + '<input class="inp" id="authPass" placeholder="Новый пароль (мин. 4 символа)" type="password">'
+      + '<div id="authErr" style="color:#EF4444;font-size:.76rem;margin-bottom:6px"></div>'
+      + '<button class="auth-btn" onclick="doResetConfirm()">Сохранить и войти</button>'
+      + '<div class="auth-switch" onclick="showAuthForm(\'reset\')">← Запросить код заново</div>';
+  } else if (mode === 'attachEmail') {
+    title.textContent = 'Привяжите email';
+    body.innerHTML =
+      '<div style="font-size:.8rem;color:#555;margin-bottom:8px">Чтобы не потерять доступ к аккаунту, привяжите email — на него можно будет восстановить пароль, если забудете его.</div>'
+      + '<input class="inp" id="authEmail" placeholder="Ваш email" type="email" autocomplete="email">'
+      + '<div id="authErr" style="color:#EF4444;font-size:.76rem;margin-bottom:6px"></div>'
+      + '<button class="auth-btn" onclick="doSaveEmail()">Сохранить</button>'
+      + '<div class="auth-switch" onclick="closeAuth();showToast(\'Email можно привязать позже в профиле\')">Позже</div>';
   } else {
     title.textContent = 'Регистрация';
     body.innerHTML =
       '<input class="inp" id="authName" placeholder="Ваше имя" type="text">'
       + '<input class="inp" id="authPhone" placeholder="+7 (___) ___-__-__" type="tel">'
+      + '<input class="inp" id="authEmail" placeholder="Email (для восстановления доступа)" type="email">'
       + '<input class="inp" id="authTg" placeholder="Telegram (необязательно)" type="text">'
       + '<input class="inp" id="authPass" placeholder="Пароль (мин. 4 символа)" type="password">'
       + '<div id="authErr" style="color:#EF4444;font-size:.76rem;margin-bottom:6px"></div>'
       + '<button class="auth-btn" onclick="doRegister()">Зарегистрироваться</button>'
       + '<div class="auth-switch" onclick="showAuthForm(\'login\')">Уже есть аккаунт? <b>Войти</b></div>';
+  }
+  if (mode === 'resetCode' && window._resetMask) {
+    var info = document.getElementById('authInfo');
+    if (info) info.textContent = 'Код отправлен на ' + window._resetMask;
   }
   initAuthPhoneMask();
 }
@@ -2026,8 +2076,9 @@ function doLogin() {
       savedName = d.user.name; savedPhone = d.user.phone;
       localStorage.setItem('sh_name', d.user.name);
       localStorage.setItem('sh_phone', d.user.phone);
-      closeAuth(); updateNavAuth(); renderD();
-      showToast('Добро пожаловать, ' + d.user.name + '!');
+      updateNavAuth(); renderD();
+      if (!d.user.email) { showAuthForm('attachEmail'); }
+      else { closeAuth(); showToast('Добро пожаловать, ' + d.user.name + '!'); }
     } else {
       err.textContent = d.error || 'Ошибка входа';
     }
@@ -2038,13 +2089,15 @@ function doLogin() {
 function doRegister() {
   var name  = (document.getElementById('authName')  || {}).value || '';
   var phone = (document.getElementById('authPhone') || {}).value || '';
+  var email = (document.getElementById('authEmail') || {}).value || '';
   var tg    = (document.getElementById('authTg')    || {}).value || '';
   var pass  = (document.getElementById('authPass')  || {}).value || '';
   var err   = document.getElementById('authErr');
   if (!name || !phone || !pass) { err.textContent = 'Заполните все обязательные поля'; return; }
+  if (!email || email.indexOf('@') < 0) { err.textContent = 'Укажите email — он нужен для восстановления доступа'; return; }
   fetch('api/auth.php?action=register', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({name: name, phone: phone, telegram: tg, password: pass})
+    body: JSON.stringify({name: name, phone: phone, telegram: tg, email: email, password: pass})
   })
   .then(function(r){ return r.json(); })
   .then(function(d) {
@@ -2058,6 +2111,72 @@ function doRegister() {
     } else {
       err.textContent = d.error || 'Ошибка регистрации';
     }
+  })
+  .catch(function(){ err.textContent = 'Ошибка сети'; });
+}
+
+function doResetRequest() {
+  var ident = (document.getElementById('authIdent') || {}).value || '';
+  var err   = document.getElementById('authErr');
+  if (!ident || ident.indexOf('@') < 0) { err.textContent = 'Введите ваш email'; return; }
+  fetch('api/auth.php?action=request_password_reset', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({identifier: ident})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.state === 'sent') {
+      window._resetIdent = ident;
+      window._resetMask = d.email_masked || 'email';
+      showAuthForm('resetCode');
+    } else if (d.state === 'no_email') {
+      err.textContent = 'К аккаунту не привязан email. Обратитесь к менеджеру: +7 978 599-13-69';
+    } else if (d.state === 'rate_limited') {
+      err.textContent = 'Слишком много запросов. Попробуйте позже.';
+    } else {
+      err.textContent = 'Email не найден. Если регистрировались раньше без email — обратитесь к менеджеру: +7 978 599-13-69, он восстановит доступ.';
+    }
+  })
+  .catch(function(){ err.textContent = 'Ошибка сети'; });
+}
+
+function doResetConfirm() {
+  var code = (document.getElementById('authCode') || {}).value || '';
+  var pass = (document.getElementById('authPass') || {}).value || '';
+  var err  = document.getElementById('authErr');
+  if (!code || !pass) { err.textContent = 'Введите код и новый пароль'; return; }
+  fetch('api/auth.php?action=reset_password', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({identifier: window._resetIdent, code: code, password: pass})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.ok) {
+      currentUser = d.user;
+      savedName = d.user.name; savedPhone = d.user.phone;
+      localStorage.setItem('sh_name', d.user.name);
+      localStorage.setItem('sh_phone', d.user.phone);
+      closeAuth(); updateNavAuth(); renderD();
+      showToast('Пароль изменён, вы вошли');
+    } else {
+      err.textContent = d.error || 'Не удалось сбросить пароль';
+    }
+  })
+  .catch(function(){ err.textContent = 'Ошибка сети'; });
+}
+
+function doSaveEmail() {
+  var email = (document.getElementById('authEmail') || {}).value || '';
+  var err   = document.getElementById('authErr');
+  if (!email || email.indexOf('@') < 0) { err.textContent = 'Укажите корректный email'; return; }
+  fetch('api/auth.php?action=update_email', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({email: email})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.ok) { if (currentUser) currentUser.email = d.email; closeAuth(); updateNavAuth(); showToast('Email привязан'); }
+    else { err.textContent = d.error || 'Не удалось сохранить'; }
   })
   .catch(function(){ err.textContent = 'Ошибка сети'; });
 }

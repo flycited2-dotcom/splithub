@@ -42,6 +42,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
 
 require __DIR__ . '/../db/init.php';
+require_once __DIR__ . '/lib/password_reset.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     $sessDir = sys_get_temp_dir() . '/splithub_sess';
@@ -61,6 +62,7 @@ switch ($action) {
         $phone    = normalizePhone($raw['phone'] ?? '');
         $password = $raw['password'] ?? '';
         $telegram = trim($raw['telegram'] ?? '');
+        $email    = trim($raw['email'] ?? '');
 
         if (!$name || !$phone || !$password) {
             jsonResponse(['ok' => false, 'error' => 'Заполните все обязательные поля'], 422);
@@ -70,6 +72,10 @@ switch ($action) {
         }
         if (strlen($password) < 4) {
             jsonResponse(['ok' => false, 'error' => 'Пароль минимум 4 символа'], 422);
+        }
+        $emailBad = ($email === '') ? pr_emailRequired() : !filter_var($email, FILTER_VALIDATE_EMAIL);
+        if ($emailBad) {
+            jsonResponse(['ok' => false, 'error' => 'Укажите корректный email'], 422);
         }
 
         $db = getDB();
@@ -82,8 +88,8 @@ switch ($action) {
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $ins = $db->prepare('INSERT INTO users (name, phone, telegram, password_hash) VALUES (?, ?, ?, ?)');
-        $ins->execute([$name, $phone, $telegram, $hash]);
+        $ins = $db->prepare('INSERT INTO users (name, phone, telegram, email, password_hash) VALUES (?, ?, ?, ?, ?)');
+        $ins->execute([$name, $phone, $telegram, $email, $hash]);
 
         $userId = (int)$db->lastInsertId();
         $_SESSION['user_id'] = $userId;
@@ -92,8 +98,51 @@ switch ($action) {
             'id'   => $userId,
             'name' => $name,
             'phone' => $phone,
+            'email' => $email,
             'role'  => 'client'
         ]]);
+        break;
+
+    // ── Запрос кода восстановления ──
+    case 'request_password_reset':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $res = requestPasswordReset((string)($raw['identifier'] ?? ''));
+        jsonResponse(['ok' => true] + $res);
+        break;
+
+    // ── Подтверждение кода и смена пароля ──
+    case 'reset_password':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $res = confirmPasswordReset(
+            (string)($raw['identifier'] ?? ''),
+            (string)($raw['code'] ?? ''),
+            (string)($raw['password'] ?? '')
+        );
+        if (!$res['ok']) {
+            $msg = [
+                'CODE_EXPIRED' => 'Код истёк или неверный. Запросите новый.',
+                'INVALID_CODE' => 'Неверный код' . (isset($res['attempts_left']) ? '. Осталось попыток: ' . $res['attempts_left'] : ''),
+                'TOO_MANY_ATTEMPTS' => 'Слишком много попыток. Запросите новый код.',
+                'INVALID_PASSWORD' => 'Пароль должен быть не короче 4 символов.',
+            ][$res['code']] ?? 'Не удалось сбросить пароль.';
+            jsonResponse(['ok' => false, 'error' => $msg, 'code' => $res['code']], 422);
+        }
+        $_SESSION['user_id'] = (int)$res['user']['id'];
+        jsonResponse(['ok' => true, 'user' => $res['user']]);
+        break;
+
+    // ── Привязать/обновить свой email ──
+    case 'update_email':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $uid = authCheck();
+        if (!$uid) jsonResponse(['ok' => false, 'error' => 'Необходима авторизация'], 401);
+        $raw = json_decode(file_get_contents('php://input'), true) ?: [];
+        $email = trim($raw['email'] ?? '');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) jsonResponse(['ok' => false, 'error' => 'Укажите корректный email'], 422);
+        getDB()->prepare('UPDATE users SET email = ? WHERE id = ?')->execute([$email, $uid]);
+        jsonResponse(['ok' => true, 'email' => $email]);
         break;
 
     // ── Login ──
@@ -124,6 +173,7 @@ switch ($action) {
             'id'   => (int)$user['id'],
             'name' => $user['name'],
             'phone' => $user['phone'],
+            'email' => $user['email'] ?? '',
             'role'  => $user['role']
         ]]);
         break;
@@ -146,7 +196,7 @@ switch ($action) {
         if (!$uid) jsonResponse(['ok' => false, 'authorized' => false], 200);
         $db = getDB();
 
-        $stmt = $db->prepare('SELECT id, name, phone, telegram, role, created_at FROM users WHERE id = ?');
+        $stmt = $db->prepare('SELECT id, name, phone, telegram, role, email, created_at FROM users WHERE id = ?');
         $stmt->execute([$uid]);
         $user = $stmt->fetch();
 

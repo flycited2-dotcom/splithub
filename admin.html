@@ -829,8 +829,11 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
     </div>
     <div class="modal-btns" style="margin-top:16px">
     <div style="border-top:1px solid var(--blo);padding-top:10px;margin-bottom:12px">
-      <label style="font-size:.68rem;font-weight:700;color:#9298A8;text-transform:uppercase;display:block;margin-bottom:4px">Новый пароль (оставьте пустым, если не меняете)</label>
-      <input class="form-inp" id="euNewPwd" type="password" placeholder="Минимум 4 символа" style="width:100%">
+      <label style="font-size:.68rem;font-weight:700;color:#9298A8;text-transform:uppercase;display:block;margin-bottom:4px">Email клиента (для восстановления доступа)</label>
+      <input class="form-inp" id="euEmail" type="email" placeholder="client@mail.ru" style="width:100%;margin-bottom:8px">
+      <label style="font-size:.68rem;font-weight:700;color:#9298A8;text-transform:uppercase;display:block;margin-bottom:4px">Новый пароль (для сброса доступа)</label>
+      <input class="form-inp" id="euNewPwd" type="password" placeholder="Минимум 4 символа" style="width:100%;margin-bottom:8px">
+      <button class="modal-ok" onclick="resetClientPwd()" style="width:100%">Сбросить пароль / привязать email</button>
     </div>
       <button class="modal-cancel" onclick="closeModal('editUserModal')">Отмена</button>
       <button class="modal-ok" onclick="saveEditUser()">Сохранить</button>
@@ -1731,6 +1734,7 @@ function openEditUser(uid){
     document.getElementById('euName').value=u.name||'';
     document.getElementById('euPhone').value=u.phone||'';
     document.getElementById('euTelegram').value=u.telegram||'';
+    document.getElementById('euEmail').value=u.email||'';
     document.getElementById('euCompany').value=u.company_name||'';
     document.getElementById('euInn').value=u.inn||'';
     document.getElementById('euKpp').value=u.kpp||'';
@@ -1756,6 +1760,20 @@ function saveEditUser(){
     body:JSON.stringify(data)})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok){closeModal('editUserModal');loadUsers();toast('Клиент обновлён');}
+    else toast(d.error||'Ошибка',false);
+  });
+}
+
+function resetClientPwd(){
+  var uid=parseInt(document.getElementById('euId').value);
+  var pwd=document.getElementById('euNewPwd').value.trim();
+  var email=document.getElementById('euEmail').value.trim();
+  if(!uid)return;
+  if(pwd.length<4){toast('Пароль минимум 4 символа',false);return;}
+  fetch(api('admin.php?action=reset_client_password'),{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:uid,password:pwd,email:email})})
+  .then(function(r){return r.json();}).then(function(d){
+    if(d.ok){closeModal('editUserModal');loadUsers();toast('Пароль сброшен'+(email?' и email привязан':''));}
     else toast(d.error||'Ошибка',false);
   });
 }
