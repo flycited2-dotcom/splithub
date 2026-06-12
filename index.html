@@ -1063,6 +1063,19 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .ppol-close{width:100%;padding:10px;border:none;background:none;color:var(--text3);font-size:0.8rem;cursor:pointer;border-radius:10px;font-family:'Inter',sans-serif;transition:color .15s}
 .ppol-close:hover{color:var(--text)}
 </style>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=109740770', 'ym');
+
+    ym(109740770, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/109740770" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 </head>
 <body>
 <!-- NAV -->
@@ -1788,6 +1801,7 @@ function sendOrder() {
     name: n, phone: p,
     comment: comment.trim(),
     client_tg: tg.trim(),
+    sh_vid: (window.shGetVid ? window.shGetVid() : ''),
     items: cart.map(function(x){
       var prod = PRODUCTS.find(function(pr){ return pr.id===x.id; });
       var nm = x.name;
@@ -2384,11 +2398,44 @@ function submitCancel(){
     .catch(function(){showToast('Ошибка сети',true);btn.disabled=false;btn.textContent='Отменить заказ';});
 }
 
+function saveRequisites(){
+  var btn = document.getElementById('rqSaveBtn');
+  var msg = document.getElementById('rqMsg');
+  var payload = {
+    company_name: (document.getElementById('rqCompany')||{}).value || '',
+    inn:          (document.getElementById('rqInn')||{}).value || '',
+    kpp:          (document.getElementById('rqKpp')||{}).value || '',
+    legal_address:(document.getElementById('rqAddr')||{}).value || ''
+  };
+  if (btn) { btn.disabled = true; btn.textContent = 'Сохранение...'; }
+  fetch('api/auth.php?action=update_requisites', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (btn) { btn.disabled = false; btn.textContent = 'Сохранить реквизиты'; }
+    if (d.ok) {
+      if (currentUser) {
+        currentUser.company_name = d.requisites.company_name;
+        currentUser.inn = d.requisites.inn;
+        currentUser.kpp = d.requisites.kpp;
+        currentUser.legal_address = d.requisites.legal_address;
+      }
+      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✓ Реквизиты сохранены'; }
+    } else {
+      if (msg) { msg.style.color = '#EF4444'; msg.textContent = d.error || 'Ошибка сохранения'; }
+    }
+  })
+  .catch(function(){
+    if (btn) { btn.disabled = false; btn.textContent = 'Сохранить реквизиты'; }
+    if (msg) { msg.style.color = '#EF4444'; msg.textContent = 'Ошибка сети'; }
+  });
+}
+
 function renderDashTab(tab) {
   var body = document.getElementById('dashBody');
   var tabs = '<div class="dash-tabs">'
     + '<div class="dash-tab' + (tab==='orders'?' active':'') + '" onclick="renderDashTab(\'orders\')">Заказы</div>'
     + '<div class="dash-tab' + (tab==='profile'?' active':'') + '" onclick="renderDashTab(\'profile\')">Профиль</div>'
+    + '<div class="dash-tab' + (tab==='requisites'?' active':'') + '" onclick="renderDashTab(\'requisites\')">Реквизиты</div>'
     + '</div>';
 
   if (tab === 'orders') {
@@ -2426,6 +2473,26 @@ function renderDashTab(tab) {
       + '<div><b>Дата регистрации:</b> ' + (u.created_at||'—') + '</div>'
       + '</div>'
       + '<button class="auth-btn" style="background:#EF4444;box-shadow:0 3px 14px rgba(239,68,68,.3);margin-top:12px" onclick="doLogout()">Выйти из аккаунта</button>';
+
+  } else if (tab === 'requisites') {
+    var u = currentUser || {};
+    function rq(v){ return String(v==null?'':v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    body.innerHTML = tabs
+      + '<div style="font-size:.78rem;line-height:1.5;color:var(--text2);background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.30);border-radius:10px;padding:10px 12px;margin-bottom:14px">'
+      + 'Заполните, если вы <b>юридическое лицо</b> — реквизиты сохранятся в вашем профиле для выставления счетов. Физлицам заполнять не нужно. Можно изменить в любой момент.'
+      + '</div>'
+      + '<label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">Наименование организации</label>'
+      + '<input class="inp" id="rqCompany" type="text" placeholder="ООО Компания" value="' + rq(u.company_name) + '">'
+      + '<div style="display:flex;gap:10px">'
+      + '<div style="flex:1"><label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">ИНН</label>'
+      + '<input class="inp" id="rqInn" type="text" inputmode="numeric" placeholder="10 или 12 цифр" value="' + rq(u.inn) + '"></div>'
+      + '<div style="flex:1"><label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">КПП</label>'
+      + '<input class="inp" id="rqKpp" type="text" inputmode="numeric" placeholder="9 цифр" value="' + rq(u.kpp) + '"></div>'
+      + '</div>'
+      + '<label style="display:block;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:5px">Юридический адрес</label>'
+      + '<input class="inp" id="rqAddr" type="text" placeholder="г. Москва, ул. ..." value="' + rq(u.legal_address) + '">'
+      + '<button class="auth-btn" id="rqSaveBtn" style="margin-top:6px" onclick="saveRequisites()">Сохранить реквизиты</button>'
+      + '<div id="rqMsg" style="margin-top:10px;font-size:.8rem;text-align:center"></div>';
   }
 }
 
@@ -2546,5 +2613,55 @@ syncFab();
     <button class="ppol-close" onclick="closePolupromModal()">&#10005; Закрыть</button>
   </div>
 </div>
+<!-- Cookie notice (уведомление без блокировки) -->
+<div id="shCookieBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#1A1C22;color:#fff;padding:12px 16px;font-size:0.82rem;line-height:1.4;box-shadow:0 -2px 12px rgba(0,0,0,.2)">
+  <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center">
+    <span style="flex:1;min-width:220px">Мы используем cookie и Яндекс.Метрику для аналитики и улучшения сайта.</span>
+    <button id="shCookieOk" style="background:#F59E0B;color:#1A1C22;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer">Понятно</button>
+  </div>
+</div>
+<script>
+(function(){
+  try {
+    if (!localStorage.getItem('sh_cookie_ok')) {
+      var bar = document.getElementById('shCookieBar');
+      if (bar) {
+        bar.style.display = 'block';
+        var btn = document.getElementById('shCookieOk');
+        if (btn) btn.addEventListener('click', function(){
+          try { localStorage.setItem('sh_cookie_ok','1'); } catch(e){}
+          bar.style.display = 'none';
+        });
+      }
+    }
+  } catch(e){}
+})();
+</script>
+<!-- /Cookie notice -->
+<!-- Visitor tracking beacon -->
+<script>
+(function(){
+  try {
+    function getCookie(n){ var m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)'); return m?m.pop():''; }
+    var qs = new URLSearchParams(location.search);
+    var payload = {
+      page: location.pathname + location.search,
+      referrer: document.referrer || '',
+      utm_source: qs.get('utm_source') || '',
+      utm_medium: qs.get('utm_medium') || '',
+      utm_campaign: qs.get('utm_campaign') || '',
+      device: (window.matchMedia && window.matchMedia('(max-width:768px)').matches) ? 'mobile' : 'desktop'
+    };
+    var body = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('api/track.php', new Blob([body], {type:'application/json'}));
+    } else {
+      fetch('api/track.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:body, keepalive:true}).catch(function(){});
+    }
+    window.shGetVid = function(){ return getCookie('sh_vid'); };
+  } catch(e){}
+})();
+</script>
+<!-- /Visitor tracking beacon -->
 </body>
 </html>

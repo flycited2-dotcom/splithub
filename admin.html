@@ -441,6 +441,7 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
     <button class="tab-btn" onclick="switchTab('promo')">&#127381; Промо</button>
     <button class="tab-btn" onclick="switchTab('notifications')">&#128276; &#1059;&#1074;&#1077;&#1076;&#1086;&#1084;&#1083;&#1077;&#1085;&#1080;&#1103;</button>
     <button class="tab-btn" onclick="switchTab('analytics')">&#128202; Аналитика</button>
+    <button class="tab-btn" onclick="switchTab('visitors')">&#128065; Посетители</button>
     <button class="tab-btn" onclick="switchTab('catalog')">&#128230; Каталог</button>
     <button class="tab-btn" onclick="switchTab('products')">&#9998; Товары</button>
     <button class="tab-btn" onclick="switchTab('settings')">&#9881; Настройки</button>
@@ -465,6 +466,7 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
         <input class="search-date" id="ordDateFrom" type="date" title="Дата с" onchange="loadOrders(1)">
         <input class="search-date" id="ordDateTo"   type="date" title="Дата по" onchange="loadOrders(1)">
         <button class="export-btn" onclick="exportCSV()" title="Экспорт в CSV">&#128190; CSV</button>
+        <button class="export-btn" onclick="window.location='api/admin.php?action=export_xlsx'" title="Скачать всё в Excel (.xlsx)">&#128202; Excel</button>
         <button class="bulk-toggle" id="bulkSelectAll" onclick="selectAllOrders()" style="display:none">&#9745; Все</button>
         <button class="bulk-toggle" id="bulkToggle" onclick="toggleBulkMode()">&#9776; Выбрать</button>
       </div>
@@ -571,6 +573,18 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
       </div>
       <div id="monthReportList"></div>
     </div>
+    </div>
+
+    <!-- VISITORS -->
+    <div class="tab-pane" id="pane-visitors">
+      <h3 style="margin:0 0 12px;font-size:1rem">Посетители сайта</h3>
+      <div id="visitorsBox" style="overflow-x:auto">
+        <table class="usr-table"><thead><tr>
+          <th>ID</th><th>Первый визит</th><th>Последний</th><th>Визитов</th>
+          <th>Источник</th><th>UTM source</th><th>Устройство</th><th>IP</th><th>Клиент</th>
+        </tr></thead><tbody id="visitorsBody"><tr><td colspan="9">Загрузка…</td></tr></tbody></table>
+      </div>
+      <div id="visitorsPager" style="margin-top:12px;display:flex;gap:8px;align-items:center"></div>
     </div>
 
     <!-- CATALOG -->
@@ -1031,6 +1045,7 @@ function switchTab(name, _fromPop){
     _loaded[name]=true;
     if(name==='guests')loadGuests(1);
     if(name==='users')loadUsers();
+    if(name==='visitors')loadVisitors(1);
     if(name==='promo')loadPromo();
     if(name==='notifications')loadPushLog();
     if(name==='analytics')loadAnalytics(7);
@@ -1298,6 +1313,27 @@ function loadGuests(page){
     if(!d.ok||!d.orders.length){document.getElementById('gstList').innerHTML='<div class="empty">Гостевых заказов нет</div>';return;}
     renderOrders(d.orders,d.total,page,'gstList','gstPager',loadGuests,false);
   }).catch(function(){document.getElementById('gstLoading').style.display='none';});
+}
+
+// ── Visitors ──────────────────────────────────────────────────────────────────
+function loadVisitors(page){
+  fetch('api/admin.php?action=visitors_list&page='+(page||1))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var b=document.getElementById('visitorsBody'); if(!b) return;
+      if(!d.ok || !d.visitors || !d.visitors.length){ b.innerHTML='<tr><td colspan="9">Пока нет данных</td></tr>'; document.getElementById('visitorsPager').innerHTML=''; return; }
+      b.innerHTML = d.visitors.map(function(v){
+        var client = ((v.linked_name||'')+' '+(v.linked_phone||'')).trim() || '—';
+        var src = v.first_referrer || '—';
+        function e(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+        return '<tr><td>'+e((v.vid||'').slice(0,8))+'…</td><td>'+e(v.first_seen)+'</td><td>'+e(v.last_seen)+'</td><td>'+e(v.visits_count)+'</td><td>'+e(src)+'</td><td>'+e(v.first_utm_source||'—')+'</td><td>'+e(v.device||'—')+'</td><td>'+e(v.last_ip||'—')+'</td><td>'+e(client)+'</td></tr>';
+      }).join('');
+      var pg=document.getElementById('visitorsPager');
+      pg.innerHTML='Стр. '+d.page+' из '+d.pages+'  '+
+        (d.page>1?'<button class="tab-btn" onclick="loadVisitors('+(d.page-1)+')">←</button>':'')+
+        (d.page<d.pages?'<button class="tab-btn" onclick="loadVisitors('+(d.page+1)+')">→</button>':'');
+    })
+    .catch(function(){ var b=document.getElementById('visitorsBody'); if(b)b.innerHTML='<tr><td colspan="9">Ошибка загрузки</td></tr>'; });
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────────
