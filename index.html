@@ -239,6 +239,8 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 }
 .pcard-name{font-size:0.74rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:2px;}
 .pcard-desc{font-size:0.61rem;color:var(--text2);line-height:1.4;margin-bottom:8px;flex:1;}
+.pcard-brandline{font-family:'Inter',sans-serif;font-size:0.68rem;font-weight:700;color:var(--amber-d);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:3px;line-height:1.3;}
+.pcard-benef{font-size:0.66rem;color:var(--text3);line-height:1.35;margin:4px 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .pcard-price{
   display:inline-flex;flex-direction:column;
   background:linear-gradient(135deg,rgba(186,210,235,0.38) 0%,rgba(90,106,130,0.20) 100%);
@@ -1196,7 +1198,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 
 <footer>
   <div class="fl">Сплит<em>Хаб</em></div>
-  <div class="fc">&copy; 2026 &middot; Опт &middot; Симферополь</div>
+  <div class="fc">&copy; 2026 &middot; Опт &middot; Симферополь &middot; <a href="/privacy/" style="color:inherit;text-decoration:underline">Политика конфиденциальности</a></div>
 </footer>
 
 <!-- FAB -->
@@ -1384,7 +1386,7 @@ var GROUP_ORDER  = ['inv','onoff','pac_inv','pac_onoff','truba','poluprom','rash
 var GROUP_LABELS = {inv:'ИНВЕРТОРНЫЕ',onoff:'ON/OFF',pac_inv:'ПОЛУПРОМ ИНВЕРТОР',pac_onoff:'ПОЛУПРОМ ON/OFF',truba:'МЕДНАЯ ТРУБА',poluprom:'ПОЛУПРОМ',rashod:'РАСХОДНИКИ',multi:'ЧЁРНЫЕ СПЛИТЫ'};
 
 // ── Card HTML ─────────────────────────────────────────
-function cardHtml(p, delay) {
+function cardHtml(p, delay, withBrand) {
   var qty = getQty(p.id);
   var src = getImg(p);
   var imgHtml = src
@@ -1400,12 +1402,22 @@ function cardHtml(p, delay) {
   var _bdgLbl = _ov.badge_label || ({new:'Новинка',sale:'Акция',clearance:'Распродажа'}[_bdg]||'');
   var _badgeHtml = _bdg ? '<div class="pcard-badge pb-'+_bdg+'">'+_bdgLbl+'</div>' : '';
   var _descExtra = _ov.description ? '<div class="pcard-admin-desc">'+_ov.description+'</div>' : '';
+  var _brandLine = '';
+  if (withBrand) {
+    var _bt = p.brand + (p.series ? ' · ' + p.series : '');
+    _brandLine = '<div class="pcard-brandline">' + _bt + '</div>';
+  }
+  var _benefLine = (withBrand && p.cardBenef)
+    ? '<div class="pcard-benef">' + p.cardBenef + '</div>'
+    : '';
   return '<div class="pcard rv" role="button" tabindex="0" aria-label="Карточка '+p.model+'" style="transition-delay:'+(delay*0.04)+'s" onclick="openDetail(\''+p.id+'\')">'
     + _badgeHtml
       + '<div class="pcard-img">'+imgHtml+'</div>'
     + '<div class="pcard-body">'
+    + _brandLine
     + '<div class="pcard-name">'+p.model+'</div>'
     + '<div class="pcard-desc">'+p.descShort+'</div>'
+    + _benefLine
       + _descExtra
     + getStockHtml(p)
     + '<div class="pcard-price"><span class="pcard-price-val">'+p.price.toLocaleString('ru-RU')+'&thinsp;₽</span><small>опт · комплект</small></div>'
@@ -1419,6 +1431,16 @@ function renderAll() {
   var list = currentFilter ? PRODUCTS.filter(FILTER_MAP[currentFilter].test) : PRODUCTS;
   if(!list.length) {
     content.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text3)">Нет товаров в этой категории</div>';
+    return;
+  }
+  // Режим фильтра: одна сплошная плотная сетка всех подходящих товаров,
+  // в порядке массива PRODUCTS, без шапок брендов и плашек серий.
+  if (currentFilter) {
+    var fhtml = '<div class="pgrid">';
+    list.forEach(function(p, i){ fhtml += cardHtml(p, i, true); });
+    fhtml += '</div>';
+    content.innerHTML = fhtml;
+    observe();
     return;
   }
   // Build: group → brand → series → items
@@ -2616,7 +2638,7 @@ syncFab();
 <!-- Cookie notice (уведомление без блокировки) -->
 <div id="shCookieBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#1A1C22;color:#fff;padding:12px 16px;font-size:0.82rem;line-height:1.4;box-shadow:0 -2px 12px rgba(0,0,0,.2)">
   <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center">
-    <span style="flex:1;min-width:220px">Мы используем cookie и Яндекс.Метрику для аналитики и улучшения сайта.</span>
+    <span style="flex:1;min-width:220px">Мы используем cookie и Яндекс.Метрику для аналитики и улучшения сайта. <a href="/privacy/" target="_blank" rel="noopener" style="color:#F59E0B;text-decoration:underline">Политика конфиденциальности</a></span>
     <button id="shCookieOk" style="background:#F59E0B;color:#1A1C22;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer">Понятно</button>
   </div>
 </div>
