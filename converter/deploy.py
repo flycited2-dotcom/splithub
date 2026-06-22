@@ -3,6 +3,11 @@
 import sys, json
 from pathlib import Path
 
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from tools.catalog_sync import assert_catalogs_match, parse_products_js, read_products_json
+
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -21,8 +26,17 @@ cfg = json.loads((BASE_DIR / "config" / "deploy.json").read_text(encoding="utf-8
 local_js   = BASE_DIR / "out" / "products.js"
 local_json = BASE_DIR / "out" / "products.json"
 
-if not local_js.exists():
-    print("[ОШИБКА] out/products.js не найден — сначала запустите конвертер")
+if not local_js.exists() or not local_json.exists():
+    print("[ОШИБКА] out/products.js или out/products.json не найден — сначала запустите конвертер")
+    sys.exit(1)
+
+try:
+    assert_catalogs_match(
+        parse_products_js(local_js.read_text(encoding="utf-8")),
+        read_products_json(local_json),
+    )
+except ValueError as error:
+    print(f"[ОШИБКА] Каталоги не синхронизированы: {error}")
     sys.exit(1)
 
 # remote_path может быть каталогом сайта (.../public_html) ИЛИ полным путём к products.js
@@ -49,7 +63,7 @@ def deploy_one(local_path, remote_path):
     sftp.put(str(local_path), remote_path)
     print(f"  загружено: {remote_path.split('/')[-1]}  ({local_path.stat().st_size // 1024} КБ)")
 
-# products.js (витрина) и products.json (серверный каталог) — синхронно, чтобы не расходились
+# products.js (витрина) и products.json (серверный каталог) — только проверенной парой.
 deploy_one(local_js, js_remote)
 deploy_one(local_json, json_remote)
 sftp.close()

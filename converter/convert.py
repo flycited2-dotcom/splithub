@@ -465,8 +465,9 @@ class Converter:
         print(f"{'='*52}")
         print(f"\nЧто делать дальше:")
         print(f"  1. Проверьте converter/out/{zip_path.name}")
-        print(f"  2. Распакуйте на сервер в public_html/")
-        print(f"  3. Или загрузите только products.js (если меняли только каталог)\n")
+        print("  2. Для публикации каталога запустите converter/publish.bat")
+        print("  3. Не распаковывайте deploy.zip на сервер и не загружайте products.js отдельно:\n"
+              "     publish.bat проверит и загрузит products.js + products.json парой.\n")
         return True
 
 
