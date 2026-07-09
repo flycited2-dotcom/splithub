@@ -41,7 +41,24 @@ function getDB() {
             description TEXT DEFAULT '',
             badge TEXT DEFAULT '',
             badge_label TEXT DEFAULT '',
+            active INTEGER DEFAULT 1,
+            data_json TEXT DEFAULT '{}',
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )");
+        $pcols = array_column($db->query("PRAGMA table_info(product_overrides)")->fetchAll(PDO::FETCH_ASSOC), 'name');
+        if (!in_array('active', $pcols)) {
+            $db->exec("ALTER TABLE product_overrides ADD COLUMN active INTEGER DEFAULT 1");
+        }
+        if (!in_array('data_json', $pcols)) {
+            $db->exec("ALTER TABLE product_overrides ADD COLUMN data_json TEXT DEFAULT '{}'");
+        }
+        $db->exec("CREATE TABLE IF NOT EXISTS custom_products (
+            id TEXT PRIMARY KEY,
+            sku TEXT NOT NULL UNIQUE,
+            data_json TEXT NOT NULL DEFAULT '{}',
+            active INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )");
     } catch (Throwable $e) {}
 
@@ -178,6 +195,29 @@ function getDB() {
         $db->exec("CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at)");
     } catch (Throwable $e) {}
 
+    // Monthly admin reports
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS monthly_reports (
+            period TEXT PRIMARY KEY,
+            orders_count INTEGER NOT NULL DEFAULT 0,
+            revenue INTEGER NOT NULL DEFAULT 0,
+            new_clients INTEGER NOT NULL DEFAULT 0,
+            completed_count INTEGER NOT NULL DEFAULT 0,
+            cancelled_count INTEGER NOT NULL DEFAULT 0,
+            avg_order INTEGER NOT NULL DEFAULT 0,
+            notes TEXT DEFAULT '',
+            closed_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )");
+    } catch (Throwable $e) {}
+
+    // Guest orders status for admin bulk workflows
+    try {
+        $gcols = array_column($db->query("PRAGMA table_info(guest_orders)")->fetchAll(PDO::FETCH_ASSOC), 'name');
+        if ($gcols && !in_array('status', $gcols)) {
+            $db->exec("ALTER TABLE guest_orders ADD COLUMN status TEXT DEFAULT 'new'");
+        }
+    } catch (Throwable $e) {}
+
     return $db;
 }
 
@@ -237,12 +277,32 @@ function migrate($db) {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS product_overrides (
+            sku TEXT PRIMARY KEY,
+            description TEXT DEFAULT "",
+            badge TEXT DEFAULT "",
+            badge_label TEXT DEFAULT "",
+            active INTEGER DEFAULT 1,
+            data_json TEXT DEFAULT "{}",
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS custom_products (
+            id TEXT PRIMARY KEY,
+            sku TEXT NOT NULL UNIQUE,
+            data_json TEXT NOT NULL DEFAULT "{}",
+            active INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE TABLE IF NOT EXISTS guest_orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             phone TEXT NOT NULL,
             total INTEGER NOT NULL DEFAULT 0,
             items_json TEXT NOT NULL DEFAULT "[]",
+            status TEXT DEFAULT "new",
             comment TEXT DEFAULT "",
             client_tg TEXT DEFAULT "",
             created_at TEXT DEFAULT CURRENT_TIMESTAMP

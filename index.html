@@ -131,6 +131,11 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .section-divider{font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;padding:16px 0 10px;display:flex;align-items:center;gap:10px;}
 .sdl{flex:1;height:1px;background:var(--blo);}
 .brand-block{margin-bottom:1.6rem;}
+.brand-block.compact{margin-bottom:1rem;}
+.brand-block.compact .brand-head{margin-bottom:7px;}
+.brand-block.compact .brand-name{font-size:0.92rem;}
+.brand-block.compact .brand-line{display:none;}
+.brand-block.compact .sub-block{margin-bottom:0;}
 .brand-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
 .brand-photo{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid var(--blo);}
 .brand-info{flex:1;}
@@ -239,6 +244,8 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 }
 .pcard-name{font-size:0.74rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:2px;}
 .pcard-desc{font-size:0.61rem;color:var(--text2);line-height:1.4;margin-bottom:8px;flex:1;}
+.pcard-brandline{font-family:'Inter',sans-serif;font-size:0.68rem;font-weight:700;color:var(--amber-d);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:3px;line-height:1.3;}
+.pcard-benef{font-size:0.66rem;color:var(--text3);line-height:1.35;margin:4px 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .pcard-price{
   display:inline-flex;flex-direction:column;
   background:linear-gradient(135deg,rgba(186,210,235,0.38) 0%,rgba(90,106,130,0.20) 100%);
@@ -1196,7 +1203,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 
 <footer>
   <div class="fl">Сплит<em>Хаб</em></div>
-  <div class="fc">&copy; 2026 &middot; Опт &middot; Симферополь</div>
+  <div class="fc">&copy; 2026 &middot; Опт &middot; Симферополь &middot; <a href="/privacy/" style="color:inherit;text-decoration:underline">Политика конфиденциальности</a></div>
 </footer>
 
 <!-- FAB -->
@@ -1262,12 +1269,83 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
 <script src="pricelist.js"></script>
 <script>
-// Product overrides (badges + descriptions from admin)
+// Product overrides and custom products from admin. products.js remains the base source.
 var PRODUCT_OVERRIDES = {};
+var CUSTOM_PRODUCTS = [];
+var BASE_PRODUCTS = PRODUCTS.slice();
+
+function cloneProduct(p) {
+  var copy = {};
+  Object.keys(p || {}).forEach(function(k){ copy[k] = Array.isArray(p[k]) ? p[k].slice() : p[k]; });
+  if(!Array.isArray(copy.benefits)) copy.benefits = [];
+  if(!Array.isArray(copy.photos)) copy.photos = copy.photo ? [copy.photo] : [];
+  return copy;
+}
+
+function applyProductOverride(p) {
+  var out = cloneProduct(p);
+  var ov = PRODUCT_OVERRIDES[out.sku] || {};
+  ['brandCode','brand','series','model','group','type','factory','color','btu','area','price','stock','stockLabel','descShort','cardBenef','benefits','compressor','freon','photo','photos','description','badge','badge_label'].forEach(function(k){
+    if(Object.prototype.hasOwnProperty.call(ov, k)) out[k] = Array.isArray(ov[k]) ? ov[k].slice() : ov[k];
+  });
+  if(!Array.isArray(out.benefits)) out.benefits = [];
+  if(!Array.isArray(out.photos)) out.photos = out.photo ? [out.photo] : [];
+  if(out.photos.length && !out.photo) out.photo = out.photos[0];
+  out.price = Number(out.price || 0);
+  out.area = Number(out.area || 0);
+  out._active = (ov.active === 0 || ov.active === '0') ? 0 : 1;
+  return out;
+}
+
+function rebuildProductsFromAdmin() {
+  var bySku = {};
+  PRODUCTS = BASE_PRODUCTS.map(function(p){
+    var merged = applyProductOverride(p);
+    bySku[merged.sku] = true;
+    return merged;
+  });
+  CUSTOM_PRODUCTS.forEach(function(cp){
+    var custom = cloneProduct(cp);
+    if(!custom.sku || bySku[custom.sku]) return;
+    custom._active = (custom.active === 0 || custom.active === '0') ? 0 : 1;
+    custom.price = Number(custom.price || 0);
+    custom.area = Number(custom.area || 0);
+    if(!Array.isArray(custom.benefits)) custom.benefits = [];
+    if(!Array.isArray(custom.photos)) custom.photos = custom.photo ? [custom.photo] : [];
+    if(custom.photos.length && !custom.photo) custom.photo = custom.photos[0];
+    PRODUCTS.push(custom);
+  });
+}
+
 fetch("api/admin.php?action=products_overrides_public")
   .then(function(r){return r.json();})
-  .then(function(d){if(d.ok)PRODUCT_OVERRIDES=d.overrides||{};})
+  .then(function(d){
+    if(d.ok){
+      PRODUCT_OVERRIDES=d.overrides||{};
+      CUSTOM_PRODUCTS=d.custom_products||[];
+      rebuildProductsFromAdmin();
+      if(typeof pdCurrentId !== 'undefined' && pdCurrentId && !findVisibleProduct(pdCurrentId)) closeDetail(true);
+    }
+    if(typeof renderAll === 'function' && document.getElementById('catalog-content')) renderAll();
+  })
   .catch(function(){});
+
+function productVisible(p) {
+  return !!p && !(p._active === 0 || p.active === 0 || p.active === '0');
+}
+
+function findProduct(id) {
+  return PRODUCTS.find(function(x){ return x.id===id; });
+}
+
+function findVisibleProduct(id) {
+  var p = findProduct(id);
+  return productVisible(p) ? p : null;
+}
+
+function findVisibleProductByModel(name) {
+  return PRODUCTS.find(function(p){ return productVisible(p) && p.model === name; });
+}
 </script>
 <script>
 // ── Image fallback map ──────────────────────────────────
@@ -1287,8 +1365,10 @@ var LEGACY = {
 };
 
 function getImg(p) {
-  if(p.photo && p.photo !== 'undefined' && p.photo !== '')
+  if(p.photo && p.photo !== 'undefined' && p.photo !== '') {
+    if(/^https?:\/\//i.test(p.photo) || p.photo.indexOf('assets/') === 0 || p.photo.charAt(0) === '/') return p.photo;
     return 'assets/img/products/' + p.photo;
+  }
   return LEGACY[p.brandCode] || '';
 }
 
@@ -1316,7 +1396,7 @@ function syncFab() {
 }
 
 function addItem(id) {
-  var p = PRODUCTS.find(function(x){ return x.id===id; }); if(!p) return;
+  var p = findVisibleProduct(id); if(!p) return;
   var ex = cart.find(function(c){ return c.id===id; });
   if(ex){ ex.qty++; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:1}); }
   syncFab(); renderAll(); openD();
@@ -1384,7 +1464,7 @@ var GROUP_ORDER  = ['inv','onoff','pac_inv','pac_onoff','truba','poluprom','rash
 var GROUP_LABELS = {inv:'ИНВЕРТОРНЫЕ',onoff:'ON/OFF',pac_inv:'ПОЛУПРОМ ИНВЕРТОР',pac_onoff:'ПОЛУПРОМ ON/OFF',truba:'МЕДНАЯ ТРУБА',poluprom:'ПОЛУПРОМ',rashod:'РАСХОДНИКИ',multi:'ЧЁРНЫЕ СПЛИТЫ'};
 
 // ── Card HTML ─────────────────────────────────────────
-function cardHtml(p, delay) {
+function cardHtml(p, delay, withBrand) {
   var qty = getQty(p.id);
   var src = getImg(p);
   var imgHtml = src
@@ -1395,17 +1475,26 @@ function cardHtml(p, delay) {
     : (p.stock === 'out'
       ? '<button class="addbtn" style="background:#9CA3AF;box-shadow:none;cursor:not-allowed" disabled>Нет в наличии</button>'
       : '<button class="addbtn" onclick="addItem(\''+p.id+'\');event.stopPropagation()">Заказать</button>');
-  var _ov = PRODUCT_OVERRIDES[p.sku] || {};
-  var _bdg = _ov.badge || '';
-  var _bdgLbl = _ov.badge_label || ({new:'Новинка',sale:'Акция',clearance:'Распродажа'}[_bdg]||'');
+  var _bdg = p.badge || '';
+  var _bdgLbl = p.badge_label || ({new:'Новинка',sale:'Акция',clearance:'Распродажа'}[_bdg]||'');
   var _badgeHtml = _bdg ? '<div class="pcard-badge pb-'+_bdg+'">'+_bdgLbl+'</div>' : '';
-  var _descExtra = _ov.description ? '<div class="pcard-admin-desc">'+_ov.description+'</div>' : '';
+  var _descExtra = p.description ? '<div class="pcard-admin-desc">'+p.description+'</div>' : '';
+  var _brandLine = '';
+  if (withBrand) {
+    var _bt = p.brand + (p.series ? ' · ' + p.series : '');
+    _brandLine = '<div class="pcard-brandline">' + _bt + '</div>';
+  }
+  var _benefLine = (withBrand && p.cardBenef)
+    ? '<div class="pcard-benef">' + p.cardBenef + '</div>'
+    : '';
   return '<div class="pcard rv" role="button" tabindex="0" aria-label="Карточка '+p.model+'" style="transition-delay:'+(delay*0.04)+'s" onclick="openDetail(\''+p.id+'\')">'
     + _badgeHtml
       + '<div class="pcard-img">'+imgHtml+'</div>'
     + '<div class="pcard-body">'
+    + _brandLine
     + '<div class="pcard-name">'+p.model+'</div>'
     + '<div class="pcard-desc">'+p.descShort+'</div>'
+    + _benefLine
       + _descExtra
     + getStockHtml(p)
     + '<div class="pcard-price"><span class="pcard-price-val">'+p.price.toLocaleString('ru-RU')+'&thinsp;₽</span><small>опт · комплект</small></div>'
@@ -1416,9 +1505,20 @@ function cardHtml(p, delay) {
 // ── Render All ────────────────────────────────────────
 function renderAll() {
   var content = document.getElementById('catalog-content');
-  var list = currentFilter ? PRODUCTS.filter(FILTER_MAP[currentFilter].test) : PRODUCTS;
+  var list = PRODUCTS.filter(productVisible);
+  if(currentFilter) list = list.filter(FILTER_MAP[currentFilter].test);
   if(!list.length) {
     content.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text3)">Нет товаров в этой категории</div>';
+    return;
+  }
+  // Режим фильтра: одна сплошная плотная сетка всех подходящих товаров,
+  // в порядке массива PRODUCTS, без шапок брендов и плашек серий.
+  if (currentFilter) {
+    var fhtml = '<div class="pgrid">';
+    list.forEach(function(p, i){ fhtml += cardHtml(p, i, true); });
+    fhtml += '</div>';
+    content.innerHTML = fhtml;
+    observe();
     return;
   }
   // Build: group → brand → series → items
@@ -1451,15 +1551,16 @@ function renderAll() {
     Object.keys(brands).forEach(function(bc) {
       var bData = brands[bc];
       var bImg = LEGACY[bc] || '';
-      html += '<div class="brand-block rv">';
+      html += '<div class="brand-block rv'+(currentFilter?' compact':'')+'">';
       html += '<div class="brand-head">';
       // Brand photos removed per ТЗ п.4 — unified brand headers without icons
       var factoryTag = bData.factory ? '<span class="brand-factory">Завод\u00a0'+bData.factory+'</span>' : '';
       html += '<div class="brand-info"><div class="brand-title-row"><span class="brand-name">'+bData.brand+'</span>'+factoryTag+'</div><div class="brand-line"></div></div>';
       html += '</div>';
-      // For accessories/pipes — flat grid without series sub-headings
+      // For accessories/pipes — flat grid without series sub-headings.
+      // В режиме фильтра ВСЕ бренды рисуем плоской сеткой: компактная шапка + карточки в ряд.
       var FLAT_GROUPS = {rashod:1, truba:1, poluprom:1, mobile:1};
-      if (FLAT_GROUPS[gid]) {
+      if (FLAT_GROUPS[gid] || currentFilter) {
         html += '<div class="sub-block"><div class="pgrid">';
         var flatIdx = 0;
         Object.keys(bData.series).forEach(function(sName) {
@@ -1528,7 +1629,7 @@ function observe() {
 var pdQty = 1, pdCurrentId = null;
 
 function openDetail(id) {
-  var p = PRODUCTS.find(function(x){ return x.id===id; }); if(!p) return;
+  var p = findVisibleProduct(id); if(!p) return;
   pdCurrentId = id; pdQty = 1;
   var src = getImg(p);
   var imgH = src
@@ -1619,7 +1720,7 @@ function closeImgLightbox() {
 
 // ── Поделиться карточкой товара ───────────────────────
 function _productShareData() {
-  var p = PRODUCTS.find(function(x){ return x.id===pdCurrentId; });
+  var p = findVisibleProduct(pdCurrentId);
   if(!p) return null;
   return {
     url:   location.origin + '/?p=' + encodeURIComponent(p.id),
@@ -1652,7 +1753,7 @@ function shareProductTo(ch) {
 
 function pdAddToCart() {
   if(!pdCurrentId) return;
-  var p = PRODUCTS.find(function(x){ return x.id===pdCurrentId; }); if(!p) return;
+  var p = findVisibleProduct(pdCurrentId); if(!p) return;
   var ex = cart.find(function(c){ return c.id===p.id; });
   if(ex){ ex.qty += pdQty; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:pdQty}); }
   // Атомарный переход detail -> cart: закрыть DOM detail без history.back, удалить detail из стека,
@@ -1803,7 +1904,7 @@ function sendOrder() {
     client_tg: tg.trim(),
     sh_vid: (window.shGetVid ? window.shGetVid() : ''),
     items: cart.map(function(x){
-      var prod = PRODUCTS.find(function(pr){ return pr.id===x.id; });
+      var prod = findVisibleProduct(x.id);
       var nm = x.name;
       // Трубы: тип стенки (Средняя / Толстая ГОСТ) есть только в series, а model у них
       // одинаков — без этого менеджер не отличит ГОСТ от средней. Добавляем тип стенки.
@@ -1908,7 +2009,7 @@ function initPhoneMask() {
 // ── Upsell: «Комплект монтажника» ───────────────────
 function getUpsellItems() {
   var hasSplit = cart.some(function(c) {
-    var p = PRODUCTS.find(function(x){ return x.id === c.id; });
+    var p = findVisibleProduct(c.id);
     return p && (p.group === 'inv' || p.group === 'onoff');
   });
   if (!hasSplit) return [];
@@ -1918,7 +2019,7 @@ function getUpsellItems() {
   targetIds.forEach(function(tid) {
     var inCart = cart.some(function(c){ return c.id === tid; });
     if (inCart) return;
-    var p = PRODUCTS.find(function(x){ return x.id === tid; });
+    var p = findVisibleProduct(tid);
     if (p && p.stock !== 'out') result.push(p);
   });
   return result.slice(0, 5);
@@ -1945,7 +2046,7 @@ function renderUpsell() {
 }
 
 function addUpsell(id) {
-  var p = PRODUCTS.find(function(x){ return x.id===id; }); if(!p) return;
+  var p = findVisibleProduct(id); if(!p) return;
   var ex = cart.find(function(c){ return c.id===id; });
   if(ex){ ex.qty++; } else { cart.push({id:p.id,name:p.model,brand:p.brand,price:p.price,brandCode:p.brandCode,group:p.group,qty:1}); }
   syncFab(); renderAll(); renderD();
@@ -2241,7 +2342,7 @@ function repeatOrder(orderId,shNum,itemsEncoded){
   var items=[];try{items=JSON.parse(decodeURIComponent(itemsEncoded));}catch(e){}
   var added=[],unavailable=[];
   items.forEach(function(it){
-    var prod=PRODUCTS.find(function(p){return p.model===(it.product_name||it.name);});
+    var prod=findVisibleProductByModel(it.product_name||it.name);
     if(prod&&prod.stock!=='out'){
       var ex=cart.find(function(c){return c.id===prod.id;});
       if(ex){ex.qty+=(it.qty||1);}else{cart.push({id:prod.id,name:prod.model,brand:prod.brand,price:prod.price,brandCode:prod.brandCode,group:prod.group,qty:(it.qty||1)});}
@@ -2544,7 +2645,7 @@ syncFab();
 (function(){
   try {
     var pid = new URLSearchParams(location.search).get('p');
-    if(pid && PRODUCTS.find(function(x){ return x.id===pid; })) openDetail(pid);
+    if(pid && findVisibleProduct(pid)) openDetail(pid);
   } catch(e){}
 })();
 </script>
@@ -2616,7 +2717,7 @@ syncFab();
 <!-- Cookie notice (уведомление без блокировки) -->
 <div id="shCookieBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#1A1C22;color:#fff;padding:12px 16px;font-size:0.82rem;line-height:1.4;box-shadow:0 -2px 12px rgba(0,0,0,.2)">
   <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center">
-    <span style="flex:1;min-width:220px">Мы используем cookie и Яндекс.Метрику для аналитики и улучшения сайта.</span>
+    <span style="flex:1;min-width:220px">Мы используем cookie и Яндекс.Метрику для аналитики и улучшения сайта. <a href="/privacy/" target="_blank" rel="noopener" style="color:#F59E0B;text-decoration:underline">Политика конфиденциальности</a></span>
     <button id="shCookieOk" style="background:#F59E0B;color:#1A1C22;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer">Понятно</button>
   </div>
 </div>
