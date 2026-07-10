@@ -26,17 +26,17 @@
   };
 
   var navItems = [
-    { key: 'overview', label: 'Обзор', icon: 'layout-dashboard' },
-    { key: 'orders', label: 'Заказы', icon: 'package-check' },
-    { key: 'guests', label: 'Гости', icon: 'shopping-bag' },
-    { key: 'clients', label: 'Клиенты', icon: 'users' },
-    { key: 'promo', label: 'Промо', icon: 'badge-percent' },
-    { key: 'notifications', label: 'Уведомления', icon: 'bell-ring' },
-    { key: 'analytics', label: 'Аналитика', icon: 'chart-no-axes-combined' },
-    { key: 'visitors', label: 'Посетители', icon: 'mouse-pointer-click' },
-    { key: 'catalog', label: 'Прайс', icon: 'file-spreadsheet' },
-    { key: 'products', label: 'Товары', icon: 'snowflake' },
-    { key: 'settings', label: 'Настройки', icon: 'settings' }
+    { key: 'overview', label: 'Обзор', icon: 'layout-dashboard', section: 'Работа' },
+    { key: 'orders', label: 'Заказы', icon: 'package-check', section: 'Работа' },
+    { key: 'guests', label: 'Гости', icon: 'shopping-bag', section: 'Работа' },
+    { key: 'clients', label: 'Клиенты', icon: 'users', section: 'Работа' },
+    { key: 'products', label: 'Товары', icon: 'snowflake', section: 'Каталог' },
+    { key: 'catalog', label: 'Прайс', icon: 'file-spreadsheet', section: 'Каталог' },
+    { key: 'promo', label: 'Промо', icon: 'badge-percent', section: 'Каталог' },
+    { key: 'notifications', label: 'Уведомления', icon: 'bell-ring', section: 'Управление' },
+    { key: 'analytics', label: 'Аналитика', icon: 'chart-no-axes-combined', section: 'Управление' },
+    { key: 'visitors', label: 'Посетители', icon: 'mouse-pointer-click', section: 'Управление' },
+    { key: 'settings', label: 'Настройки', icon: 'settings', section: 'Управление' }
   ];
 
   var statusMap = {
@@ -202,10 +202,12 @@
       '<div class="admin-shell">',
       '<aside class="sidebar" id="sidebar">',
       '<div class="sidebar-head"><div class="brand-mark">SH</div><div class="brand-text"><strong>СплитХаб</strong><span>Администрирование</span></div></div>',
-      '<nav class="nav" id="nav">',
-      navItems.map(function (item) {
-        return '<button class="nav-link" data-view="' + item.key + '">' + icon(item.icon) + '<span>' + item.label + '</span></button>';
-      }).join(''),
+       '<nav class="nav" id="nav">',
+       navItems.map(function (item, index) {
+         var previous = navItems[index - 1];
+         var section = !previous || previous.section !== item.section ? '<div class="nav-section">' + escapeHtml(item.section) + '</div>' : '';
+         return section + '<button class="nav-link" data-view="' + item.key + '">' + icon(item.icon) + '<span>' + item.label + '</span></button>';
+       }).join(''),
       '</nav>',
       '<div class="sidebar-foot">',
       '<div class="user-pill"><div class="avatar">' + escapeHtml((state.user.name || 'A').slice(0, 1).toUpperCase()) + '</div><div><strong>' + escapeHtml(state.user.name || 'Админ') + '</strong><span>' + escapeHtml(state.user.phone || '') + '</span></div></div>',
@@ -942,17 +944,18 @@
   }
 
   async function renderProducts() {
-    loading('Товары', 'Редактирование цены, фото, характеристик и видимости');
+      loading('Товары', 'Каталог, цены, доступность и карточки');
     try {
       var data = await api('products_list', Object.assign({ limit: 500 }, state.productFilters));
       state.products = data.products || [];
       state.productsTotal = data.total || state.products.length;
       window.PRODUCTS = state.products.filter(function (p) { return Number(p._active == null ? 1 : p._active) === 1; });
-      setHeader('Товары', 'Базовый каталог + overrides + кастомные позиции', '<button class="btn primary" id="new-product">' + icon('plus') + '<span>Новый товар</span></button>');
+      setHeader('Товары', 'Каталог, цены, доступность и карточки', '<button class="btn primary" id="new-product">' + icon('plus') + '<span>Новый товар</span></button>');
       viewRoot().innerHTML = [
+        productsSummary(state.products),
         productsToolbar(),
         productsBulkBar(),
-        '<div class="panel"><div class="table-wrap">' + productsTable(state.products) + '</div>' + productsCards(state.products) + '</div>',
+        '<div class="panel catalog-list-panel"><div class="catalog-list-head"><div><h2 class="panel-title">Каталог</h2><div class="panel-subtitle">' + state.productsTotal + ' позиций</div></div><div class="catalog-list-mark">' + icon('sparkles') + '</div></div><div class="table-wrap">' + productsTable(state.products) + '</div>' + productsCards(state.products) + '</div>',
         pager(state.productFilters.page || 1, state.productsTotal, 500, 'products')
       ].join('');
       bindProducts();
@@ -962,7 +965,19 @@
 
   function productsToolbar() {
     var f = state.productFilters;
-    return '<div class="toolbar"><div class="toolbar-left"><input class="input search" id="product-search" placeholder="SKU, модель, бренд, серия" value="' + escapeHtml(f.search || '') + '"><select class="select" id="product-group"><option value="">Все группы</option>' + Object.keys(groupLabels).map(function (g) { return '<option value="' + g + '"' + (f.group === g ? ' selected' : '') + '>' + groupLabels[g] + '</option>'; }).join('') + '</select><select class="select" id="product-status"><option value="all"' + (f.status === 'all' ? ' selected' : '') + '>Все</option><option value="active"' + (f.status === 'active' ? ' selected' : '') + '>Активные</option><option value="hidden"' + (f.status === 'hidden' ? ' selected' : '') + '>Скрытые</option></select></div><div class="toolbar-right"><button class="btn primary" id="product-apply">' + icon('search') + '<span>Показать</span></button></div></div>';
+    return '<section class="catalog-tools"><div class="catalog-search"><span class="catalog-search-icon">' + icon('search') + '</span><input class="input" id="product-search" placeholder="SKU, модель, бренд, серия" value="' + escapeHtml(f.search || '') + '" aria-label="Поиск товара"></div><div class="catalog-selects"><select class="select" id="product-group" aria-label="Группа"><option value="">Все группы</option>' + Object.keys(groupLabels).map(function (g) { return '<option value="' + g + '"' + (f.group === g ? ' selected' : '') + '>' + groupLabels[g] + '</option>'; }).join('') + '</select><select class="select" id="product-status" aria-label="Статус"><option value="all"' + (f.status === 'all' ? ' selected' : '') + '>Все статусы</option><option value="active"' + (f.status === 'active' ? ' selected' : '') + '>Видимые</option><option value="hidden"' + (f.status === 'hidden' ? ' selected' : '') + '>Скрытые</option></select></div><div class="catalog-tools-actions"><button class="icon-btn catalog-reset" id="product-reset" title="Сбросить фильтры" aria-label="Сбросить фильтры">' + icon('rotate-ccw') + '</button><button class="btn primary" id="product-apply">' + icon('search') + '<span>Показать</span></button></div></section>';
+  }
+
+  function productsSummary(products) {
+    var active = products.filter(function (p) { return Number(p._active == null ? 1 : p._active) === 1; }).length;
+    var hidden = products.length - active;
+    var custom = products.filter(function (p) { return !!p._is_custom; }).length;
+    return '<section class="catalog-summary">' +
+      '<button class="catalog-stat active" data-product-status-filter="all"><span>' + icon('layers-3') + '</span><b>' + products.length + '</b><small>Всего</small></button>' +
+      '<button class="catalog-stat cyan" data-product-status-filter="active"><span>' + icon('eye') + '</span><b>' + active + '</b><small>Видимые</small></button>' +
+      '<button class="catalog-stat muted-stat" data-product-status-filter="hidden"><span>' + icon('eye-off') + '</span><b>' + hidden + '</b><small>Скрытые</small></button>' +
+      '<div class="catalog-stat mint"><span>' + icon('sparkles') + '</span><b>' + custom + '</b><small>Свои</small></div>' +
+      '</section>';
   }
 
   function productsBulkBar() {
@@ -972,31 +987,49 @@
 
   function productsTable(products) {
     if (!products.length) return '<div class="empty">Товары не найдены</div>';
-    return '<table class="data-table"><thead><tr><th></th><th>Товар</th><th>Группа</th><th>BTU/м²</th><th>Цена</th><th>Наличие</th><th>Статус</th><th>Действия</th></tr></thead><tbody>' + products.map(productRow).join('') + '</tbody></table>';
+    return '<table class="data-table product-table"><thead><tr><th></th><th>Товар</th><th>Группа</th><th>BTU/м²</th><th>Цена</th><th>Наличие</th><th>Статус</th><th></th></tr></thead><tbody>' + products.map(productRow).join('') + '</tbody></table>';
   }
 
   function productRow(p) {
     var active = Number(p._active == null ? 1 : p._active) === 1;
     var checked = state.selectedProducts.has(p.sku) ? ' checked' : '';
-    return '<tr><td><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + checked + '></td><td><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + escapeHtml(p.brand || '') + ' · ' + escapeHtml(p.series || '') + '</div></div></div></td><td>' + escapeHtml(groupLabels[p.group] || p.group || '') + '</td><td>' + escapeHtml(p.btu || '') + '<div class="muted">' + escapeHtml(p.area || '') + ' м²</div></td><td><b>' + money(p.price) + '</b></td><td>' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</td><td><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '<span>' + (active ? 'Виден' : 'Скрыт') + '</span></button></td><td><div class="table-actions"><button class="btn small" data-edit-product="' + escapeHtml(p.sku) + '">' + icon('pencil') + '</button>' + (p._is_custom ? '<button class="btn small danger" data-delete-product="' + escapeHtml(p.sku) + '">' + icon('trash-2') + '</button>' : '') + '</div></td></tr>';
+    return '<tr class="product-row" data-open-product="' + escapeHtml(p.sku) + '" tabindex="0" role="button" aria-label="Открыть товар ' + escapeHtml(p.model) + '"><td><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + checked + ' aria-label="Выбрать товар"></td><td><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + escapeHtml(p.brand || '') + ' · ' + escapeHtml(p.series || '') + '</div></div></div></td><td>' + escapeHtml(groupLabels[p.group] || p.group || '') + '</td><td>' + escapeHtml(p.btu || '') + '<div class="muted">' + escapeHtml(p.area || '') + ' м²</div></td><td><b>' + money(p.price) + '</b></td><td>' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</td><td><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '<span>' + (active ? 'Виден' : 'Скрыт') + '</span></button></td><td><div class="table-actions"><button class="icon-btn product-edit-btn" data-edit-product="' + escapeHtml(p.sku) + '" title="Редактировать" aria-label="Редактировать">' + icon('pencil') + '</button>' + (p._is_custom ? '<button class="icon-btn product-edit-btn danger" data-delete-product="' + escapeHtml(p.sku) + '" title="Удалить" aria-label="Удалить">' + icon('trash-2') + '</button>' : '') + '</div></td></tr>';
   }
 
   function productsCards(products) {
     if (!products.length) return '<div class="mobile-list"><div class="empty">Товары не найдены</div></div>';
     return '<div class="mobile-list">' + products.map(function (p) {
       var active = Number(p._active == null ? 1 : p._active) === 1;
-      return '<article class="mobile-item"><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + money(p.price) + ' · ' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</div></div></div><div class="table-actions" style="margin-top:10px"><label class="tag"><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + (state.selectedProducts.has(p.sku) ? ' checked' : '') + '> Выбрать</label><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '</button><button class="btn small" data-edit-product="' + escapeHtml(p.sku) + '">' + icon('pencil') + '</button></div></article>';
+      return '<article class="mobile-item product-card" data-open-product="' + escapeHtml(p.sku) + '" tabindex="0" role="button" aria-label="Открыть товар ' + escapeHtml(p.model) + '"><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + money(p.price) + ' · ' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</div></div></div><div class="table-actions" style="margin-top:10px"><label class="tag"><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + (state.selectedProducts.has(p.sku) ? ' checked' : '') + '> Выбрать</label><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '</button><button class="icon-btn product-edit-btn" data-edit-product="' + escapeHtml(p.sku) + '" title="Редактировать" aria-label="Редактировать">' + icon('pencil') + '</button></div></article>';
     }).join('') + '</div>';
   }
 
   function bindProducts() {
     qs('#new-product').addEventListener('click', function () { openProductEditor(newCustomProduct(), true); });
-    qs('#product-apply').addEventListener('click', function () {
+    function applyProductFilters() {
       state.productFilters.search = qs('#product-search').value.trim();
       state.productFilters.group = qs('#product-group').value;
       state.productFilters.status = qs('#product-status').value;
       state.productFilters.page = 1;
       renderProducts();
+    }
+    qs('#product-apply').addEventListener('click', applyProductFilters);
+    qs('#product-search').addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        applyProductFilters();
+      }
+    });
+    qs('#product-reset').addEventListener('click', function () {
+      state.productFilters = { search: '', group: '', status: 'all', page: 1 };
+      renderProducts();
+    });
+    qsa('[data-product-status-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        state.productFilters.status = btn.dataset.productStatusFilter;
+        state.productFilters.page = 1;
+        renderProducts();
+      });
     });
     qsa('[data-product-select]').forEach(function (el) {
       el.addEventListener('change', function () {
@@ -1010,8 +1043,7 @@
     });
     qsa('[data-edit-product]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var product = state.products.find(function (p) { return p.sku === btn.dataset.editProduct; });
-        if (product) openProductEditor(product, !!product._is_custom);
+        openProductFromSku(btn.dataset.editProduct);
       });
     });
     qsa('[data-delete-product]').forEach(function (btn) {
@@ -1019,6 +1051,22 @@
     });
     qs('#products-show').addEventListener('click', function () { bulkToggleProducts(1); });
     qs('#products-hide').addEventListener('click', function () { bulkToggleProducts(0); });
+    qsa('[data-open-product]').forEach(function (item) {
+      item.addEventListener('click', function (event) {
+        if (event.target.closest('button, input, label, a, select, textarea')) return;
+        openProductFromSku(item.dataset.openProduct);
+      });
+      item.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        openProductFromSku(item.dataset.openProduct);
+      });
+    });
+  }
+
+  function openProductFromSku(sku) {
+    var product = state.products.find(function (p) { return p.sku === sku; });
+    if (product) openProductEditor(product, !!product._is_custom);
   }
 
   async function toggleProduct(sku, active) {
