@@ -12,21 +12,27 @@ set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 set_exception_handler(function($error) {
-    error_log('[SplitHub admin] ' . $error->getMessage() . ' in ' . $error->getFile() . ':' . $error->getLine());
+    $errorId = date('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $logLine = date('c') . ' [' . $errorId . '] ' . get_class($error) . ': ' . $error->getMessage() . ' in ' . $error->getFile() . ':' . $error->getLine() . PHP_EOL;
+    error_log('[SplitHub admin][' . $errorId . '] ' . $error->getMessage() . ' in ' . $error->getFile() . ':' . $error->getLine());
+    @file_put_contents(__DIR__ . '/../db/admin-errors.log', $logLine, FILE_APPEND | LOCK_EX);
     if (ob_get_length()) ob_clean();
     header('Content-Type: application/json; charset=utf-8');
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Ошибка сервера. Подробности записаны в журнал.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'error' => 'Ошибка сервера. Код: ' . $errorId], JSON_UNESCAPED_UNICODE);
     exit;
 });
 register_shutdown_function(function() {
     $error = error_get_last();
     if (!$error || !in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
-    error_log('[SplitHub admin] Fatal: ' . ($error['message'] ?? '') . ' in ' . ($error['file'] ?? '?') . ':' . ($error['line'] ?? 0));
+    $errorId = date('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $logLine = date('c') . ' [' . $errorId . '] Fatal: ' . ($error['message'] ?? '') . ' in ' . ($error['file'] ?? '?') . ':' . ($error['line'] ?? 0) . PHP_EOL;
+    error_log('[SplitHub admin][' . $errorId . '] Fatal: ' . ($error['message'] ?? '') . ' in ' . ($error['file'] ?? '?') . ':' . ($error['line'] ?? 0));
+    @file_put_contents(__DIR__ . '/../db/admin-errors.log', $logLine, FILE_APPEND | LOCK_EX);
     if (ob_get_length()) ob_clean();
     if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Критическая ошибка сервера. Подробности записаны в журнал.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'error' => 'Критическая ошибка сервера. Код: ' . $errorId], JSON_UNESCAPED_UNICODE);
 });
 
 require __DIR__ . '/../db/init.php';
@@ -675,15 +681,12 @@ switch ($action) {
         $active = array_key_exists('active', $raw) ? (int)!!$raw['active'] : 1;
         if (!in_array($badge, ['', 'new', 'sale', 'clearance'])) jsonResponse(['ok' => false, 'error' => 'Invalid badge'], 422);
         unset($data['id'], $data['sku'], $data['active'], $data['is_custom'], $data['_source'], $data['_is_custom']);
-        $db->prepare("INSERT INTO product_overrides (sku, description, badge, badge_label, active, data_json, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(sku) DO UPDATE SET
-                description = excluded.description,
-                badge = excluded.badge,
-                badge_label = excluded.badge_label,
-                active = excluded.active,
-                data_json = excluded.data_json,
-                updated_at = CURRENT_TIMESTAMP")
+        // PHP-FPM on the hosting uses an older SQLite parser than CLI and does
+        // not understand "ON CONFLICT ... DO UPDATE". REPLACE is compatible
+        // with both runtimes and this table has no dependent foreign keys.
+        $db->prepare("INSERT OR REPLACE INTO product_overrides
+            (sku, description, badge, badge_label, active, data_json, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)")
             ->execute([$sku, $desc, $badge, $blabel, $active, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
         jsonResponse(['ok' => true]);
         break;
@@ -708,7 +711,8 @@ switch ($action) {
         if (trim($data['model'] ?? '') === '') jsonResponse(['ok' => false, 'error' => 'model required'], 422);
         $existingCustom = $db->prepare('SELECT id FROM custom_products WHERE sku = ?');
         $existingCustom->execute([$sku]);
-        if (!$existingCustom->fetch()) {
+        $customExists = (bool)$existingCustom->fetch();
+        if (!$customExists) {
             foreach (adminReadProductsJs() as $baseProduct) {
                 if (trim((string)($baseProduct['sku'] ?? '')) === $sku) {
                     jsonResponse(['ok' => false, 'error' => 'Такой SKU уже есть в основном каталоге'], 409);
@@ -721,14 +725,14 @@ switch ($action) {
         $data['id'] = $id;
         $data['sku'] = $sku;
         $data['active'] = $active;
-        $db->prepare("INSERT INTO custom_products (id, sku, data_json, active, updated_at, created_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            ON CONFLICT(sku) DO UPDATE SET
-                id = excluded.id,
-                data_json = excluded.data_json,
-                active = excluded.active,
-                updated_at = CURRENT_TIMESTAMP")
-            ->execute([$id, $sku, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $active]);
+        $encodedData = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($customExists) {
+            $db->prepare('UPDATE custom_products SET id = ?, data_json = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ?')
+                ->execute([$id, $encodedData, $active, $sku]);
+        } else {
+            $db->prepare('INSERT INTO custom_products (id, sku, data_json, active, updated_at, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)')
+                ->execute([$id, $sku, $encodedData, $active]);
+        }
         jsonResponse(['ok' => true, 'product' => $data]);
         break;
 
@@ -983,8 +987,7 @@ switch ($action) {
             $db->prepare('UPDATE custom_products SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ? OR id = ?')
                 ->execute([$active, $sku, $sku]);
         } else {
-            $db->prepare("INSERT INTO product_overrides (sku, active) VALUES (?, ?) ON CONFLICT(sku) DO UPDATE SET active=excluded.active, updated_at=CURRENT_TIMESTAMP")
-                ->execute([$sku, $active]);
+            adminSetProductActive($db, $sku, $active);
         }
         jsonResponse(['ok' => true]);
         break;
@@ -1003,8 +1006,7 @@ switch ($action) {
                 $db->prepare('UPDATE custom_products SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ? OR id = ?')
                     ->execute([$active, $sku, $sku]);
             } else {
-                $db->prepare("INSERT INTO product_overrides (sku, active) VALUES (?, ?) ON CONFLICT(sku) DO UPDATE SET active=excluded.active, updated_at=CURRENT_TIMESTAMP")
-                    ->execute([$sku, $active]);
+                adminSetProductActive($db, $sku, $active);
             }
         }
         jsonResponse(['ok' => true, 'updated' => count($skus)]);
@@ -1148,6 +1150,18 @@ function adminReadProductsJs() {
     $js = rtrim($js, ";\r\n ");
     $products = json_decode($js, true);
     return is_array($products) ? $products : [];
+}
+
+function adminSetProductActive($db, $sku, $active) {
+    $exists = $db->prepare('SELECT 1 FROM product_overrides WHERE sku = ?');
+    $exists->execute([$sku]);
+    if ($exists->fetchColumn()) {
+        $db->prepare('UPDATE product_overrides SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ?')
+            ->execute([(int)$active, $sku]);
+    } else {
+        $db->prepare('INSERT INTO product_overrides (sku, active) VALUES (?, ?)')
+            ->execute([$sku, (int)$active]);
+    }
 }
 
 function adminValidateMasterProducts($rows) {
