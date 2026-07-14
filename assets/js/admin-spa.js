@@ -4,12 +4,16 @@
   var root = document.getElementById('admin-root');
   var API = 'api/admin.php';
   var AUTH = 'api/auth.php';
+  var PRODUCT_PAGE_SIZE = 100;
+  var VISITOR_PAGE_SIZE = 50;
   var state = {
     user: null,
     view: localStorage.getItem('sh_admin_view') || 'overview',
     title: '',
     products: [],
     productsTotal: 0,
+    productSummary: { total: 0, active: 0, hidden: 0, custom: 0 },
+    priceProducts: [],
     productFilters: { search: '', group: '', status: 'all', page: 1 },
     orders: [],
     orderFilters: { search: '', status: '', date_from: '', date_to: '', page: 1 },
@@ -17,6 +21,7 @@
     guestFilters: { search: '', page: 1 },
     users: [],
     userSearch: '',
+    visitorPage: 1,
     selectedOrders: new Set(),
     selectedGuests: new Set(),
     selectedProducts: new Set(),
@@ -82,6 +87,11 @@
 
   function money(value) {
     return Number(value || 0).toLocaleString('ru-RU') + ' ₽';
+  }
+
+  function phone(value) {
+    var result = String(value || '').trim();
+    return result && result.charAt(0) !== '+' ? '+' + result : result;
   }
 
   function fmtDate(value) {
@@ -200,6 +210,7 @@
   function renderShell() {
     root.innerHTML = [
       '<div class="admin-shell">',
+      '<button class="sidebar-scrim" id="sidebar-scrim" aria-label="Закрыть меню"></button>',
       '<aside class="sidebar" id="sidebar">',
       '<div class="sidebar-head"><div class="brand-mark">SH</div><div class="brand-text"><strong>СплитХаб</strong><span>Администрирование</span></div></div>',
        '<nav class="nav" id="nav">',
@@ -231,16 +242,29 @@
       var btn = event.target.closest('[data-view]');
       if (!btn) return;
       switchView(btn.dataset.view);
-      qs('#sidebar').classList.remove('on');
+      toggleMobileSidebar(false);
     });
-    qs('#mobile-menu').addEventListener('click', function () { qs('#sidebar').classList.add('on'); });
+    qs('#mobile-menu').addEventListener('click', function () { toggleMobileSidebar(true); });
+    qs('#sidebar-scrim').addEventListener('click', function () { toggleMobileSidebar(false); });
     qs('#logout-btn').addEventListener('click', async function () {
       await auth('logout').catch(function () {});
       state.user = null;
       renderLogin();
     });
     qs('#drawer-backdrop').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') return;
+      toggleMobileSidebar(false);
+      closeDrawer();
+    });
     hydrateIcons();
+  }
+
+  function toggleMobileSidebar(open) {
+    var sidebar = qs('#sidebar');
+    var scrim = qs('#sidebar-scrim');
+    if (sidebar) sidebar.classList.toggle('on', !!open);
+    if (scrim) scrim.classList.toggle('on', !!open);
   }
 
   function setHeader(title, subtitle, actionsHtml) {
@@ -313,7 +337,7 @@
       var stats = data[0].stats || {};
       var orders = (data[1].orders || []).slice(0, 6);
       var top = data[2].top_products || [];
-      setHeader('Обзор', 'Продажи, клиенты и каталог под рукой', '<button class="btn accent" data-action="send-report">' + icon('send') + '<span>Отчет в TG</span></button>');
+      setHeader('Обзор', 'Продажи, клиенты и каталог под рукой', '<button class="btn accent" data-action="send-report" aria-label="Отчет в Telegram">' + icon('send') + '<span>Отчет в TG</span></button>');
       viewRoot().innerHTML = [
         '<section class="metric-grid">',
         metric('Заказы', stats.orders_count, 'Всего заявок'), metric('Новые', stats.orders_new, 'Нужна обработка'),
@@ -348,7 +372,7 @@
   function ordersListMini(orders) {
     if (!orders.length) return '<div class="empty">Заказов пока нет</div>';
     return '<div class="mobile-list" style="display:grid">' + orders.map(function (o) {
-      return '<div class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">SH-' + String(o.id).padStart(5, '0') + '</div><div class="mobile-item-meta">' + escapeHtml(o.user_name || '') + ' / +' + escapeHtml(o.user_phone || '') + '</div></div>' + statusBadge(o.status) + '</div><strong>' + money(o.total) + '</strong><div class="mobile-item-meta">' + fmtDate(o.created_at) + '</div></div>';
+      return '<div class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">SH-' + String(o.id).padStart(5, '0') + '</div><div class="mobile-item-meta">' + escapeHtml(o.user_name || '') + ' / ' + escapeHtml(phone(o.user_phone)) + '</div></div>' + statusBadge(o.status) + '</div><strong>' + money(o.total) + '</strong><div class="mobile-item-meta">' + fmtDate(o.created_at) + '</div></div>';
     }).join('') + '</div>';
   }
 
@@ -395,13 +419,14 @@
 
   function orderToolbar(type) {
     var f = type === 'guests' ? state.guestFilters : state.orderFilters;
+    var hasFilters = !!(f.search || f.status || f.date_from || f.date_to);
     return [
       '<div class="toolbar">',
       '<div class="toolbar-left">',
-      '<input class="input search" id="' + type + '-search" placeholder="Поиск по номеру, имени или телефону" value="' + escapeHtml(f.search || '') + '">',
-      type === 'orders' ? '<select class="select" id="orders-status"><option value="">Все статусы</option>' + Object.keys(statusMap).map(function (s) { return '<option value="' + s + '"' + (f.status === s ? ' selected' : '') + '>' + statusMap[s] + '</option>'; }).join('') + '</select>' : '',
-      type === 'orders' ? '<input class="input" type="date" id="orders-date-from" value="' + escapeHtml(f.date_from || '') + '"><input class="input" type="date" id="orders-date-to" value="' + escapeHtml(f.date_to || '') + '">' : '',
-      '</div><div class="toolbar-right"><button class="btn primary" id="' + type + '-apply">' + icon('search') + '<span>Показать</span></button></div>',
+      '<input class="input search" id="' + type + '-search" aria-label="Поиск ' + (type === 'guests' ? 'гостевых заказов' : 'заказов') + '" placeholder="Поиск по номеру, имени или телефону" value="' + escapeHtml(f.search || '') + '">',
+      type === 'orders' ? '<select class="select" id="orders-status" aria-label="Фильтр по статусу"><option value="">Все статусы</option>' + Object.keys(statusMap).map(function (s) { return '<option value="' + s + '"' + (f.status === s ? ' selected' : '') + '>' + statusMap[s] + '</option>'; }).join('') + '</select>' : '',
+      type === 'orders' ? '<input class="input" type="date" id="orders-date-from" aria-label="Дата заказа с" value="' + escapeHtml(f.date_from || '') + '"><input class="input" type="date" id="orders-date-to" aria-label="Дата заказа по" value="' + escapeHtml(f.date_to || '') + '">' : '',
+      '</div><div class="toolbar-right">' + (hasFilters ? '<button class="btn ghost" id="' + type + '-reset">' + icon('rotate-ccw') + '<span>Сбросить</span></button>' : '') + '<button class="btn primary" id="' + type + '-apply">' + icon('search') + '<span>Показать</span></button></div>',
       '</div>'
     ].join('');
   }
@@ -418,7 +443,7 @@
       var id = Number(o.id);
       var num = guest ? 'G-' + String(id).padStart(5, '0') : 'SH-' + String(id).padStart(5, '0');
       var checked = (guest ? state.selectedGuests : state.selectedOrders).has(id) ? ' checked' : '';
-      return '<tr><td><input type="checkbox" data-select="' + id + '"' + checked + '></td><td><b>' + num + '</b><div class="muted">' + fmtDate(o.created_at) + '</div></td><td>' + escapeHtml(o.name || o.user_name || '') + '<div class="muted">+' + escapeHtml(o.phone || o.user_phone || '') + '</div></td><td>' + orderItemsHtml(o.items) + '</td><td class="nowrap"><b>' + money(o.total) + '</b></td><td>' + statusControl(o.status || 'new', id, guest) + '</td><td>' + actionButtons(id, guest) + '</td></tr>';
+      return '<tr><td><input type="checkbox" data-select="' + id + '"' + checked + ' aria-label="Выбрать ' + num + '"></td><td><b>' + num + '</b><div class="muted">' + fmtDate(o.created_at) + '</div></td><td>' + escapeHtml(o.name || o.user_name || '') + '<div class="muted">' + escapeHtml(phone(o.phone || o.user_phone)) + '</div></td><td>' + orderItemsHtml(o.items) + '</td><td class="nowrap"><b>' + money(o.total) + '</b></td><td>' + statusControl(o.status || 'new', id, guest, num) + '</td><td>' + actionButtons(id, guest, num) + '</td></tr>';
     }).join('');
     return '<table class="data-table"><thead><tr><th></th><th>Номер</th><th>Клиент</th><th>Состав</th><th>Сумма</th><th>Статус</th><th>Действия</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
@@ -429,32 +454,37 @@
       var id = Number(o.id);
       var num = guest ? 'G-' + String(id).padStart(5, '0') : 'SH-' + String(id).padStart(5, '0');
       var checked = (guest ? state.selectedGuests : state.selectedOrders).has(id) ? ' checked' : '';
-      return '<article class="mobile-item"><div class="mobile-item-head"><label><input type="checkbox" data-select="' + id + '"' + checked + '> <span class="mobile-item-title">' + num + '</span></label>' + statusBadge(o.status || 'new') + '</div><div class="mobile-item-meta">' + escapeHtml(o.name || o.user_name || '') + ' / +' + escapeHtml(o.phone || o.user_phone || '') + '</div><div style="margin:10px 0">' + orderItemsHtml(o.items) + '</div><b>' + money(o.total) + '</b><div class="mobile-item-meta">' + fmtDate(o.created_at) + '</div><div class="table-actions" style="margin-top:10px">' + statusControl(o.status || 'new', id, guest) + actionButtons(id, guest) + '</div></article>';
+      return '<article class="mobile-item"><div class="mobile-item-head"><label><input type="checkbox" data-select="' + id + '"' + checked + '> <span class="mobile-item-title">' + num + '</span></label>' + statusBadge(o.status || 'new') + '</div><div class="mobile-item-meta">' + escapeHtml(o.name || o.user_name || '') + ' / ' + escapeHtml(phone(o.phone || o.user_phone)) + '</div><div style="margin:10px 0">' + orderItemsHtml(o.items) + '</div><b>' + money(o.total) + '</b><div class="mobile-item-meta">' + fmtDate(o.created_at) + '</div><div class="table-actions" style="margin-top:10px">' + statusControl(o.status || 'new', id, guest, num) + actionButtons(id, guest, num) + '</div></article>';
     }).join('') + '</div>';
   }
 
-  function statusControl(value, id, guest) {
+  function statusControl(value, id, guest, num) {
     var statuses = Object.keys(statusMap).filter(function (s) { return !guest || s !== 'shipped'; });
-    return '<select class="select" data-status="' + id + '" data-guest="' + (guest ? '1' : '0') + '">' + statuses.map(function (s) {
+    return '<select class="select" data-status="' + id + '" data-guest="' + (guest ? '1' : '0') + '" aria-label="Статус ' + escapeHtml(num || String(id)) + '">' + statuses.map(function (s) {
       return '<option value="' + s + '"' + (s === value ? ' selected' : '') + '>' + statusMap[s] + '</option>';
     }).join('') + '</select>';
   }
 
-  function actionButtons(id, guest) {
+  function actionButtons(id, guest, num) {
+    var label = escapeHtml(num || String(id));
     if (guest) {
-      return '<div class="table-actions"><button class="btn small danger" data-delete-guest="' + id + '">' + icon('trash-2') + '</button></div>';
+      return '<div class="table-actions"><button class="btn small danger" data-delete-guest="' + id + '" aria-label="Удалить ' + label + '" title="Удалить">' + icon('trash-2') + '</button></div>';
     }
-    return '<div class="table-actions"><button class="btn small" data-note="' + id + '">' + icon('sticky-note') + '</button><button class="btn small" data-send="' + id + '" data-channel="tg">' + icon('send') + '</button><button class="btn small danger" data-delete-order="' + id + '">' + icon('trash-2') + '</button></div>';
+    return '<div class="table-actions"><button class="btn small" data-note="' + id + '" aria-label="Заметка ' + label + '" title="Заметка">' + icon('sticky-note') + '</button><button class="btn small" data-send="' + id + '" data-channel="tg" aria-label="Отправить ' + label + ' в Telegram" title="Отправить в Telegram">' + icon('send') + '</button><button class="btn small danger" data-delete-order="' + id + '" aria-label="Удалить ' + label + '" title="Удалить">' + icon('trash-2') + '</button></div>';
   }
 
   function bindOrderView(guest) {
     var type = guest ? 'guests' : 'orders';
-    qs('#' + type + '-apply').addEventListener('click', function () {
+    function applyOrderFilters() {
       if (guest) {
         state.guestFilters.search = qs('#guests-search').value.trim();
         state.guestFilters.page = 1;
         renderGuests();
       } else {
+        if (qs('#orders-date-from').value && qs('#orders-date-to').value && qs('#orders-date-from').value > qs('#orders-date-to').value) {
+          toast('Дата «с» не может быть позже даты «по»', 'bad');
+          return;
+        }
         state.orderFilters.search = qs('#orders-search').value.trim();
         state.orderFilters.status = qs('#orders-status').value;
         state.orderFilters.date_from = qs('#orders-date-from').value;
@@ -462,6 +492,16 @@
         state.orderFilters.page = 1;
         renderOrders();
       }
+    }
+    qs('#' + type + '-apply').addEventListener('click', applyOrderFilters);
+    qs('#' + type + '-search').addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { event.preventDefault(); applyOrderFilters(); }
+    });
+    var reset = qs('#' + type + '-reset');
+    if (reset) reset.addEventListener('click', function () {
+      if (guest) state.guestFilters = { search: '', page: 1 };
+      else state.orderFilters = { search: '', status: '', date_from: '', date_to: '', page: 1 };
+      guest ? renderGuests() : renderOrders();
     });
     qsa('[data-select]').forEach(function (el) {
       el.addEventListener('change', function () {
@@ -588,7 +628,7 @@
       setHeader('Клиенты', 'Поиск, роли, реквизиты, пароль и push-сообщения');
       var list = filterUsers();
       viewRoot().innerHTML = [
-        '<div class="toolbar"><div class="toolbar-left"><input class="input search" id="client-search" placeholder="Имя, телефон, компания, ИНН" value="' + escapeHtml(state.userSearch) + '"></div><div class="toolbar-right"><a class="btn ghost" href="' + API + '?action=export_xlsx">' + icon('file-down') + '<span>Экспорт</span></a></div></div>',
+        '<div class="toolbar"><div class="toolbar-left"><input class="input search" id="client-search" placeholder="Имя, телефон, email, компания, ИНН" value="' + escapeHtml(state.userSearch) + '"></div><div class="toolbar-right"><a class="btn ghost" href="' + API + '?action=export_xlsx">' + icon('file-down') + '<span>Экспорт</span></a></div></div>',
         '<div class="panel"><div class="table-wrap">' + clientsTable(list) + '</div>' + clientsCards(list) + '</div>'
       ].join('');
       qs('#client-search').addEventListener('input', function () {
@@ -604,7 +644,7 @@
     var q = state.userSearch.trim().toLowerCase();
     if (!q) return state.users;
     return state.users.filter(function (u) {
-      return [u.name, u.phone, u.telegram, u.company_name, u.inn].some(function (v) {
+      return [u.name, u.phone, u.email, u.telegram, u.company_name, u.inn].some(function (v) {
         return String(v || '').toLowerCase().indexOf(q) >= 0;
       });
     });
@@ -624,18 +664,20 @@
   }
 
   function clientRow(u) {
-    return '<tr><td><b>' + escapeHtml(u.name) + '</b><div class="muted">+' + escapeHtml(u.phone) + (u.telegram ? ' / @' + escapeHtml(u.telegram) : '') + '</div></td><td>' + roleSelect(u) + '</td><td>' + escapeHtml(u.company_name || '') + '<div class="muted mono">' + escapeHtml(u.inn || '') + '</div></td><td><b>' + money(u.bonus_balance) + '</b></td><td>' + escapeHtml(u.order_count || 0) + '<div class="muted">' + money(u.total_spent) + '</div></td><td><div class="table-actions"><button class="btn small" data-client="' + u.id + '">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '">' + icon('trash-2') + '</button></div></td></tr>';
+    var name = escapeHtml(u.name || String(u.id));
+    return '<tr><td><b>' + name + '</b><div class="muted">' + escapeHtml(phone(u.phone)) + (u.email ? ' / ' + escapeHtml(u.email) : '') + (u.telegram ? ' / @' + escapeHtml(u.telegram) : '') + '</div></td><td>' + roleSelect(u) + '</td><td>' + escapeHtml(u.company_name || '') + '<div class="muted mono">' + escapeHtml(u.inn || '') + '</div></td><td><b>' + money(u.bonus_balance) + '</b></td><td>' + escapeHtml(u.order_count || 0) + '<div class="muted">' + money(u.total_spent) + '</div></td><td><div class="table-actions"><button class="btn small" data-client="' + u.id + '" aria-label="Открыть клиента ' + name + '" title="Открыть карточку">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '" aria-label="Удалить клиента ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></td></tr>';
   }
 
   function clientsCards(users) {
     if (!users.length) return '<div class="mobile-list"><div class="empty">Клиенты не найдены</div></div>';
     return '<div class="mobile-list">' + users.map(function (u) {
-      return '<article class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">' + escapeHtml(u.name) + '</div><div class="mobile-item-meta">+' + escapeHtml(u.phone) + '</div></div><span class="status">' + escapeHtml(u.role) + '</span></div><div class="mobile-item-meta">' + escapeHtml(u.company_name || '') + '</div><b>' + money(u.bonus_balance) + '</b><div class="table-actions" style="margin-top:10px"><button class="btn small" data-client="' + u.id + '">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '">' + icon('trash-2') + '</button></div></article>';
+      var name = escapeHtml(u.name || String(u.id));
+      return '<article class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">' + name + '</div><div class="mobile-item-meta">' + escapeHtml(phone(u.phone)) + (u.email ? ' · ' + escapeHtml(u.email) : '') + '</div></div><span class="status">' + escapeHtml(u.role) + '</span></div><div class="mobile-item-meta">' + escapeHtml(u.company_name || '') + '</div><b>' + money(u.bonus_balance) + '</b><div class="table-actions" style="margin-top:10px"><button class="btn small" data-client="' + u.id + '" aria-label="Открыть клиента ' + name + '" title="Открыть карточку">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '" aria-label="Удалить клиента ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></article>';
     }).join('') + '</div>';
   }
 
   function roleSelect(u) {
-    return '<select class="select" data-role-user="' + u.id + '"><option value="client"' + (u.role === 'client' ? ' selected' : '') + '>Клиент</option><option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Админ</option></select>';
+    return '<select class="select" data-role-user="' + u.id + '" aria-label="Роль ' + escapeHtml(u.name || String(u.id)) + '"><option value="client"' + (u.role === 'client' ? ' selected' : '') + '>Клиент</option><option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Админ</option></select>';
   }
 
   function bindClients() {
@@ -681,7 +723,7 @@
     });
     qs('#client-pass-btn').addEventListener('click', async function () {
       var pass = qs('#client-pass').value;
-      if (!pass || pass.length < 4) return toast('Пароль минимум 4 символа', 'bad');
+      if (!pass || pass.length < 8) return toast('Пароль минимум 8 символов', 'bad');
       try {
         await api('change_password', {}, { method: 'POST', body: { user_id: id, new_password: pass } });
         qs('#client-pass').value = '';
@@ -689,15 +731,19 @@
       } catch (err) { toast(err.message, 'bad'); }
     });
     qs('#client-bonus-btn').addEventListener('click', async function () {
+      var amount = Number(qs('#client-bonus').value || 0);
+      if (!Number.isFinite(amount) || amount === 0) return toast('Укажите ненулевую сумму корректировки', 'bad');
       try {
-        await api('bonus_adjust', {}, { method: 'POST', body: { user_id: id, amount: Number(qs('#client-bonus').value || 0), description: qs('#client-bonus-desc').value || 'Ручная корректировка' } });
+        await api('bonus_adjust', {}, { method: 'POST', body: { user_id: id, amount: amount, description: qs('#client-bonus-desc').value.trim() || 'Ручная корректировка' } });
         toast('Бонусы обновлены', 'ok');
         renderClients();
       } catch (err) { toast(err.message, 'bad'); }
     });
     qs('#client-push-btn').addEventListener('click', async function () {
+      var message = qs('#client-push').value.trim();
+      if (!message) return toast('Введите текст push-сообщения', 'bad');
       try {
-        await api('push_manager_message', {}, { method: 'POST', body: { user_id: id, body: qs('#client-push').value } });
+        await api('push_manager_message', {}, { method: 'POST', body: { user_id: id, body: message } });
         toast('Push отправлен', 'ok');
       } catch (err) { toast(err.message, 'bad'); }
     });
@@ -705,12 +751,12 @@
 
   function clientDrawerHtml(u) {
     return '<form id="client-form" class="panel"><div class="panel-body form-grid">' +
-      field('name', 'Имя', u.name) + field('phone', 'Телефон', u.phone) + field('telegram', 'Telegram', u.telegram) +
+      field('name', 'Имя', u.name) + field('phone', 'Телефон', u.phone) + field('email', 'Email', u.email) + field('telegram', 'Telegram', u.telegram) +
       field('company_name', 'Компания', u.company_name) + field('inn', 'ИНН', u.inn) + field('kpp', 'КПП', u.kpp) +
       field('legal_address', 'Юр. адрес', u.legal_address, 'wide') + '</div></form>' +
       '<div class="panel"><div class="panel-head"><h3 class="panel-title">Доступ и бонусы</h3></div><div class="panel-body form-grid">' +
-      '<label class="field"><span>Новый пароль</span><input class="input" id="client-pass" type="password"></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-pass-btn" type="button">' + icon('key-round') + '<span>Сменить</span></button></div>' +
-      '<label class="field"><span>Корректировка бонусов</span><input class="input" id="client-bonus" type="number" placeholder="Напр. 500 или -200"></label><label class="field"><span>Комментарий</span><input class="input" id="client-bonus-desc"></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-bonus-btn" type="button">' + icon('badge-ruble') + '<span>Применить</span></button></div>' +
+      '<label class="field"><span>Новый пароль</span><input class="input" id="client-pass" type="password" minlength="8" autocomplete="new-password"><small class="field-hint">Не менее 8 символов</small></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-pass-btn" type="button">' + icon('key-round') + '<span>Сменить</span></button></div>' +
+      '<label class="field"><span>Корректировка бонусов</span><input class="input" id="client-bonus" type="number" placeholder="Напр. 500 или -200"></label><label class="field"><span>Комментарий</span><input class="input" id="client-bonus-desc"></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-bonus-btn" type="button">' + icon('badge-russian-ruble') + '<span>Применить</span></button></div>' +
       '<label class="field wide"><span>Push от менеджера</span><textarea class="textarea" id="client-push"></textarea></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-push-btn" type="button">' + icon('send') + '<span>Отправить</span></button></div>' +
       '</div></div>';
   }
@@ -740,12 +786,13 @@
   function promoTable(rules) {
     if (!rules.length) return '<div class="empty">Правил пока нет</div>';
     return '<div class="mobile-list" style="display:grid">' + rules.map(function (r) {
-      return '<div class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">' + escapeHtml(r.name) + '</div><div class="mobile-item-meta">' + escapeHtml(r.product_group || 'Все группы') + ' / от ' + money(r.min_order) + '</div></div><span class="status ' + (Number(r.active) ? 'confirmed' : 'hidden') + '">' + (Number(r.active) ? 'Активно' : 'Выкл') + '</span></div><b>' + escapeHtml(r.bonus_percent) + '%</b><div class="table-actions" style="margin-top:10px"><button class="btn small" data-promo-toggle="' + r.id + '" data-active="' + (Number(r.active) ? 0 : 1) + '">' + icon('power') + '</button><button class="btn small danger" data-promo-delete="' + r.id + '">' + icon('trash-2') + '</button></div></div>';
+      var name = escapeHtml(r.name || String(r.id));
+      return '<div class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">' + name + '</div><div class="mobile-item-meta">' + escapeHtml(r.product_group || 'Все группы') + ' / от ' + money(r.min_order) + '</div></div><span class="status ' + (Number(r.active) ? 'confirmed' : 'hidden') + '">' + (Number(r.active) ? 'Активно' : 'Выкл') + '</span></div><b>' + escapeHtml(r.bonus_percent) + '%</b><div class="table-actions" style="margin-top:10px"><button class="btn small" data-promo-toggle="' + r.id + '" data-active="' + (Number(r.active) ? 0 : 1) + '" aria-label="' + (Number(r.active) ? 'Выключить ' : 'Включить ') + name + '" title="Изменить активность">' + icon('power') + '</button><button class="btn small danger" data-promo-delete="' + r.id + '" aria-label="Удалить ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></div>';
     }).join('') + '</div>';
   }
 
   function promoForm() {
-    return '<form id="promo-form" class="form-grid"><label class="field wide"><span>Название</span><input class="input" name="name" required></label><label class="field"><span>Процент</span><input class="input" name="bonus_percent" type="number" step="0.1" value="3"></label><label class="field"><span>Группа</span><select class="select" name="product_group"><option value="">Все</option>' + Object.keys(groupLabels).map(function (g) { return '<option value="' + g + '">' + groupLabels[g] + '</option>'; }).join('') + '</select></label><label class="field"><span>Мин. заказ</span><input class="input" name="min_order" type="number" value="0"></label><label class="field"><span>Активно</span><select class="select" name="active"><option value="1">Да</option><option value="0">Нет</option></select></label><div class="wide"><button class="btn primary" type="submit">' + icon('plus') + '<span>Создать</span></button></div></form>';
+    return '<form id="promo-form" class="form-grid"><label class="field wide"><span>Название</span><input class="input" name="name" required></label><label class="field"><span>Процент</span><input class="input" name="bonus_percent" type="number" min="0.1" max="100" step="0.1" value="3" required></label><label class="field"><span>Группа</span><select class="select" name="product_group"><option value="">Все</option>' + Object.keys(groupLabels).map(function (g) { return '<option value="' + g + '">' + groupLabels[g] + '</option>'; }).join('') + '</select></label><label class="field"><span>Мин. заказ</span><input class="input" name="min_order" type="number" min="0" value="0" required></label><label class="field"><span>Активно</span><select class="select" name="active"><option value="1">Да</option><option value="0">Нет</option></select></label><div class="wide"><button class="btn primary" type="submit">' + icon('plus') + '<span>Создать</span></button></div></form>';
   }
 
   function bindPromo() {
@@ -761,6 +808,7 @@
       btn.addEventListener('click', async function () {
         try {
           await api('promo_toggle', {}, { method: 'POST', body: { id: Number(btn.dataset.promoToggle), active: Number(btn.dataset.active) } });
+          toast(Number(btn.dataset.active) ? 'Правило включено' : 'Правило выключено', 'ok');
           renderPromo();
         } catch (err) { toast(err.message, 'bad'); }
       });
@@ -770,6 +818,7 @@
         if (!confirm('Удалить правило?')) return;
         try {
           await api('promo_delete', {}, { method: 'POST', body: { id: Number(btn.dataset.promoDelete) } });
+          toast('Правило удалено', 'ok');
           renderPromo();
         } catch (err) { toast(err.message, 'bad'); }
       });
@@ -780,7 +829,7 @@
     loading('Уведомления', 'Push-кампании и сообщения менеджера');
     try {
       var log = await api('push_log').catch(function () { return { campaigns: [] }; });
-      setHeader('Уведомления', 'Мобильные push и служебные отправки', '<button class="btn accent" id="send-report-top">' + icon('send') + '<span>TG отчет</span></button>');
+      setHeader('Уведомления', 'Мобильные push и служебные отправки', '<button class="btn accent" id="send-report-top" aria-label="Отчет в Telegram">' + icon('send') + '<span>TG отчет</span></button>');
       viewRoot().innerHTML = '<section class="split-grid"><div class="panel"><div class="panel-head"><h2 class="panel-title">Промо push</h2></div><div class="panel-body">' + pushForm() + '</div></div><div class="panel"><div class="panel-head"><h2 class="panel-title">Журнал</h2></div><div class="panel-body">' + pushLog(log.campaigns || []) + '</div></div></section>';
       qs('#send-report-top').addEventListener('click', sendReport);
       qs('#push-form').addEventListener('submit', async function (event) {
@@ -845,10 +894,11 @@
   async function renderVisitors() {
     loading('Посетители', 'Собственный трекинг визитов без смешивания с клиентами');
     try {
-      var data = await api('visitors_list', { page: 1 });
+      var data = await api('visitors_list', { page: state.visitorPage });
       var rows = data.visitors || [];
       setHeader('Посетители', 'Источник, устройство, привязанные контакты');
-      viewRoot().innerHTML = '<div class="panel"><div class="table-wrap">' + visitorsTable(rows) + '</div>' + visitorsCards(rows) + '</div>';
+      viewRoot().innerHTML = '<div class="panel"><div class="table-wrap">' + visitorsTable(rows) + '</div>' + visitorsCards(rows) + '</div>' + pager(data.page || 1, data.total || 0, VISITOR_PAGE_SIZE, 'visitors');
+      bindPager();
       hydrateIcons();
     } catch (err) { failView(err); }
   }
@@ -867,19 +917,17 @@
     }).join('') + '</div>';
   }
 
-  async function ensureProducts(force) {
-    if (state.products.length && !force) return state.products;
-    var data = await api('products_list', Object.assign({ limit: 500 }, state.productFilters));
-    state.products = data.products || [];
-    state.productsTotal = data.total || state.products.length;
-    window.PRODUCTS = state.products.filter(function (p) { return Number(p._active == null ? 1 : p._active) === 1; });
-    return state.products;
+  async function loadPriceProducts() {
+    var data = await api('products_list', { limit: 500, page: 1, status: 'active' });
+    state.priceProducts = data.products || [];
+    window.PRODUCTS = state.priceProducts.slice();
+    return state.priceProducts;
   }
 
   async function renderCatalog() {
     loading('Прайс', 'Файлы для клиентов и менеджеров');
     try {
-      await ensureProducts(true);
+      await loadPriceProducts();
       setHeader('Прайс', 'Excel/PDF, отправка в Telegram или email');
       viewRoot().innerHTML = [
         '<section class="quick-grid">',
@@ -900,9 +948,15 @@
   }
 
   function runPriceGenerator(type) {
-    if (type === 'xlsx' && typeof window.downloadPriceExcel === 'function') return window.downloadPriceExcel();
-    if (type === 'pdf' && typeof window.downloadPricePDF === 'function') return window.downloadPricePDF();
+    try {
+      if (type === 'xlsx' && typeof window.downloadPriceExcel === 'function') { toast('Формируем Excel…', 'ok'); window.downloadPriceExcel(); return true; }
+      if (type === 'pdf' && typeof window.downloadPricePDF === 'function') { toast('Формируем PDF…', 'ok'); window.downloadPricePDF(); return true; }
+    } catch (err) {
+      toast(err.message || 'Не удалось сформировать прайс', 'bad');
+      return false;
+    }
     toast('Генератор прайса еще загружается', 'bad');
+    return false;
   }
 
   function blobToBase64(blob) {
@@ -924,14 +978,17 @@
         toast(err.message, 'bad');
       } finally {
         window._adminPriceCallback = null;
+        var progressModal = document.getElementById('priceProgressModal');
+        if (progressModal) progressModal.remove();
       }
     };
-    runPriceGenerator(type);
+    if (!runPriceGenerator(type)) window._adminPriceCallback = null;
   }
 
   function downloadProductsCsv() {
     var rows = [['sku','brand','series','model','group','btu','area','price','stock','active']];
-    state.products.forEach(function (p) {
+    var products = state.priceProducts.length ? state.priceProducts : state.products;
+    products.forEach(function (p) {
       rows.push([p.sku, p.brand, p.series, p.model, p.group, p.btu, p.area, p.price, p.stock, p._active]);
     });
     var csv = rows.map(function (r) { return r.map(function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
@@ -939,24 +996,30 @@
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'splithub-products-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    toast('CSV сформирован', 'ok');
+    setTimeout(function () {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1000);
   }
 
   async function renderProducts() {
       loading('Товары', 'Каталог, цены, доступность и карточки');
     try {
-      var data = await api('products_list', Object.assign({ limit: 500 }, state.productFilters));
+      var data = await api('products_list', Object.assign({ limit: PRODUCT_PAGE_SIZE }, state.productFilters));
       state.products = data.products || [];
       state.productsTotal = data.total || state.products.length;
+      state.productSummary = data.summary || state.productSummary;
       window.PRODUCTS = state.products.filter(function (p) { return Number(p._active == null ? 1 : p._active) === 1; });
-      setHeader('Товары', 'Каталог, цены, доступность и карточки', '<button class="btn primary" id="new-product">' + icon('plus') + '<span>Новый товар</span></button>');
+      setHeader('Товары', 'Каталог, цены, доступность и карточки', '<button class="btn primary" id="new-product" aria-label="Новый товар">' + icon('plus') + '<span>Новый товар</span></button>');
       viewRoot().innerHTML = [
-        productsSummary(state.products),
+        productsSummary(state.productSummary),
         productsToolbar(),
         productsBulkBar(),
         '<div class="panel catalog-list-panel"><div class="catalog-list-head"><div><h2 class="panel-title">Каталог</h2><div class="panel-subtitle">' + state.productsTotal + ' позиций</div></div><div class="catalog-list-mark">' + icon('sparkles') + '</div></div><div class="table-wrap">' + productsTable(state.products) + '</div>' + productsCards(state.products) + '</div>',
-        pager(state.productFilters.page || 1, state.productsTotal, 500, 'products')
+        pager(data.page || state.productFilters.page || 1, state.productsTotal, PRODUCT_PAGE_SIZE, 'products')
       ].join('');
       bindProducts();
       hydrateIcons();
@@ -968,12 +1031,14 @@
     return '<section class="catalog-tools"><div class="catalog-search"><span class="catalog-search-icon">' + icon('search') + '</span><input class="input" id="product-search" placeholder="SKU, модель, бренд, серия" value="' + escapeHtml(f.search || '') + '" aria-label="Поиск товара"></div><div class="catalog-selects"><select class="select" id="product-group" aria-label="Группа"><option value="">Все группы</option>' + Object.keys(groupLabels).map(function (g) { return '<option value="' + g + '"' + (f.group === g ? ' selected' : '') + '>' + groupLabels[g] + '</option>'; }).join('') + '</select><select class="select" id="product-status" aria-label="Статус"><option value="all"' + (f.status === 'all' ? ' selected' : '') + '>Все статусы</option><option value="active"' + (f.status === 'active' ? ' selected' : '') + '>Видимые</option><option value="hidden"' + (f.status === 'hidden' ? ' selected' : '') + '>Скрытые</option></select></div><div class="catalog-tools-actions"><button class="icon-btn catalog-reset" id="product-reset" title="Сбросить фильтры" aria-label="Сбросить фильтры">' + icon('rotate-ccw') + '</button><button class="btn primary" id="product-apply">' + icon('search') + '<span>Показать</span></button></div></section>';
   }
 
-  function productsSummary(products) {
-    var active = products.filter(function (p) { return Number(p._active == null ? 1 : p._active) === 1; }).length;
-    var hidden = products.length - active;
-    var custom = products.filter(function (p) { return !!p._is_custom; }).length;
+  function productsSummary(summary) {
+    summary = summary || {};
+    var total = Number(summary.total || 0);
+    var active = Number(summary.active || 0);
+    var hidden = Number(summary.hidden || 0);
+    var custom = Number(summary.custom || 0);
     return '<section class="catalog-summary">' +
-      '<button class="catalog-stat active" data-product-status-filter="all"><span>' + icon('layers-3') + '</span><b>' + products.length + '</b><small>Всего</small></button>' +
+      '<button class="catalog-stat active" data-product-status-filter="all"><span>' + icon('layers-3') + '</span><b>' + total + '</b><small>Всего</small></button>' +
       '<button class="catalog-stat cyan" data-product-status-filter="active"><span>' + icon('eye') + '</span><b>' + active + '</b><small>Видимые</small></button>' +
       '<button class="catalog-stat muted-stat" data-product-status-filter="hidden"><span>' + icon('eye-off') + '</span><b>' + hidden + '</b><small>Скрытые</small></button>' +
       '<div class="catalog-stat mint"><span>' + icon('sparkles') + '</span><b>' + custom + '</b><small>Свои</small></div>' +
@@ -993,14 +1058,14 @@
   function productRow(p) {
     var active = Number(p._active == null ? 1 : p._active) === 1;
     var checked = state.selectedProducts.has(p.sku) ? ' checked' : '';
-    return '<tr class="product-row" data-open-product="' + escapeHtml(p.sku) + '" tabindex="0" role="button" aria-label="Открыть товар ' + escapeHtml(p.model) + '"><td><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + checked + ' aria-label="Выбрать товар"></td><td><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + escapeHtml(p.brand || '') + ' · ' + escapeHtml(p.series || '') + '</div></div></div></td><td>' + escapeHtml(groupLabels[p.group] || p.group || '') + '</td><td>' + escapeHtml(p.btu || '') + '<div class="muted">' + escapeHtml(p.area || '') + ' м²</div></td><td><b>' + money(p.price) + '</b></td><td>' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</td><td><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '<span>' + (active ? 'Виден' : 'Скрыт') + '</span></button></td><td><div class="table-actions"><button class="icon-btn product-edit-btn" data-edit-product="' + escapeHtml(p.sku) + '" title="Редактировать" aria-label="Редактировать">' + icon('pencil') + '</button>' + (p._is_custom ? '<button class="icon-btn product-edit-btn danger" data-delete-product="' + escapeHtml(p.sku) + '" title="Удалить" aria-label="Удалить">' + icon('trash-2') + '</button>' : '') + '</div></td></tr>';
+    return '<tr class="product-row" data-open-product="' + escapeHtml(p.sku) + '" tabindex="0" role="button" aria-label="Открыть товар ' + escapeHtml(p.model) + '"><td><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + checked + ' aria-label="Выбрать товар ' + escapeHtml(p.model) + '"></td><td><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + escapeHtml(p.brand || '') + ' · ' + escapeHtml(p.series || '') + '</div></div></div></td><td>' + escapeHtml(groupLabels[p.group] || p.group || '') + '</td><td>' + escapeHtml(p.btu || '') + '<div class="muted">' + escapeHtml(p.area || '') + ' м²</div></td><td><b>' + money(p.price) + '</b></td><td>' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</td><td><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '<span>' + (active ? 'Виден' : 'Скрыт') + '</span></button></td><td><div class="table-actions"><button class="icon-btn product-edit-btn" data-edit-product="' + escapeHtml(p.sku) + '" title="Редактировать" aria-label="Редактировать ' + escapeHtml(p.model) + '">' + icon('pencil') + '</button>' + (p._is_custom ? '<button class="icon-btn product-edit-btn danger" data-delete-product="' + escapeHtml(p.sku) + '" title="Удалить" aria-label="Удалить ' + escapeHtml(p.model) + '">' + icon('trash-2') + '</button>' : '') + '</div></td></tr>';
   }
 
   function productsCards(products) {
     if (!products.length) return '<div class="mobile-list"><div class="empty">Товары не найдены</div></div>';
     return '<div class="mobile-list">' + products.map(function (p) {
       var active = Number(p._active == null ? 1 : p._active) === 1;
-      return '<article class="mobile-item product-card" data-open-product="' + escapeHtml(p.sku) + '" tabindex="0" role="button" aria-label="Открыть товар ' + escapeHtml(p.model) + '"><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + money(p.price) + ' · ' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</div></div></div><div class="table-actions" style="margin-top:10px"><label class="tag"><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + (state.selectedProducts.has(p.sku) ? ' checked' : '') + '> Выбрать</label><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? icon('eye') : icon('eye-off')) + '</button><button class="icon-btn product-edit-btn" data-edit-product="' + escapeHtml(p.sku) + '" title="Редактировать" aria-label="Редактировать">' + icon('pencil') + '</button></div></article>';
+      return '<article class="mobile-item product-card" data-open-product="' + escapeHtml(p.sku) + '" tabindex="0" role="button" aria-label="Открыть товар ' + escapeHtml(p.model) + '"><div class="product-cell">' + productImg(p.photo, p.model) + '<div><div class="product-name">' + escapeHtml(p.model) + '</div><div class="product-meta mono">' + escapeHtml(p.sku) + '</div><div class="product-meta">' + money(p.price) + ' · ' + escapeHtml(stockLabels[p.stock] || p.stock || '') + '</div></div></div><div class="table-actions" style="margin-top:10px"><label class="tag"><input type="checkbox" data-product-select="' + escapeHtml(p.sku) + '"' + (state.selectedProducts.has(p.sku) ? ' checked' : '') + '> Выбрать</label><button class="btn small ' + (active ? 'ok' : 'danger') + '" data-toggle-product="' + escapeHtml(p.sku) + '" data-active="' + (active ? 0 : 1) + '" aria-label="' + (active ? 'Скрыть ' : 'Показать ') + escapeHtml(p.model) + '">' + (active ? icon('eye') : icon('eye-off')) + '</button><button class="icon-btn product-edit-btn" data-edit-product="' + escapeHtml(p.sku) + '" title="Редактировать" aria-label="Редактировать ' + escapeHtml(p.model) + '">' + icon('pencil') + '</button></div></article>';
     }).join('') + '</div>';
   }
 
@@ -1026,6 +1091,8 @@
     });
     qsa('[data-product-status-filter]').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        state.productFilters.search = '';
+        state.productFilters.group = '';
         state.productFilters.status = btn.dataset.productStatusFilter;
         state.productFilters.page = 1;
         renderProducts();
@@ -1065,7 +1132,7 @@
   }
 
   function openProductFromSku(sku) {
-    var product = state.products.find(function (p) { return p.sku === sku; });
+    var product = state.products.find(function (p) { return String(p.sku) === String(sku); });
     if (product) openProductEditor(product, !!product._is_custom);
   }
 
@@ -1184,7 +1251,14 @@
   function productMediaTab(p) {
     var photos = Array.isArray(p.photos) ? p.photos : [];
     var main = p.photo || photos[0] || '';
-    return '<div class="editor-grid"><div class="photo-box"><div class="photo-preview">' + (main ? '<img src="' + escapeHtml(productImageUrl(main)) + '" alt="">' : '<span class="muted">Фото не выбрано</span>') + '</div><div class="photo-list">' + photos.map(function (ph, i) { return '<div class="photo-thumb"><img src="' + escapeHtml(productImageUrl(ph)) + '" alt=""><button data-remove-photo="' + i + '">x</button></div>'; }).join('') + '</div></div><div class="panel"><div class="panel-body form-grid"><label class="field wide"><span>Главное фото</span><input class="input" id="pe-photo" value="' + escapeHtml(p.photo || '') + '"></label><label class="field wide"><span>Добавить файл</span><input class="input" id="pe-upload" type="file" accept="image/*" multiple></label><label class="field wide"><span>Добавить по имени файла</span><div style="display:flex;gap:8px"><input class="input" id="pe-manual-photo" placeholder="например ultima-elysium.webp"><button class="btn" id="pe-add-photo" type="button">' + icon('plus') + '</button></div></label><div class="wide muted">До 12 изображений. Если главное фото пустое, используется первое из списка.</div></div></div></div>';
+    var photoItems = photos.map(function (ph, i) {
+      var isMain = ph === main;
+      return '<div class="photo-thumb-wrap">' +
+        '<button class="photo-thumb' + (isMain ? ' active' : '') + '" data-main-photo="' + i + '" type="button" aria-label="Сделать главным: ' + escapeHtml(ph) + '"><img src="' + escapeHtml(productImageUrl(ph)) + '" alt=""></button>' +
+        (isMain ? '<span class="photo-main-badge">Главное</span>' : '') +
+        '<button class="photo-remove" data-remove-photo="' + i + '" type="button" aria-label="Удалить фото: ' + escapeHtml(ph) + '">' + icon('x') + '</button></div>';
+    }).join('');
+    return '<div class="editor-grid"><div class="photo-box"><div class="photo-preview">' + (main ? '<img src="' + escapeHtml(productImageUrl(main)) + '" alt="Главное фото товара">' : '<span class="muted">Фото не выбрано</span>') + '</div><div class="photo-list">' + photoItems + '</div></div><div class="panel"><div class="panel-body form-grid"><label class="field wide"><span>Главное фото</span><input class="input" id="pe-photo" value="' + escapeHtml(p.photo || '') + '" placeholder="Имя файла"><small class="field-hint">Можно выбрать главное фото нажатием на миниатюру слева</small></label><div class="field wide"><span>Загрузить изображения</span><div class="upload-zone" id="pe-upload-zone"><input id="pe-upload" class="upload-input" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" multiple><label class="btn upload-button" for="pe-upload">' + icon('upload') + '<span>Выбрать файлы</span></label><div><strong id="pe-upload-title">Перетащите или выберите изображения</strong><small id="pe-upload-note">JPG, PNG, WEBP или GIF · до 8 МБ каждый</small></div></div></div><label class="field wide"><span>Добавить по имени файла</span><div class="inline-field"><input class="input" id="pe-manual-photo" placeholder="например ultima-elysium.webp"><button class="btn" id="pe-add-photo" type="button" aria-label="Добавить фото по имени">' + icon('plus') + '<span>Добавить</span></button></div></label><div class="wide field-hint">Добавлено: ' + photos.length + ' из 12. Если главное фото не выбрано, используется первое.</div></div></div></div>';
   }
 
   function productTextTab(p) {
@@ -1221,31 +1295,73 @@
         renderProductEditor(isCustom);
       });
     });
+    qsa('[data-main-photo]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        collectEditorFields();
+        var selected = state.editorProduct.photos[Number(btn.dataset.mainPhoto)];
+        if (selected) state.editorProduct.photo = selected;
+        renderProductEditor(isCustom);
+      });
+    });
     var addPhoto = qs('#pe-add-photo');
     if (addPhoto) addPhoto.addEventListener('click', function () {
       collectEditorFields();
       var value = qs('#pe-manual-photo').value.trim();
-      if (value && state.editorProduct.photos.indexOf(value) < 0 && state.editorProduct.photos.length < 12) {
-        state.editorProduct.photos.push(value);
-        if (!state.editorProduct.photo) state.editorProduct.photo = value;
-      }
+      if (!value) return toast('Укажите имя файла', 'bad');
+      if (state.editorProduct.photos.indexOf(value) >= 0) return toast('Это фото уже добавлено', 'bad');
+      if (state.editorProduct.photos.length >= 12) return toast('Можно добавить не больше 12 фото', 'bad');
+      state.editorProduct.photos.push(value);
+      if (!state.editorProduct.photo) state.editorProduct.photo = value;
       renderProductEditor(isCustom);
     });
-    var upload = qs('#pe-upload');
-    if (upload) upload.addEventListener('change', async function () {
+    async function uploadProductFiles(fileList) {
       collectEditorFields();
-      var files = Array.prototype.slice.call(upload.files || []).slice(0, 12 - state.editorProduct.photos.length);
+      var available = 12 - state.editorProduct.photos.length;
+      var selectedFiles = Array.prototype.slice.call(fileList || []);
+      if (!selectedFiles.length) return;
+      if (available <= 0) return toast('Можно добавить не больше 12 фото', 'bad');
+      var files = selectedFiles.filter(function (file) {
+        if (file.size > 8 * 1024 * 1024) { toast(file.name + ': файл больше 8 МБ', 'bad'); return false; }
+        if (file.type && file.type.indexOf('image/') !== 0) { toast(file.name + ': нужен файл изображения', 'bad'); return false; }
+        return true;
+      }).slice(0, available);
+      if (!files.length) return;
+      var upload = qs('#pe-upload');
+      if (upload) upload.disabled = true;
+      var title = qs('#pe-upload-title');
+      if (title) title.textContent = 'Загружаем 0 из ' + files.length + '…';
+      var uploaded = 0;
       for (var i = 0; i < files.length; i++) {
         var fd = new FormData();
         fd.append('photo', files[i]);
         try {
           var res = await api('upload_photo', {}, { body: fd });
-          if (res.filename && state.editorProduct.photos.indexOf(res.filename) < 0) state.editorProduct.photos.push(res.filename);
-          if (!state.editorProduct.photo) state.editorProduct.photo = res.filename;
+          if (res.filename && state.editorProduct.photos.indexOf(res.filename) < 0) {
+            state.editorProduct.photos.push(res.filename);
+            uploaded++;
+          }
+          if (!state.editorProduct.photo && res.filename) state.editorProduct.photo = res.filename;
         } catch (err) { toast(err.message, 'bad'); }
+        if (title) title.textContent = 'Загружаем ' + (i + 1) + ' из ' + files.length + '…';
       }
+      if (selectedFiles.length > files.length) toast('Добавлены только файлы, которые прошли проверку и помещаются в лимит', 'bad');
+      if (uploaded) toast('Загружено фото: ' + uploaded, 'ok');
       renderProductEditor(isCustom);
+    }
+    var upload = qs('#pe-upload');
+    if (upload) upload.addEventListener('change', function () {
+      uploadProductFiles(upload.files);
     });
+    var uploadZone = qs('#pe-upload-zone');
+    if (uploadZone) {
+      ['dragenter', 'dragover'].forEach(function (eventName) {
+        uploadZone.addEventListener(eventName, function (event) { event.preventDefault(); uploadZone.classList.add('is-dragging'); });
+      });
+      ['dragleave', 'drop'].forEach(function (eventName) {
+        uploadZone.addEventListener(eventName, function (event) { event.preventDefault(); uploadZone.classList.remove('is-dragging'); });
+      });
+      uploadZone.addEventListener('drop', function (event) { uploadProductFiles(event.dataTransfer && event.dataTransfer.files); });
+    }
     hydrateIcons();
   }
 
@@ -1308,7 +1424,7 @@
       var data = await api('settings_get');
       var cfg = data.settings || {};
       setHeader('Настройки', 'Telegram, email, бонусы и служебные действия');
-      viewRoot().innerHTML = '<section class="split-grid"><div class="panel"><div class="panel-head"><h2 class="panel-title">Интеграции</h2></div><div class="panel-body">' + settingsForm(cfg) + '</div></div><div class="panel danger-zone"><div class="panel-head"><h2 class="panel-title">Опасная зона</h2></div><div class="panel-body form-grid"><button class="btn danger" data-reset-counter="orders">' + icon('rotate-ccw') + '<span>Сбросить номера заказов</span></button><button class="btn danger" data-reset-counter="guest_orders">' + icon('rotate-ccw') + '<span>Сбросить гостевые</span></button><button class="btn danger" data-reset-counter="all">' + icon('triangle-alert') + '<span>Сбросить все счетчики</span></button></div></div></section>';
+      viewRoot().innerHTML = '<section class="split-grid"><div class="panel"><div class="panel-head"><div><h2 class="panel-title">Интеграции</h2><div class="panel-subtitle">Пустое секретное поле сохраняет текущее значение</div></div></div><div class="panel-body">' + settingsForm(cfg) + '</div></div><div class="panel danger-zone"><div class="panel-head"><div><h2 class="panel-title">Опасная зона</h2><div class="panel-subtitle">Счётчик можно сбросить только после удаления всех записей раздела</div></div></div><div class="panel-body form-grid"><button class="btn danger" data-reset-counter="orders">' + icon('rotate-ccw') + '<span>Сбросить номера заказов</span></button><button class="btn danger" data-reset-counter="guest_orders">' + icon('rotate-ccw') + '<span>Сбросить гостевые</span></button><button class="btn danger" data-reset-counter="all">' + icon('triangle-alert') + '<span>Сбросить все счетчики</span></button></div></div></section>';
       qs('#settings-form').addEventListener('submit', async function (event) {
         event.preventDefault();
         try {
@@ -1330,15 +1446,26 @@
   }
 
   function settingsForm(cfg) {
-    var keys = ['BOT_TOKEN','CHAT_ID','TG_ADMIN_ID','EMAIL_TO','CRON_SECRET','ALLOWED_ORIGIN','TG_FORCE_IP'];
-    return '<form id="settings-form" class="form-grid">' + keys.map(function (k) {
-      return '<label class="field wide"><span>' + k + '</span><input class="input" name="' + k + '" value="' + escapeHtml(cfg[k] || '') + '"></label>';
+    var fields = [
+      ['BOT_TOKEN', 'Токен Telegram-бота', true],
+      ['CHAT_ID', 'ID чата заказов', false],
+      ['TG_ADMIN_ID', 'ID администратора Telegram', false],
+      ['EMAIL_TO', 'Email получателей', false],
+      ['CRON_SECRET', 'Секрет служебных задач', true],
+      ['ALLOWED_ORIGIN', 'Разрешённый домен API', false],
+      ['TG_FORCE_IP', 'IP Telegram для обхода блокировки', false]
+    ];
+    return '<form id="settings-form" class="form-grid">' + fields.map(function (item) {
+      var key = item[0], label = item[1], secret = item[2];
+      var configured = cfg._configured && cfg._configured[key];
+      var hint = secret && configured ? 'Сейчас настроено · оставьте пустым, чтобы не менять' : (secret ? 'Оставьте пустым, чтобы сохранить текущее значение' : key);
+      return '<label class="field wide"><span>' + escapeHtml(label) + '</span><input class="input" name="' + key + '" value="' + escapeHtml(secret ? '' : (cfg[key] || '')) + '"' + (secret ? ' type="password" autocomplete="new-password"' : '') + '><small class="field-hint">' + escapeHtml(hint) + '</small></label>';
     }).join('') + '<label class="field"><span>Бонусы</span><select class="select" name="bonuses_enabled"><option value="1"' + (cfg.bonuses_enabled !== '0' ? ' selected' : '') + '>Включены</option><option value="0"' + (cfg.bonuses_enabled === '0' ? ' selected' : '') + '>Выключены</option></select></label><div class="wide"><button class="btn primary" type="submit">' + icon('save') + '<span>Сохранить</span></button></div></form>';
   }
 
   function pager(page, total, limit, type) {
     var pages = Math.max(1, Math.ceil(total / limit));
-    return '<div class="toolbar"><div class="muted">Страница ' + page + ' из ' + pages + ' · всего ' + total + '</div><div class="toolbar-right"><button class="btn ghost" data-page="' + (page - 1) + '" data-page-type="' + type + '"' + (page <= 1 ? ' disabled' : '') + '>' + icon('chevron-left') + '</button><button class="btn ghost" data-page="' + (page + 1) + '" data-page-type="' + type + '"' + (page >= pages ? ' disabled' : '') + '>' + icon('chevron-right') + '</button></div></div>';
+    return '<div class="toolbar"><div class="muted">Страница ' + page + ' из ' + pages + ' · всего ' + total + '</div><div class="toolbar-right"><button class="btn ghost" data-page="' + (page - 1) + '" data-page-type="' + type + '" aria-label="Предыдущая страница" title="Предыдущая страница"' + (page <= 1 ? ' disabled' : '') + '>' + icon('chevron-left') + '</button><button class="btn ghost" data-page="' + (page + 1) + '" data-page-type="' + type + '" aria-label="Следующая страница" title="Следующая страница"' + (page >= pages ? ' disabled' : '') + '>' + icon('chevron-right') + '</button></div></div>';
   }
 
   function bindPager() {
@@ -1349,6 +1476,7 @@
         if (type === 'orders') { state.orderFilters.page = page; renderOrders(); }
         if (type === 'guests') { state.guestFilters.page = page; renderGuests(); }
         if (type === 'products') { state.productFilters.page = page; renderProducts(); }
+        if (type === 'visitors') { state.visitorPage = page; renderVisitors(); }
       });
     });
   }
@@ -1357,7 +1485,7 @@
     qs('#drawer-backdrop').classList.add('on');
     var drawer = qs('#drawer');
     drawer.classList.add('on');
-    drawer.innerHTML = '<div class="drawer-head"><h2 class="drawer-title">' + escapeHtml(title) + '</h2><button class="icon-btn" data-close-drawer>' + icon('x') + '</button></div><div class="drawer-scroll">' + body + '</div><div class="drawer-foot">' + foot + '</div>';
+    drawer.innerHTML = '<div class="drawer-head"><h2 class="drawer-title">' + escapeHtml(title) + '</h2><button class="icon-btn" data-close-drawer aria-label="Закрыть редактор" title="Закрыть">' + icon('x') + '</button></div><div class="drawer-scroll">' + body + '</div><div class="drawer-foot">' + foot + '</div>';
     qsa('[data-close-drawer]', drawer).forEach(function (btn) { btn.addEventListener('click', closeDrawer); });
     hydrateIcons();
   }

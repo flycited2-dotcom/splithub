@@ -203,7 +203,11 @@ switch ($action) {
         if ($search !== '') {
             $num = preg_replace('/^(SH-?|#)/i', '', $search);
             if (ctype_digit($num)) { $where[] = 'o.id = ?'; $params[] = (int)$num; }
-            else                   { $where[] = 'u.name LIKE ?'; $params[] = '%'.$search.'%'; }
+            else {
+                $where[] = '(u.name LIKE ? OR u.phone LIKE ? OR u.email LIKE ? OR o.comment LIKE ?)';
+                $like = '%'.$search.'%';
+                array_push($params, $like, $like, $like, $like);
+            }
         }
         $whereSQL = $where ? 'WHERE '.implode(' AND ', $where) : '';
 
@@ -328,7 +332,7 @@ switch ($action) {
         $uid     = intval($raw['user_id'] ?? 0);
         $newPass = (string)($raw['password'] ?? '');
         $email   = trim((string)($raw['email'] ?? ''));
-        if (!$uid || strlen($newPass) < 4) jsonResponse(['ok' => false, 'error' => 'Нужен клиент и пароль от 4 символов'], 422);
+        if (!$uid || strlen($newPass) < 8) jsonResponse(['ok' => false, 'error' => 'Нужен клиент и пароль от 8 символов'], 422);
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) jsonResponse(['ok' => false, 'error' => 'Некорректный email'], 422);
         if ($email !== '') {
             $db->prepare('UPDATE users SET password_hash = ?, email = ? WHERE id = ?')
@@ -407,6 +411,13 @@ switch ($action) {
             $appRows = $db->query("SELECT key, value FROM app_settings")->fetchAll();
             foreach ($appRows as $r) { $cfg[$r['key']] = $r['value']; }
         } catch (Throwable $e) {}
+        $configured = [];
+        foreach (array_keys($cfg) as $configKey) {
+            if (!preg_match('/(TOKEN|SECRET|PASSWORD|KEY)/i', $configKey)) continue;
+            $configured[$configKey] = !empty($cfg[$configKey]);
+            unset($cfg[$configKey]);
+        }
+        $cfg['_configured'] = $configured;
         jsonResponse(['ok' => true, 'settings' => $cfg]);
         break;
 
@@ -419,7 +430,10 @@ switch ($action) {
         $allowed_keys = ['BOT_TOKEN','CHAT_ID','TG_ADMIN_ID','EMAIL_TO','CRON_SECRET','ALLOWED_ORIGIN','TG_FORCE_IP'];
         $cfgFile = appConfigPath();
 
-        $content = "<?php\n";
+        $content = file_exists($cfgFile) ? file_get_contents($cfgFile) : "<?php\n";
+        if ($content === false) jsonResponse(['ok' => false, 'error' => 'Не удалось прочитать конфигурацию'], 500);
+        if (strpos($content, '<?php') === false) $content = "<?php\n" . $content;
+        $secretKeys = ['BOT_TOKEN', 'CRON_SECRET'];
         foreach ($allowed_keys as $key) {
             if (array_key_exists($key, $raw)) {
                 $val = trim($raw[$key]);
@@ -428,13 +442,26 @@ switch ($action) {
             } else {
                 continue;
             }
-            $val = addslashes($val);
-            $content .= "define('{$key}', '{$val}');\n";
+            if (in_array($key, $secretKeys, true) && $val === '') continue;
+            $definition = "define('{$key}', " . var_export($val, true) . ");";
+            $pattern = "/^\\s*define\\(\\s*['\"]" . preg_quote($key, '/') . "['\"]\\s*,.*?\\);\\s*$/m";
+            if (preg_match($pattern, $content)) {
+                $content = preg_replace($pattern, $definition, $content, 1);
+            } else {
+                $content = rtrim($content) . "\n" . $definition . "\n";
+            }
         }
-        $rateLimit = defined('RATE_LIMIT_SEC') ? (int)RATE_LIMIT_SEC : 30;
-        $content .= "define('RATE_LIMIT_SEC', {$rateLimit});\n";
-
-        file_put_contents($cfgFile, $content);
+        $tmpFile = $cfgFile . '.tmp.' . bin2hex(random_bytes(4));
+        $cfgMode = @fileperms($cfgFile);
+        if (file_put_contents($tmpFile, $content, LOCK_EX) === false) {
+            @unlink($tmpFile);
+            jsonResponse(['ok' => false, 'error' => 'Не удалось безопасно сохранить конфигурацию'], 500);
+        }
+        if ($cfgMode !== false) @chmod($tmpFile, $cfgMode & 0777);
+        if (!rename($tmpFile, $cfgFile)) {
+            @unlink($tmpFile);
+            jsonResponse(['ok' => false, 'error' => 'Не удалось безопасно сохранить конфигурацию'], 500);
+        }
 
         // Save app_settings (bonuses_enabled)
         if (isset($raw['bonuses_enabled'])) {
@@ -459,6 +486,11 @@ switch ($action) {
         $ext = strtolower(pathinfo($original, PATHINFO_EXTENSION));
         $allowed = ['jpg','jpeg','png','webp','gif'];
         if (!in_array($ext, $allowed, true)) jsonResponse(['ok' => false, 'error' => 'Поддерживаются JPG, PNG, WEBP, GIF'], 422);
+        $imageInfo = @getimagesize($_FILES['photo']['tmp_name']);
+        $allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!$imageInfo || !in_array($imageInfo['mime'] ?? '', $allowedMime, true)) {
+            jsonResponse(['ok' => false, 'error' => 'Файл не является корректным изображением'], 422);
+        }
         $dir = __DIR__ . '/../assets/img/products';
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             jsonResponse(['ok' => false, 'error' => 'Не удалось создать папку изображений'], 500);
@@ -494,6 +526,13 @@ switch ($action) {
             $products[] = adminDecodeCustomProductRow($r);
         }
 
+        $summary = [
+            'total' => count($products),
+            'active' => count(array_filter($products, function($p) { return (int)($p['_active'] ?? 1) === 1; })),
+            'hidden' => count(array_filter($products, function($p) { return (int)($p['_active'] ?? 1) === 0; })),
+            'custom' => count(array_filter($products, function($p) { return !empty($p['_is_custom']); })),
+        ];
+
         $search = trim($_GET['search'] ?? '');
         $group = trim($_GET['group'] ?? '');
         $status = trim($_GET['status'] ?? 'all');
@@ -528,7 +567,8 @@ switch ($action) {
             'products' => array_slice($products, $offset, $limit),
             'total' => count($products),
             'page' => $page,
-            'limit' => $limit
+            'limit' => $limit,
+            'summary' => $summary
         ]);
         break;
 
@@ -577,6 +617,15 @@ switch ($action) {
         $sku = trim($data['sku'] ?? ($raw['sku'] ?? ''));
         if ($sku === '') jsonResponse(['ok' => false, 'error' => 'sku required'], 422);
         if (trim($data['model'] ?? '') === '') jsonResponse(['ok' => false, 'error' => 'model required'], 422);
+        $existingCustom = $db->prepare('SELECT id FROM custom_products WHERE sku = ?');
+        $existingCustom->execute([$sku]);
+        if (!$existingCustom->fetch()) {
+            foreach (adminReadProductsJs() as $baseProduct) {
+                if (trim((string)($baseProduct['sku'] ?? '')) === $sku) {
+                    jsonResponse(['ok' => false, 'error' => 'Такой SKU уже есть в основном каталоге'], 409);
+                }
+            }
+        }
         $active = array_key_exists('active', $raw) ? (int)!!$raw['active'] : (int)($data['active'] ?? 1);
         $id = trim($data['id'] ?? ($raw['id'] ?? ''));
         if ($id === '') $id = adminProductIdFromSku($sku);
@@ -770,19 +819,27 @@ switch ($action) {
         $raw = json_decode(file_get_contents('php://input'), true);
         $uid = intval($raw['user_id'] ?? 0);
         if (!$uid) jsonResponse(['ok' => false, 'error' => 'user_id required'], 422);
-        $allowed = ['name','phone','telegram','company_name','inn','kpp','legal_address'];
+        $allowed = ['name','phone','email','telegram','company_name','inn','kpp','legal_address'];
         $fields = []; $vals = [];
         foreach ($allowed as $f) {
             if (array_key_exists($f, $raw)) {
                 $fields[] = "$f = ?";
                 $val = trim($raw[$f] ?? '');
                 if ($f === 'phone') $val = normalizePhone($val);
+                if ($f === 'email' && $val !== '' && !filter_var($val, FILTER_VALIDATE_EMAIL)) {
+                    jsonResponse(['ok' => false, 'error' => 'Некорректный email'], 422);
+                }
                 $vals[] = $val;
             }
         }
         if (empty($fields)) jsonResponse(['ok' => false, 'error' => 'No fields to update'], 422);
         $vals[] = $uid;
-        $db->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($vals);
+        try {
+            $db->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($vals);
+        } catch (PDOException $e) {
+            if (stripos($e->getMessage(), 'unique') !== false) jsonResponse(['ok' => false, 'error' => 'Этот email уже используется'], 409);
+            throw $e;
+        }
         jsonResponse(['ok' => true]);
         break;
 
@@ -818,7 +875,7 @@ switch ($action) {
         $raw = json_decode(file_get_contents('php://input'), true);
         $targetUid = intval($raw['user_id'] ?? 0);
         $newPass   = $raw['new_password'] ?? '';
-        if (!$targetUid || strlen($newPass) < 4) jsonResponse(['ok' => false, 'error' => 'user_id и пароль (мин. 4 символа) обязательны'], 422);
+        if (!$targetUid || strlen($newPass) < 8) jsonResponse(['ok' => false, 'error' => 'user_id и пароль (мин. 8 символов) обязательны'], 422);
         $hash = password_hash($newPass, PASSWORD_DEFAULT);
         $db->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$hash, $targetUid]);
         jsonResponse(['ok' => true]);
@@ -948,6 +1005,8 @@ switch ($action) {
         if ($type === 'guest_orders' || $type === 'all') $tables[] = 'guest_orders';
         if (!$tables) jsonResponse(['ok' => false, 'error' => 'Некорректный тип'], 422);
         foreach ($tables as $tbl) {
+            $rowsCount = (int)$db->query("SELECT COUNT(*) FROM {$tbl}")->fetchColumn();
+            if ($rowsCount > 0) jsonResponse(['ok' => false, 'error' => "Сначала удалите все записи раздела {$tbl}"], 409);
             try { $db->exec("DELETE FROM sqlite_sequence WHERE name='{$tbl}'"); } catch (Throwable $e) {}
         }
         jsonResponse(['ok' => true, 'reset' => $tables]);
