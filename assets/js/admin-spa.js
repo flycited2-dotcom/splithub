@@ -444,7 +444,7 @@
       var id = Number(o.id);
       var num = guest ? 'G-' + String(id).padStart(5, '0') : 'SH-' + String(id).padStart(5, '0');
       var checked = (guest ? state.selectedGuests : state.selectedOrders).has(id) ? ' checked' : '';
-      return '<tr><td><input type="checkbox" data-select="' + id + '"' + checked + ' aria-label="Выбрать ' + num + '"></td><td><b>' + num + '</b><div class="muted">' + fmtDate(o.created_at) + '</div></td><td>' + escapeHtml(o.name || o.user_name || '') + '<div class="muted">' + escapeHtml(phone(o.phone || o.user_phone)) + '</div></td><td>' + orderItemsHtml(o.items) + '</td><td class="nowrap"><b>' + money(o.total) + '</b></td><td>' + statusControl(o.status || 'new', id, guest, num) + '</td><td>' + actionButtons(id, guest, num) + '</td></tr>';
+      return '<tr class="order-row" data-order-row="' + id + '" data-order-guest="' + (guest ? '1' : '0') + '" tabindex="0" aria-label="Открыть ' + (guest ? 'гостевую заявку ' : 'заказ ') + num + '"><td><input type="checkbox" data-select="' + id + '"' + checked + ' aria-label="Выбрать ' + num + '"></td><td><b>' + num + '</b><div class="muted">' + fmtDate(o.created_at) + '</div></td><td>' + escapeHtml(o.name || o.user_name || '') + '<div class="muted">' + escapeHtml(phone(o.phone || o.user_phone)) + '</div></td><td>' + orderItemsHtml(o.items) + '</td><td class="nowrap"><b>' + money(o.total) + '</b></td><td>' + statusControl(o.status || 'new', id, guest, num) + '</td><td>' + actionButtons(id, guest, num) + '</td></tr>';
     }).join('');
     return '<table class="data-table"><thead><tr><th></th><th>Номер</th><th>Клиент</th><th>Состав</th><th>Сумма</th><th>Статус</th><th>Действия</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
@@ -455,7 +455,7 @@
       var id = Number(o.id);
       var num = guest ? 'G-' + String(id).padStart(5, '0') : 'SH-' + String(id).padStart(5, '0');
       var checked = (guest ? state.selectedGuests : state.selectedOrders).has(id) ? ' checked' : '';
-      return '<article class="mobile-item"><div class="mobile-item-head"><label><input type="checkbox" data-select="' + id + '"' + checked + '> <span class="mobile-item-title">' + num + '</span></label>' + statusBadge(o.status || 'new') + '</div><div class="mobile-item-meta">' + escapeHtml(o.name || o.user_name || '') + ' / ' + escapeHtml(phone(o.phone || o.user_phone)) + '</div><div style="margin:10px 0">' + orderItemsHtml(o.items) + '</div><b>' + money(o.total) + '</b><div class="mobile-item-meta">' + fmtDate(o.created_at) + '</div><div class="table-actions" style="margin-top:10px">' + statusControl(o.status || 'new', id, guest, num) + actionButtons(id, guest, num) + '</div></article>';
+      return '<article class="mobile-item order-card" data-order-row="' + id + '" data-order-guest="' + (guest ? '1' : '0') + '" tabindex="0" aria-label="Открыть ' + (guest ? 'гостевую заявку ' : 'заказ ') + num + '"><div class="mobile-item-head"><label><input type="checkbox" data-select="' + id + '"' + checked + '> <span class="mobile-item-title">' + num + '</span></label>' + statusBadge(o.status || 'new') + '</div><div class="mobile-item-meta">' + escapeHtml(o.name || o.user_name || '') + ' / ' + escapeHtml(phone(o.phone || o.user_phone)) + '</div><div style="margin:10px 0">' + orderItemsHtml(o.items) + '</div><b>' + money(o.total) + '</b><div class="mobile-item-meta">' + fmtDate(o.created_at) + '</div><div class="table-actions" style="margin-top:10px">' + statusControl(o.status || 'new', id, guest, num) + actionButtons(id, guest, num) + '</div></article>';
     }).join('') + '</div>';
   }
 
@@ -528,6 +528,62 @@
     qsa('[data-delete-guest]').forEach(function (btn) { btn.addEventListener('click', function () { deleteGuests([Number(btn.dataset.deleteGuest)]); }); });
     qsa('[data-send]').forEach(function (btn) { btn.addEventListener('click', function () { sendOrder(Number(btn.dataset.send), btn.dataset.channel); }); });
     qsa('[data-note]').forEach(function (btn) { btn.addEventListener('click', function () { editOrderNote(Number(btn.dataset.note)); }); });
+    qsa('[data-order-row]').forEach(function (row) {
+      function openFromRow(event) {
+        if (event.target.closest('button, a, input, select, textarea, label')) return;
+        if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.type === 'keydown') event.preventDefault();
+        openOrderDetail(Number(row.dataset.orderRow), row.dataset.orderGuest === '1');
+      }
+      row.addEventListener('click', openFromRow);
+      row.addEventListener('keydown', openFromRow);
+    });
+  }
+
+  function orderDetailItems(items) {
+    if (!items || !items.length) return '<div class="empty compact">Позиций нет</div>';
+    return '<div class="detail-list">' + items.map(function (item) {
+      var name = item.product_name || item.name || 'Товар';
+      var qty = Number(item.qty || 1);
+      var price = Number(item.price || item.unit_price || 0);
+      return '<div class="detail-line"><div><strong>' + escapeHtml(name) + '</strong>' + (item.sku ? '<small>' + escapeHtml(item.sku) + '</small>' : '') + '</div><span>' + qty + ' шт.' + (price ? ' · ' + money(price) : '') + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  function openOrderDetail(id, guest) {
+    var list = guest ? state.guests : state.orders;
+    var order = list.find(function (item) { return Number(item.id) === id; });
+    if (!order) return;
+    var num = (guest ? 'G-' : 'SH-') + String(id).padStart(5, '0');
+    var clientName = order.name || order.user_name || 'Без имени';
+    var clientPhone = phone(order.phone || order.user_phone);
+    var body = '<div class="detail-editor"><section class="detail-summary"><div class="detail-kpi"><span>Сумма</span><strong>' + money(order.total) + '</strong></div><div class="detail-kpi"><span>Статус</span>' + statusBadge(order.status || 'new') + '</div><div class="detail-kpi"><span>Создан</span><strong>' + fmtDate(order.created_at) + '</strong></div></section>' +
+      '<section class="panel"><div class="panel-head"><div><h3 class="panel-title">Клиент</h3><div class="panel-subtitle">Контактные данные заявки</div></div></div><div class="panel-body detail-grid">' + detailField('Имя', clientName) + detailField('Телефон', clientPhone) + detailField('Email', order.email || order.user_email) + detailField('Telegram', order.telegram) + detailField('Адрес', order.address || order.delivery_address, 'wide') + '</div></section>' +
+      '<section class="panel"><div class="panel-head"><div><h3 class="panel-title">Состав</h3><div class="panel-subtitle">Все позиции без обрезания</div></div></div><div class="panel-body">' + orderDetailItems(order.items) + '</div></section>' +
+      '<section class="panel"><div class="panel-head"><div><h3 class="panel-title">Обработка</h3><div class="panel-subtitle">Статус' + (guest ? '' : ' и внутренняя заметка') + '</div></div></div><div class="panel-body form-grid"><label class="field"><span>Статус</span>' + detailStatusControl(order.status || 'new', guest) + '</label>' + (guest ? '' : '<label class="field wide"><span>Заметка менеджера</span><textarea class="textarea" id="detail-order-note">' + escapeHtml(order.admin_note || '') + '</textarea></label>') + (order.comment ? '<div class="field wide"><span>Комментарий клиента</span><div class="detail-value">' + escapeHtml(order.comment) + '</div></div>' : '') + '</div></section></div>';
+    openDrawer((guest ? 'Гостевая заявка: ' : 'Заказ: ') + num, body, '<button class="btn ghost" data-close-drawer>Закрыть</button><button class="btn primary" id="save-order-detail">' + icon('save') + '<span>Сохранить</span></button>');
+    qs('#save-order-detail').addEventListener('click', async function () {
+      try {
+        var status = qs('#detail-order-status').value;
+        if (guest) await api('bulk_status_guest', {}, { method: 'POST', body: { order_ids: [id], status: status } });
+        else {
+          await api('order_status', {}, { method: 'POST', body: { order_id: id, status: status } });
+          await api('admin_note', {}, { method: 'POST', body: { order_id: id, note: qs('#detail-order-note').value } });
+        }
+        closeDrawer();
+        toast(guest ? 'Гостевая заявка сохранена' : 'Заказ сохранен', 'ok');
+        guest ? renderGuests() : renderOrders();
+      } catch (err) { toast(err.message, 'bad'); }
+    });
+  }
+
+  function detailStatusControl(value, guest) {
+    var statuses = Object.keys(statusMap).filter(function (s) { return !guest || s !== 'shipped'; });
+    return '<select class="select" id="detail-order-status">' + statuses.map(function (s) { return '<option value="' + s + '"' + (s === value ? ' selected' : '') + '>' + statusMap[s] + '</option>'; }).join('') + '</select>';
+  }
+
+  function detailField(label, value, cls) {
+    return '<div class="field ' + (cls || '') + '"><span>' + escapeHtml(label) + '</span><div class="detail-value' + (!value ? ' muted' : '') + '">' + escapeHtml(value || 'Не указано') + '</div></div>';
   }
 
   function bindBulk(type, guest) {
@@ -909,7 +965,8 @@
       var rows = data.visitors || [];
       setHeader('Посетители', 'Источник, устройство, привязанные контакты');
       viewRoot().innerHTML = '<div class="panel"><div class="table-wrap">' + visitorsTable(rows) + '</div>' + visitorsCards(rows) + '</div>' + pager(data.page || 1, data.total || 0, VISITOR_PAGE_SIZE, 'visitors');
-      bindPager();
+        bindVisitorRows(rows);
+        bindPager();
       hydrateIcons();
     } catch (err) { failView(err); }
   }
@@ -917,15 +974,37 @@
   function visitorsTable(rows) {
     if (!rows.length) return '<div class="empty">Посетителей пока нет</div>';
     return '<table class="data-table"><thead><tr><th>VID</th><th>Первый/последний</th><th>Визиты</th><th>Источник</th><th>Устройство</th><th>Контакт</th></tr></thead><tbody>' + rows.map(function (v) {
-      return '<tr><td class="mono">' + escapeHtml(v.vid) + '</td><td>' + fmtDate(v.first_seen) + '<div class="muted">' + fmtDate(v.last_seen) + '</div></td><td>' + escapeHtml(v.visits_count) + '</td><td>' + escapeHtml(v.first_utm_source || v.first_referrer || '') + '</td><td>' + escapeHtml(v.device || '') + '<div class="muted">' + escapeHtml(v.last_ip || '') + '</div></td><td>' + escapeHtml(v.linked_name || '') + '<div class="muted">' + escapeHtml(v.linked_phone || '') + '</div></td></tr>';
+        return '<tr class="visitor-row" data-visitor-row="' + escapeHtml(v.vid) + '" tabindex="0" aria-label="Открыть посетителя ' + escapeHtml(v.vid) + '"><td class="mono">' + escapeHtml(v.vid) + '</td><td>' + fmtDate(v.first_seen) + '<div class="muted">' + fmtDate(v.last_seen) + '</div></td><td>' + escapeHtml(v.visits_count) + '</td><td>' + escapeHtml(v.first_utm_source || v.first_referrer || '') + '</td><td>' + escapeHtml(v.device || '') + '<div class="muted">' + escapeHtml(v.last_ip || '') + '</div></td><td>' + escapeHtml(v.linked_name || '') + '<div class="muted">' + escapeHtml(v.linked_phone || '') + '</div></td></tr>';
     }).join('') + '</tbody></table>';
   }
 
   function visitorsCards(rows) {
     if (!rows.length) return '<div class="mobile-list"><div class="empty">Посетителей пока нет</div></div>';
     return '<div class="mobile-list">' + rows.map(function (v) {
-      return '<article class="mobile-item"><div class="mobile-item-title mono">' + escapeHtml(v.vid) + '</div><div class="mobile-item-meta">' + fmtDate(v.last_seen) + ' / визитов: ' + escapeHtml(v.visits_count) + '</div><div>' + escapeHtml(v.first_utm_source || v.first_referrer || '') + '</div><div class="mobile-item-meta">' + escapeHtml(v.device || '') + ' ' + escapeHtml(v.last_ip || '') + '</div></article>';
+        return '<article class="mobile-item visitor-card" data-visitor-row="' + escapeHtml(v.vid) + '" tabindex="0" aria-label="Открыть посетителя ' + escapeHtml(v.vid) + '"><div class="mobile-item-title mono">' + escapeHtml(v.vid) + '</div><div class="mobile-item-meta">' + fmtDate(v.last_seen) + ' / визитов: ' + escapeHtml(v.visits_count) + '</div><div>' + escapeHtml(v.first_utm_source || v.first_referrer || '') + '</div><div class="mobile-item-meta">' + escapeHtml(v.device || '') + ' ' + escapeHtml(v.last_ip || '') + '</div></article>';
     }).join('') + '</div>';
+  }
+
+  function bindVisitorRows(rows) {
+    qsa('[data-visitor-row]').forEach(function (row) {
+      function openFromRow(event) {
+        if (event.target.closest('button, a, input, select, textarea, label')) return;
+        if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.type === 'keydown') event.preventDefault();
+        var visitor = rows.find(function (item) { return String(item.vid) === row.dataset.visitorRow; });
+        if (visitor) showVisitorDetail(visitor);
+      }
+      row.addEventListener('click', openFromRow);
+      row.addEventListener('keydown', openFromRow);
+    });
+  }
+
+  function showVisitorDetail(visitor) {
+    var source = visitor.first_utm_source || visitor.first_referrer || 'Прямой переход';
+    var body = '<div class="detail-editor"><section class="detail-summary"><div class="detail-kpi"><span>Визитов</span><strong>' + escapeHtml(visitor.visits_count || 0) + '</strong></div><div class="detail-kpi"><span>Первый визит</span><strong>' + fmtDate(visitor.first_seen) + '</strong></div><div class="detail-kpi"><span>Последний визит</span><strong>' + fmtDate(visitor.last_seen) + '</strong></div></section>' +
+      '<section class="panel"><div class="panel-head"><div><h3 class="panel-title">Источник и устройство</h3><div class="panel-subtitle">Откуда пришёл посетитель и с чего заходил</div></div></div><div class="panel-body detail-grid">' + detailField('Источник', source, 'wide') + detailField('UTM medium', visitor.first_utm_medium) + detailField('UTM campaign', visitor.first_utm_campaign) + detailField('Устройство', visitor.device) + detailField('Последний IP', visitor.last_ip) + detailField('Первый referrer', visitor.first_referrer, 'wide') + '</div></section>' +
+      '<section class="panel"><div class="panel-head"><div><h3 class="panel-title">Привязанный контакт</h3><div class="panel-subtitle">Данные появятся после идентификации посетителя</div></div></div><div class="panel-body detail-grid">' + detailField('Имя', visitor.linked_name) + detailField('Телефон', visitor.linked_phone) + detailField('Заказ', visitor.linked_order_id ? String(visitor.linked_order_id) : '') + detailField('VID', visitor.vid, 'wide mono') + '</div></section></div>';
+    openDrawer('Посетитель', body, '<button class="btn primary" data-close-drawer>Готово</button>');
   }
 
   async function loadPriceProducts() {
@@ -966,6 +1045,7 @@
       toast(err.message || 'Не удалось сформировать прайс', 'bad');
       return false;
     }
+
     toast('Генератор прайса еще загружается', 'bad');
     return false;
   }
