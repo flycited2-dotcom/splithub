@@ -29,6 +29,7 @@
     editorTab: 'main',
     charts: {}
   };
+  var drawerReturnFocus = null;
 
   var navItems = [
     { key: 'overview', label: 'Обзор', icon: 'layout-dashboard', section: 'Работа' },
@@ -665,14 +666,14 @@
 
   function clientRow(u) {
     var name = escapeHtml(u.name || String(u.id));
-    return '<tr><td><b>' + name + '</b><div class="muted">' + escapeHtml(phone(u.phone)) + (u.email ? ' / ' + escapeHtml(u.email) : '') + (u.telegram ? ' / @' + escapeHtml(u.telegram) : '') + '</div></td><td>' + roleSelect(u) + '</td><td>' + escapeHtml(u.company_name || '') + '<div class="muted mono">' + escapeHtml(u.inn || '') + '</div></td><td><b>' + money(u.bonus_balance) + '</b></td><td>' + escapeHtml(u.order_count || 0) + '<div class="muted">' + money(u.total_spent) + '</div></td><td><div class="table-actions"><button class="btn small" data-client="' + u.id + '" aria-label="Открыть клиента ' + name + '" title="Открыть карточку">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '" aria-label="Удалить клиента ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></td></tr>';
+    return '<tr class="client-row" data-client-row="' + u.id + '" tabindex="0" aria-label="Открыть клиента ' + name + '"><td><b>' + name + '</b><div class="muted">' + escapeHtml(phone(u.phone)) + (u.email ? ' / ' + escapeHtml(u.email) : '') + (u.telegram ? ' / @' + escapeHtml(u.telegram) : '') + '</div></td><td>' + roleSelect(u) + '</td><td>' + escapeHtml(u.company_name || '') + '<div class="muted mono">' + escapeHtml(u.inn || '') + '</div></td><td><b>' + money(u.bonus_balance) + '</b></td><td>' + escapeHtml(u.order_count || 0) + '<div class="muted">' + money(u.total_spent) + '</div></td><td><div class="table-actions"><button class="btn small" data-client="' + u.id + '" aria-label="Открыть клиента ' + name + '" title="Открыть карточку">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '" aria-label="Удалить клиента ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></td></tr>';
   }
 
   function clientsCards(users) {
     if (!users.length) return '<div class="mobile-list"><div class="empty">Клиенты не найдены</div></div>';
     return '<div class="mobile-list">' + users.map(function (u) {
       var name = escapeHtml(u.name || String(u.id));
-      return '<article class="mobile-item"><div class="mobile-item-head"><div><div class="mobile-item-title">' + name + '</div><div class="mobile-item-meta">' + escapeHtml(phone(u.phone)) + (u.email ? ' · ' + escapeHtml(u.email) : '') + '</div></div><span class="status">' + escapeHtml(u.role) + '</span></div><div class="mobile-item-meta">' + escapeHtml(u.company_name || '') + '</div><b>' + money(u.bonus_balance) + '</b><div class="table-actions" style="margin-top:10px"><button class="btn small" data-client="' + u.id + '" aria-label="Открыть клиента ' + name + '" title="Открыть карточку">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '" aria-label="Удалить клиента ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></article>';
+      return '<article class="mobile-item client-card" data-client-row="' + u.id + '" tabindex="0" aria-label="Открыть клиента ' + name + '"><div class="mobile-item-head"><div><div class="mobile-item-title">' + name + '</div><div class="mobile-item-meta">' + escapeHtml(phone(u.phone)) + (u.email ? ' · ' + escapeHtml(u.email) : '') + '</div></div><span class="status">' + escapeHtml(u.role) + '</span></div><div class="mobile-item-meta">' + escapeHtml(u.company_name || '') + '</div><b>' + money(u.bonus_balance) + '</b><div class="table-actions" style="margin-top:10px"><button class="btn small" data-client="' + u.id + '" aria-label="Открыть клиента ' + name + '" title="Открыть карточку">' + icon('panel-right-open') + '</button><button class="btn small danger" data-delete-user="' + u.id + '" aria-label="Удалить клиента ' + name + '" title="Удалить">' + icon('trash-2') + '</button></div></article>';
     }).join('') + '</div>';
   }
 
@@ -702,6 +703,16 @@
       });
     });
     qsa('[data-client]').forEach(function (btn) { btn.addEventListener('click', function () { openClient(Number(btn.dataset.client)); }); });
+    qsa('[data-client-row]').forEach(function (row) {
+      function openFromRow(event) {
+        if (event.target.closest('button, a, input, select, textarea, label')) return;
+        if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.type === 'keydown') event.preventDefault();
+        openClient(Number(row.dataset.clientRow));
+      }
+      row.addEventListener('click', openFromRow);
+      row.addEventListener('keydown', openFromRow);
+    });
   }
 
   async function openClient(id) {
@@ -750,7 +761,7 @@
   }
 
   function clientDrawerHtml(u) {
-    return '<form id="client-form" class="panel"><div class="panel-body form-grid">' +
+    return '<div class="client-editor"><form id="client-form" class="panel"><div class="panel-body form-grid">' +
       field('name', 'Имя', u.name) + field('phone', 'Телефон', u.phone) + field('email', 'Email', u.email) + field('telegram', 'Telegram', u.telegram) +
       field('company_name', 'Компания', u.company_name) + field('inn', 'ИНН', u.inn) + field('kpp', 'КПП', u.kpp) +
       field('legal_address', 'Юр. адрес', u.legal_address, 'wide') + '</div></form>' +
@@ -758,7 +769,7 @@
       '<label class="field"><span>Новый пароль</span><input class="input" id="client-pass" type="password" minlength="8" autocomplete="new-password"><small class="field-hint">Не менее 8 символов</small></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-pass-btn" type="button">' + icon('key-round') + '<span>Сменить</span></button></div>' +
       '<label class="field"><span>Корректировка бонусов</span><input class="input" id="client-bonus" type="number" placeholder="Напр. 500 или -200"></label><label class="field"><span>Комментарий</span><input class="input" id="client-bonus-desc"></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-bonus-btn" type="button">' + icon('badge-russian-ruble') + '<span>Применить</span></button></div>' +
       '<label class="field wide"><span>Push от менеджера</span><textarea class="textarea" id="client-push"></textarea></label><div class="field"><span>&nbsp;</span><button class="btn" id="client-push-btn" type="button">' + icon('send') + '<span>Отправить</span></button></div>' +
-      '</div></div>';
+      '</div></div></div>';
   }
 
   function field(name, label, value, cls) {
@@ -1209,9 +1220,9 @@
   }
 
   function productEditorHtml(p, isCustom) {
-    return '<div class="tabs">' +
+    return '<div class="product-editor"><div class="tabs">' +
       tab('main', 'Главное', 'sliders-horizontal') + tab('media', 'Фото', 'images') + tab('text', 'Описание', 'file-text') + tab('tech', 'Характеристики', 'settings-2') +
-      '</div><div id="product-editor-body">' + productEditorTabHtml(p, isCustom) + '</div>';
+      '</div><div id="product-editor-body">' + productEditorTabHtml(p, isCustom) + '</div></div>';
   }
 
   function productEditorFooter(isCustom) {
@@ -1262,11 +1273,11 @@
   }
 
   function productTextTab(p) {
-    return '<div class="panel"><div class="panel-body form-grid"><label class="field wide"><span>Краткое описание</span><input class="input" id="pe-descShort" value="' + escapeHtml(p.descShort || '') + '"></label><label class="field wide"><span>Преимущество в карточке</span><input class="input" id="pe-cardBenef" value="' + escapeHtml(p.cardBenef || '') + '"></label><label class="field wide"><span>Админское описание на карточке</span><textarea class="textarea" id="pe-description">' + escapeHtml(p.description || '') + '</textarea></label><label class="field wide"><span>Преимущества, по одному в строке</span><textarea class="textarea" id="pe-benefits">' + escapeHtml((p.benefits || []).join('\n')) + '</textarea></label></div></div>';
+    return '<div class="panel description-panel"><div class="panel-body form-grid"><label class="field wide"><span>Краткое описание</span><input class="input" id="pe-descShort" value="' + escapeHtml(p.descShort || '') + '"></label><label class="field wide"><span>Преимущество в карточке</span><input class="input" id="pe-cardBenef" value="' + escapeHtml(p.cardBenef || '') + '"></label><label class="field wide"><span>Админское описание на карточке</span><textarea class="textarea" id="pe-description">' + escapeHtml(p.description || '') + '</textarea></label><label class="field wide"><span>Преимущества, по одному в строке</span><textarea class="textarea" id="pe-benefits">' + escapeHtml((p.benefits || []).join('\n')) + '</textarea></label></div></div>';
   }
 
   function productTechTab(p) {
-    return '<div class="panel"><div class="panel-body form-grid"><div class="field wide"><span>BTU</span><div class="chip-row">' + ['07','09','12','18','24','30','36','48','60'].map(function (b) { return '<button class="chip ' + (p.btu === b ? 'active' : '') + '" data-btu="' + b + '">' + b + '</button>'; }).join('') + '</div></div><label class="field"><span>Площадь, м²</span><input class="input" id="pe-area" type="number" value="' + escapeHtml(p.area || 0) + '"></label><label class="field"><span>Завод</span><input class="input" id="pe-factory" value="' + escapeHtml(p.factory || '') + '"></label><label class="field"><span>Компрессор</span><input class="input" id="pe-compressor" value="' + escapeHtml(p.compressor || '') + '"></label><label class="field"><span>Фреон</span><input class="input" id="pe-freon" value="' + escapeHtml(p.freon || '') + '"></label><label class="field"><span>Цвет</span><input class="input" id="pe-color" value="' + escapeHtml(p.color || '') + '"></label><label class="field"><span>Brand code</span><input class="input" id="pe-brandCode" value="' + escapeHtml(p.brandCode || '') + '"></label></div></div>';
+    return '<div class="panel"><div class="panel-body form-grid"><div class="field wide"><span>BTU</span><div class="chip-row">' + ['07','09','12','18','24','30','36','48','60'].map(function (b) { return '<button class="chip ' + (p.btu === b ? 'active' : '') + '" data-btu="' + b + '" type="button">' + b + '</button>'; }).join('') + '</div></div><label class="field"><span>Площадь, м²</span><input class="input" id="pe-area" type="number" value="' + escapeHtml(p.area || 0) + '"></label><label class="field"><span>Завод</span><input class="input" id="pe-factory" value="' + escapeHtml(p.factory || '') + '"></label><label class="field"><span>Компрессор</span><input class="input" id="pe-compressor" value="' + escapeHtml(p.compressor || '') + '"></label><label class="field"><span>Фреон</span><input class="input" id="pe-freon" value="' + escapeHtml(p.freon || '') + '"></label><label class="field"><span>Цвет</span><input class="input" id="pe-color" value="' + escapeHtml(p.color || '') + '"></label><label class="field"><span>Код бренда</span><input class="input" id="pe-brandCode" value="' + escapeHtml(p.brandCode || '') + '"></label></div></div>';
   }
 
   function bindProductEditor(isCustom) {
@@ -1482,12 +1493,23 @@
   }
 
   function openDrawer(title, body, foot) {
-    qs('#drawer-backdrop').classList.add('on');
     var drawer = qs('#drawer');
+    var wasOpen = drawer.classList.contains('on');
+    if (!wasOpen) {
+      var active = document.activeElement;
+      if (active && active !== document.body && !active.closest('#drawer')) drawerReturnFocus = active;
+    }
+    qs('#drawer-backdrop').classList.add('on');
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+    drawer.setAttribute('aria-label', title);
     drawer.classList.add('on');
+    document.body.classList.add('modal-open');
     drawer.innerHTML = '<div class="drawer-head"><h2 class="drawer-title">' + escapeHtml(title) + '</h2><button class="icon-btn" data-close-drawer aria-label="Закрыть редактор" title="Закрыть">' + icon('x') + '</button></div><div class="drawer-scroll">' + body + '</div><div class="drawer-foot">' + foot + '</div>';
     qsa('[data-close-drawer]', drawer).forEach(function (btn) { btn.addEventListener('click', closeDrawer); });
     hydrateIcons();
+    var closeButton = qs('[data-close-drawer]', drawer);
+    if (!wasOpen && closeButton) closeButton.focus({ preventScroll: true });
   }
 
   function closeDrawer() {
@@ -1498,6 +1520,9 @@
       drawer.classList.remove('on');
       drawer.innerHTML = '';
     }
+    document.body.classList.remove('modal-open');
+    if (drawerReturnFocus && drawerReturnFocus.isConnected) drawerReturnFocus.focus({ preventScroll: true });
+    drawerReturnFocus = null;
   }
 
   async function init() {
