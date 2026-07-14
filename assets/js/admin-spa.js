@@ -129,8 +129,12 @@
   async function request(url, options) {
     var opts = options || {};
     var res = await fetch(url, opts);
+    var responseText = await res.text();
     var data;
-    try { data = await res.json(); } catch (e) { data = { ok: false, error: 'Некорректный ответ сервера' }; }
+    try { data = JSON.parse(responseText); } catch (e) {
+      data = { ok: false, error: 'Сервер вернул некорректный ответ (HTTP ' + res.status + ')' };
+      data.responsePreview = responseText.slice(0, 300);
+    }
     if (!res.ok || data.ok === false) {
       var err = new Error(data.error || ('HTTP ' + res.status));
       err.status = res.status;
@@ -1020,6 +1024,7 @@
       await loadPriceProducts();
       setHeader('Прайс', 'Excel/PDF, отправка в Telegram или email');
       viewRoot().innerHTML = [
+        '<section class="panel"><div class="panel-head"><div><h2 class="panel-title">Импорт мастер-файла</h2><div class="panel-subtitle">XLSX обновляет базовый каталог; ручные изменения товаров сохраняются поверх него по SKU</div></div></div><div class="panel-body form-grid"><label class="field wide"><span>Мастер-файл Excel</span><input class="input" id="master-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"><small class="field-hint">Лист PRODUCTS или первый лист. Формат колонок совпадает с converter/config/mapping.json.</small></label><label class="field wide"><span>Изображения из колонки photo (необязательно)</span><input class="input" id="master-images" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple><small class="field-hint">Имена файлов сохраняются. Можно выбрать все изображения одним разом.</small></label><div class="wide toolbar-right"><button class="btn primary" id="master-import">' + icon('upload-cloud') + '<span>Проверить и загрузить</span></button></div><div class="wide field-hint" id="master-status">При импорте создаётся резервная копия. Кнопка «Сбросить» в редакторе товара возвращает данные из последнего мастер-файла.</div></div></section>',
         '<section class="quick-grid">',
         '<button class="btn quick-action" id="price-xlsx">' + icon('file-spreadsheet') + '<strong>Скачать Excel</strong><span>Генератор с текущими товарами</span></button>',
         '<button class="btn quick-action" id="price-pdf">' + icon('file-text') + '<strong>Скачать PDF</strong><span>Печатный прайс</span></button>',
@@ -1033,8 +1038,103 @@
       qs('#send-xlsx-tg').addEventListener('click', function () { sendGeneratedPrice('xlsx', 'tg'); });
       qs('#send-xlsx-email').addEventListener('click', function () { sendGeneratedPrice('xlsx', 'email'); });
       qs('#send-pdf-tg').addEventListener('click', function () { sendGeneratedPrice('pdf', 'tg'); });
+      qs('#master-import').addEventListener('click', importMasterCatalog);
       hydrateIcons();
     } catch (err) { failView(err); }
+  }
+
+  function masterCellText(value) {
+    if (value == null) return '';
+    if (typeof value === 'object') {
+      if (value.text != null) return String(value.text).trim();
+      if (value.result != null) return String(value.result).trim();
+      if (Array.isArray(value.richText)) return value.richText.map(function (part) { return part.text || ''; }).join('').trim();
+    }
+    return String(value).trim();
+  }
+
+  async function readMasterWorkbook(file) {
+    if (!window.ExcelJS) throw new Error('Модуль Excel ещё не загрузился. Обновите страницу и повторите.');
+    var workbook = new window.ExcelJS.Workbook();
+    await workbook.xlsx.load(await file.arrayBuffer());
+    var sheet = workbook.getWorksheet('PRODUCTS') || workbook.worksheets[0];
+    if (!sheet) throw new Error('В файле нет листов');
+    var mapping = {
+      active:'active', id:'id', sku:'sku', brand_code:'brandCode', brand_name:'brand', series:'series', model:'model',
+      catalog_group:'group', type:'type', factory:'factory', color:'color', btu:'btu', area_m2:'area', price:'price',
+      stock_status:'stock', stock_label:'stockLabel', description_short:'descShort', card_benefits:'cardBenef',
+      modal_benefits:'benefits', compressor:'compressor', freon:'freon', photo:'photo', sort_order:'sortOrder'
+    };
+    var columns = {};
+    sheet.getRow(1).eachCell(function (cell, col) {
+      var header = masterCellText(cell.value);
+      if (mapping[header]) columns[col] = mapping[header];
+    });
+    ['sku','brand','model','group','price','stock','stockLabel','descShort'].forEach(function (field) {
+      if (Object.keys(columns).every(function (col) { return columns[col] !== field; })) throw new Error('В Excel отсутствует обязательная колонка для поля «' + field + '»');
+    });
+    var products = [];
+    sheet.eachRow(function (row, rowNumber) {
+      if (rowNumber === 1) return;
+      var item = {};
+      Object.keys(columns).forEach(function (col) { item[columns[col]] = masterCellText(row.getCell(Number(col)).value); });
+      if (Object.keys(item).every(function (key) { return item[key] === ''; })) return;
+      var active = String(item.active == null || item.active === '' ? '1' : item.active).toLowerCase();
+      if (['1','yes','true','да'].indexOf(active) < 0) return;
+      item.price = Math.round(Number(String(item.price || '').replace(/\s/g, '').replace(',', '.')) || 0);
+      item.area = Math.round(Number(String(item.area || '').replace(',', '.')) || 0);
+      if (item.btu && item.btu !== '-') item.btu = String(Math.round(Number(item.btu) || 0)).padStart(2, '0');
+      item.benefits = String(item.benefits || '').split('|').map(function (x) { return x.trim(); }).filter(Boolean);
+      item._sortOrder = Math.round(Number(item.sortOrder) || 999);
+      delete item.active;
+      delete item.sortOrder;
+      products.push(item);
+    });
+    products.sort(function (a, b) {
+      var orderDiff = a._sortOrder - b._sortOrder;
+      if (orderDiff) return orderDiff;
+      var aId = /^\d+$/.test(String(a.id || '')) ? Number(a.id) : 9999;
+      var bId = /^\d+$/.test(String(b.id || '')) ? Number(b.id) : 9999;
+      return aId - bId;
+    });
+    products.forEach(function (item) { delete item._sortOrder; });
+    return products;
+  }
+
+  async function importMasterCatalog() {
+    var input = qs('#master-file');
+    var imageInput = qs('#master-images');
+    var status = qs('#master-status');
+    var button = qs('#master-import');
+    if (!input.files || !input.files[0]) return toast('Выберите мастер-файл XLSX', 'bad');
+    button.disabled = true;
+    try {
+      status.textContent = 'Читаем и проверяем Excel…';
+      var products = await readMasterWorkbook(input.files[0]);
+      if (!products.length) throw new Error('В файле нет активных товаров');
+      if (!confirm('Загрузить ' + products.length + ' товаров в базовый каталог? Ручные правки в админке останутся поверх него.')) return;
+      var images = Array.prototype.slice.call((imageInput && imageInput.files) || []);
+      for (var i = 0; i < images.length; i++) {
+        status.textContent = 'Загружаем изображения: ' + (i + 1) + ' из ' + images.length + '…';
+        var fd = new FormData();
+        fd.append('photo', images[i]);
+        await api('catalog_image_upload', {}, { body: fd });
+      }
+      status.textContent = 'Обновляем каталог…';
+      var result = await api('catalog_master_import', {}, { method: 'POST', body: { products: products } });
+      var notes = ['Загружено товаров: ' + result.imported];
+      if (result.missing_photos && result.missing_photos.length) notes.push('не найдено фото: ' + result.missing_photos.length);
+      if (result.orphan_overrides && result.orphan_overrides.length) notes.push('правок без товара: ' + result.orphan_overrides.length);
+      status.textContent = notes.join(' · ') + '. Резервная копия: ' + result.backup;
+      toast('Мастер-каталог обновлён', 'ok');
+      await loadPriceProducts();
+    } catch (err) {
+      status.textContent = err.message || 'Импорт не выполнен';
+      if (err.data && err.data.errors && err.data.errors.length) status.textContent += ': ' + err.data.errors.slice(0, 3).join('; ');
+      toast(err.message || 'Импорт не выполнен', 'bad');
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function runPriceGenerator(type) {

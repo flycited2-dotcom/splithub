@@ -1,7 +1,33 @@
 <?php
+ob_start();
 /**
  * Admin API
  */
+
+// Admin endpoints must always return JSON. Without this guard a PHP warning or
+// fatal error turns into an HTML/empty response and the UI can only show the
+// unhelpful "Некорректный ответ сервера" message.
+set_error_handler(function($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+set_exception_handler(function($error) {
+    error_log('[SplitHub admin] ' . $error->getMessage() . ' in ' . $error->getFile() . ':' . $error->getLine());
+    if (ob_get_length()) ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Ошибка сервера. Подробности записаны в журнал.'], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if (!$error || !in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
+    error_log('[SplitHub admin] Fatal: ' . ($error['message'] ?? '') . ' in ' . ($error['file'] ?? '?') . ':' . ($error['line'] ?? 0));
+    if (ob_get_length()) ob_clean();
+    if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Критическая ошибка сервера. Подробности записаны в журнал.'], JSON_UNESCAPED_UNICODE);
+});
 
 require __DIR__ . '/../db/init.php';
 require_once __DIR__ . '/lib/push.php';
@@ -15,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 // Public product overrides — no auth required
 $action = $_GET['action'] ?? '';
 if ($action === 'products_overrides_public') {
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     $db = getDB();
     $rows = $db->query("SELECT sku, description, badge, badge_label, active, data_json, updated_at FROM product_overrides")->fetchAll();
     $map = [];
@@ -501,6 +528,68 @@ switch ($action) {
             jsonResponse(['ok' => false, 'error' => 'Не удалось сохранить файл'], 500);
         }
         jsonResponse(['ok' => true, 'filename' => $filename, 'path' => 'assets/img/products/' . $filename]);
+        break;
+
+    // Upload a catalog image preserving its filename. Used by the master-file
+    // workflow because the XLSX photo column refers to exact filenames.
+    case 'catalog_image_upload':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        if (empty($_FILES['photo']) || !is_uploaded_file($_FILES['photo']['tmp_name'])) {
+            jsonResponse(['ok' => false, 'error' => 'photo required'], 422);
+        }
+        if (($_FILES['photo']['size'] ?? 0) > 8 * 1024 * 1024) {
+            jsonResponse(['ok' => false, 'error' => 'Файл больше 8 МБ'], 422);
+        }
+        $filename = adminNormalizeImageName($_FILES['photo']['name'] ?? '');
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        if ($filename === '' || !in_array($ext, ['jpg','jpeg','png','webp','gif'], true)) {
+            jsonResponse(['ok' => false, 'error' => 'Поддерживаются JPG, PNG, WEBP, GIF'], 422);
+        }
+        $imageInfo = @getimagesize($_FILES['photo']['tmp_name']);
+        if (!$imageInfo || !in_array($imageInfo['mime'] ?? '', ['image/jpeg','image/png','image/webp','image/gif'], true)) {
+            jsonResponse(['ok' => false, 'error' => 'Файл не является корректным изображением'], 422);
+        }
+        $dir = __DIR__ . '/../assets/img/products';
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) jsonResponse(['ok' => false, 'error' => 'Не удалось создать папку изображений'], 500);
+        $target = $dir . '/' . $filename;
+        $tmpTarget = $target . '.upload.' . bin2hex(random_bytes(4));
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $tmpTarget)) jsonResponse(['ok' => false, 'error' => 'Не удалось сохранить изображение'], 500);
+        if (!rename($tmpTarget, $target)) {
+            @unlink($tmpTarget);
+            jsonResponse(['ok' => false, 'error' => 'Не удалось заменить изображение'], 500);
+        }
+        jsonResponse(['ok' => true, 'filename' => $filename, 'path' => 'assets/img/products/' . $filename]);
+        break;
+
+    // Replace the base catalog generated from the XLSX master file. Manual
+    // overrides live in SQLite and deliberately remain untouched.
+    case 'catalog_master_import':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($raw) || !isset($raw['products']) || !is_array($raw['products'])) {
+            jsonResponse(['ok' => false, 'error' => 'Список товаров не передан'], 422);
+        }
+        [$products, $errors, $warnings] = adminValidateMasterProducts($raw['products']);
+        if ($errors) jsonResponse(['ok' => false, 'error' => 'Мастер-файл не прошёл проверку', 'errors' => array_slice($errors, 0, 50), 'warnings' => array_slice($warnings, 0, 50)], 422);
+        if (!$products) jsonResponse(['ok' => false, 'error' => 'В мастер-файле нет активных товаров'], 422);
+        $backup = adminWriteMasterCatalog($products);
+        $baseSkus = array_fill_keys(array_column($products, 'sku'), true);
+        $overrideSkus = $db->query('SELECT sku FROM product_overrides')->fetchAll(PDO::FETCH_COLUMN);
+        $orphanOverrides = array_values(array_filter($overrideSkus, function($sku) use ($baseSkus) { return !isset($baseSkus[$sku]); }));
+        $photoDir = __DIR__ . '/../assets/img/products';
+        $missingPhotos = [];
+        foreach ($products as $product) {
+            $photo = adminNormalizeImageName($product['photo'] ?? '');
+            if ($photo !== '' && !preg_match('#^https?://#i', $photo) && !is_file($photoDir . '/' . $photo)) $missingPhotos[] = $photo;
+        }
+        jsonResponse([
+            'ok' => true,
+            'imported' => count($products),
+            'backup' => $backup,
+            'warnings' => array_slice($warnings, 0, 50),
+            'missing_photos' => array_values(array_unique($missingPhotos)),
+            'orphan_overrides' => $orphanOverrides,
+        ]);
         break;
 
     // ── List products + overrides ──
@@ -1059,6 +1148,65 @@ function adminReadProductsJs() {
     $js = rtrim($js, ";\r\n ");
     $products = json_decode($js, true);
     return is_array($products) ? $products : [];
+}
+
+function adminValidateMasterProducts($rows) {
+    $products = [];
+    $errors = [];
+    $warnings = [];
+    $seenSku = [];
+    $seenId = [];
+    $validGroups = ['inv','onoff','truba','rashod','poluprom','multi','pac_inv','pac_onoff'];
+    $validStocks = ['in_stock','days_1_2','days_3_5','order_7','order_14','order_30','out'];
+    foreach ($rows as $index => $row) {
+        $line = $index + 2;
+        if (!is_array($row)) { $errors[] = "Строка {$line}: неверный формат"; continue; }
+        $product = adminNormalizeProductPayload($row, true);
+        unset($product['active']);
+        $sku = trim((string)($product['sku'] ?? ''));
+        $id = trim((string)($product['id'] ?? ''));
+        if ($id === '') {
+            $id = strtolower(preg_replace('/[^a-zA-Z0-9_-]+/', '-', $sku));
+            $product['id'] = trim($id, '-_');
+        }
+        foreach (['sku' => 'SKU', 'brand' => 'бренд', 'model' => 'модель', 'group' => 'группа', 'stock' => 'наличие', 'stockLabel' => 'текст наличия', 'descShort' => 'краткое описание'] as $field => $label) {
+            if (trim((string)($product[$field] ?? '')) === '') $errors[] = "Строка {$line}: поле «{$label}» пустое";
+        }
+        if ((int)($product['price'] ?? 0) <= 0) $errors[] = "Строка {$line}: цена должна быть больше нуля";
+        if ($sku !== '' && isset($seenSku[$sku])) $errors[] = "Строка {$line}: SKU «{$sku}» повторяется";
+        if ($id !== '' && isset($seenId[$id])) $errors[] = "Строка {$line}: ID «{$id}» повторяется";
+        if ($sku !== '') $seenSku[$sku] = true;
+        if ($id !== '') $seenId[$id] = true;
+        if (!in_array($product['group'] ?? '', $validGroups, true)) $warnings[] = "Строка {$line}: неизвестная группа «" . ($product['group'] ?? '') . '»';
+        if (!in_array($product['stock'] ?? '', $validStocks, true)) $warnings[] = "Строка {$line}: неизвестный статус наличия «" . ($product['stock'] ?? '') . '»';
+        $products[] = $product;
+    }
+    return [$products, $errors, $warnings];
+}
+
+function adminWriteMasterCatalog($products) {
+    $root = realpath(__DIR__ . '/..');
+    if (!$root) throw new RuntimeException('Корень сайта не найден');
+    $jsFile = $root . '/products.js';
+    $jsonFile = $root . '/products.json';
+    $json = json_encode(array_values($products), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    if ($json === false) throw new RuntimeException('Не удалось сформировать каталог: ' . json_last_error_msg());
+    $json .= "\n";
+    $js = 'var PRODUCTS = ' . $json . ";\n";
+    $backupDir = __DIR__ . '/../db/catalog_backups';
+    if (!is_dir($backupDir) && !mkdir($backupDir, 0770, true)) throw new RuntimeException('Не удалось создать папку резервных копий');
+    $stamp = date('Ymd_His');
+    if (is_file($jsFile)) copy($jsFile, $backupDir . '/products_' . $stamp . '.js');
+    if (is_file($jsonFile)) copy($jsonFile, $backupDir . '/products_' . $stamp . '.json');
+    $jsTmp = $jsFile . '.tmp.' . bin2hex(random_bytes(4));
+    $jsonTmp = $jsonFile . '.tmp.' . bin2hex(random_bytes(4));
+    if (file_put_contents($jsTmp, $js, LOCK_EX) === false || file_put_contents($jsonTmp, $json, LOCK_EX) === false) {
+        @unlink($jsTmp); @unlink($jsonTmp);
+        throw new RuntimeException('Не удалось записать временные файлы каталога');
+    }
+    if (!rename($jsonTmp, $jsonFile)) { @unlink($jsTmp); @unlink($jsonTmp); throw new RuntimeException('Не удалось обновить products.json'); }
+    if (!rename($jsTmp, $jsFile)) { @unlink($jsTmp); throw new RuntimeException('Не удалось обновить products.js'); }
+    return 'db/catalog_backups/products_' . $stamp;
 }
 
 function adminProductFields() {
