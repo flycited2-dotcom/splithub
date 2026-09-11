@@ -1531,13 +1531,17 @@ function renderAll() {
     var g   = p.group;
     var bc  = p.brandCode;
     var bname = p.brand;
-    if (DRAIN_BC[bc])  { bc = '_drenaj';  bname = 'Дренаж'; }
-    else if (KREPEJ_BC[bc]) { bc = '_krepej'; bname = 'Крепеж (болты, гайки)'; }
+    if (DRAIN_BC[bc])  { bname = 'Дренаж'; }
+    else if (KREPEJ_BC[bc]) { bname = 'Крепеж (болты, гайки)'; }
+    // Блок бренда — ОДИН на раздел. Ключом был brandCode, а он у нас заведён по
+    // сериям (БИРЮСА: brcls/brfor/brleg/brsaf), из-за чего один бренд рисовался
+    // пятью одинаковыми блоками подряд. Группируем по имени бренда.
     if(!tree[g]) tree[g] = {};
-    if(!tree[g][bc]) tree[g][bc] = {brand:bname, factory:p.factory||'', series:{}};
+    if(!tree[g][bname]) tree[g][bname] = {brand:bname, factories:{}, series:{}};
+    if(p.factory) tree[g][bname].factories[p.factory] = 1;
     var s = p.series;
-    if(!tree[g][bc].series[s]) tree[g][bc].series[s] = {cardBenef:p.cardBenef, items:[]};
-    tree[g][bc].series[s].items.push(p);
+    if(!tree[g][bname].series[s]) tree[g][bname].series[s] = {cardBenef:p.cardBenef, items:[]};
+    tree[g][bname].series[s].items.push(p);
   });
 
   var html = '';
@@ -1550,11 +1554,13 @@ function renderAll() {
     }
     Object.keys(brands).forEach(function(bc) {
       var bData = brands[bc];
-      var bImg = LEGACY[bc] || '';
       html += '<div class="brand-block rv'+(currentFilter?' compact':'')+'">';
       html += '<div class="brand-head">';
       // Brand photos removed per ТЗ п.4 — unified brand headers without icons
-      var factoryTag = bData.factory ? '<span class="brand-factory">Завод\u00a0'+bData.factory+'</span>' : '';
+      // Завод показываем, только если он у блока один: после слияния серий
+      // в одном блоке могут оказаться разные заводы (DENKO — Changhong и TCL).
+      var fList = Object.keys(bData.factories);
+      var factoryTag = fList.length === 1 ? '<span class="brand-factory">Завод '+fList[0]+'</span>' : '';
       html += '<div class="brand-info"><div class="brand-title-row"><span class="brand-name">'+bData.brand+'</span>'+factoryTag+'</div><div class="brand-line"></div></div>';
       html += '</div>';
       // For accessories/pipes — flat grid without series sub-headings.
