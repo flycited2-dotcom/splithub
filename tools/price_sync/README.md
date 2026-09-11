@@ -46,10 +46,10 @@ powershell -ExecutionPolicy Bypass -File tools\price_sync\export_oasis.ps1   # �
 powershell -ExecutionPolicy Bypass -File tools\price_sync\export_breez.ps1   # опт-цены Бриза
 ```
 
-Еженедельно (воскресенье 20:00), вместе с обновлением остатков JAC и выгрузками:
+По расписанию (раз в 3 дня, 20:00), вместе с обновлением остатков JAC и выгрузками:
 
 ```
-powershell -ExecutionPolicy Bypass -File tools\price_sync\run_weekly.ps1
+powershell -ExecutionPolicy Bypass -File tools\price_sync\run_sync.ps1
 powershell -ExecutionPolicy Bypass -File tools\price_sync\schedule_task.ps1   # поставить в планировщик
 ```
 
