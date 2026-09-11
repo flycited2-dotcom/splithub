@@ -17,3 +17,8 @@ node_modules/
 # базы данных (не версионируем)
 *.db
 db/*.db
+
+# price_sync (результаты прогона, не версионируем)
+tools/price_sync/out/
+tools/price_sync/logs/
+__pycache__/

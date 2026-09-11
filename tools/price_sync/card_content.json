@@ -1,0 +1,288 @@
+{
+  "_комментарий": "Содержательная часть карточек по сериям: то, чего нет в прайсе. Источник — сайты производителей и дилеров, ссылки в _источники. Серия отсутствует здесь — поля карточки останутся пустыми, выдумывать не будем. {btu} и {area} подставляются из прайса.",
+
+  "DENKO|TCL on/off": {
+    "_источники": ["https://climat21veka.ru/catalog/split-sistemi/denko-du-09/", "https://split-nastroi.ru/catalog/bytovye-split-sistemy/product/denko-legend-du-07"],
+    "descTemplate": "LEGEND on/off {btu} BTU · до {area} м²",
+    "cardBenef": "GMCC-TOSHIBA · Класс A · I FEEL · Самоочистка · 3 года",
+    "benefits": ["Класс энергоэффективности A", "Компрессор GMCC-TOSHIBA", "I FEEL — датчик температуры в пульте", "Антибактериальный фильтр", "Система самоочистки", "Ночной режим", "Таймер включения/выключения", "Авторестарт после отключения света", "Пульт ДУ в комплекте", "Гарантия 3 года"],
+    "compressor": "GMCC-TOSHIBA",
+    "freon": ""
+  },
+
+  "DENKO|TCL inverter": {
+    "_источники": ["https://climat21veka.ru/catalog/split-sistemi/denko-du-09-i/"],
+    "descTemplate": "LEGEND инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Инвертор · GMCC-TOSHIBA · Класс A · I FEEL · 3 года",
+    "benefits": ["Инверторный компрессор", "Класс энергоэффективности A", "Компрессор GMCC-TOSHIBA", "I FEEL — датчик температуры в пульте", "Антибактериальный фильтр", "Система самоочистки", "Ночной режим", "Таймер включения/выключения", "Авторестарт после отключения света", "Гарантия 3 года"],
+    "compressor": "GMCC-TOSHIBA",
+    "freon": ""
+  },
+
+  "DANTEX|ADVANCE inverter (TCL)": {
+    "_источники": ["https://www.mosng.ru/catalog/nastennyy-konditsioner-dantex-rk-12sati-plus-rk-12/", "https://tecl.ru/product/dantex-rk-12sati-plus-rk-12satie/"],
+    "descTemplate": "ADVANCE PRO PLUS инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Завод TCL · DC Inverter · УФ-стерилизатор · Ионизатор · Wi-Fi",
+    "benefits": ["Инверторный компрессор", "УФ-стерилизатор — до 99% болезнетворных микроорганизмов", "Биполярный ионизатор", "Фильтр высокой плотности", "Управление по Wi-Fi", "Матовый корпус", "Широкий диапазон рабочих температур", "Режимы охлаждения и обогрева", "Пульт ДУ в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "EUROHOFF|COSMOS PRO inverter (Midea)": {
+    "_источники": ["https://tochkaholoda.ru/catalog/konditsioner-eurohoff-cosmos-pro-eumd-09i", "https://euroclimate.org/nastennij-invertornij-kondicioner-eurohoff-eumd-12inv-serija-cosmos-pro-dc-inverter"],
+    "descTemplate": "COSMOS PRO инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "GMCC Toshiba · DC Inverter · R32 · 21 дБ · Wi-Fi (опция)",
+    "benefits": ["DC Inverter — плавная регулировка мощности", "Компрессор GMCC Toshiba", "Хладагент R32", "Уровень шума от 21 дБ", "Wi-Fi модуль (опция)", "Автоматическое качание жалюзи", "Программируемый таймер 24 часа", "Режимы охлаждения и обогрева"],
+    "compressor": "GMCC Toshiba",
+    "freon": "R32"
+  },
+
+  "DENKO|Напольно-потолочные on/off (TCL)": {
+    "_источники": ["https://sogrevatel.ru/dnp-36-a/", "https://denko.by/dnpch"],
+    "descTemplate": "Напольно-потолочный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Дренажный насос · iClean · Потолок или стена · Авто-жалюзи",
+    "benefits": ["Встроенный дренажный насос — подъём конденсата до 75 см", "Автоматическое качание жалюзи для объёмного распределения воздуха", "Монтаж вертикально на стену или горизонтально под потолок", "Малошумный компрессор", "Широкий диапазон рабочих температур", "Перезапуск с сохранением настроек", "Самоочистка внутреннего блока, функция iClean"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DENKO|Напольно-потолочные inverter (TCL)": {
+    "_источники": ["https://sogrevatel.ru/dnp-36-a/", "https://denko.by/dnpch"],
+    "descTemplate": "Напольно-потолочный инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Инвертор · Дренажный насос · iClean · Потолок или стена",
+    "benefits": ["Инверторный компрессор", "Встроенный дренажный насос — подъём конденсата до 75 см", "Автоматическое качание жалюзи для объёмного распределения воздуха", "Монтаж вертикально на стену или горизонтально под потолок", "Малошумный компрессор", "Широкий диапазон рабочих температур", "Перезапуск с сохранением настроек", "Самоочистка внутреннего блока, функция iClean"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DENKO|Кассетные on/off (TCL)": {
+    "_источники": ["https://denko.by/dcsa", "https://www.ozon.ru/product/kassetnyy-konditsioner-denko-dcs-36a-267773776/"],
+    "descTemplate": "Кассетный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Кассета 4 потока · Дренажный насос · iClean · Авто-жалюзи",
+    "benefits": ["Четырёхпоточное распределение воздуха", "Встроенный дренажный насос", "Автоматическое качание жалюзи", "Перезапуск с сохранением настроек", "Самоочистка внутреннего блока, функция iClean", "Декоративная панель в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DENKO|Кассетные inverter (TCL)": {
+    "_источники": ["https://denko.by/dcsa"],
+    "descTemplate": "Кассетный инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Инвертор · Кассета 4 потока · Дренажный насос · iClean",
+    "benefits": ["Инверторный компрессор", "Четырёхпоточное распределение воздуха", "Встроенный дренажный насос", "Автоматическое качание жалюзи", "Перезапуск с сохранением настроек", "Самоочистка внутреннего блока, функция iClean", "Декоративная панель в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DENKO|Мультисплит наружные блоки": {
+    "_источники": ["https://stroyklim.com/product/denko-mult-24-3/", "https://www.st-k.org/catalog/multi-split-sistemy/vneshnie-bloki/Denko-Free-Match-MULT-24-3/"],
+    "descTemplate": "Наружный блок мультисплит Free Match",
+    "cardBenef": "GMCC инвертор · R32 · Golden Fin · до -15 °C",
+    "benefits": ["Инверторный компрессор GMCC", "Хладагент R32", "Класс энергоэффективности A/A++", "Golden Fin — антикоррозийное покрытие теплообменника", "Охлаждение и обогрев до -15 °C", "Система Free Match — подбор внутренних блоков по помещениям"],
+    "compressor": "GMCC",
+    "freon": "R32"
+  },
+
+  "DENKO|Мультисплит внутренние блоки": {
+    "_источники": ["https://101holodilnik.ru/product/multisplit-sistema-na-3-komnaty-denko-mult-07-x-3-mult-243"],
+    "descTemplate": "Внутренний блок мультисплит {btu} BTU · до {area} м²",
+    "cardBenef": "Free Match · R32 · Настенный внутренний блок",
+    "benefits": ["Внутренний блок системы Free Match", "Хладагент R32", "Подбирается к наружному блоку серии MULT", "Пульт ДУ в комплекте"],
+    "compressor": "",
+    "freon": "R32"
+  },
+
+  "EUROHOFF|Напольно-потолочные inverter (Gree)": {
+    "_источники": ["https://ruclima.ru/product/eurohoff-eud160w1zd1", "https://gree-bulgaria.com/gud-zd1-u-match-vatreshno-tyalo-za-podovo-tavanen-montazh/"],
+    "descTemplate": "Напольно-потолочный DC Inverter {btu} BTU · до {area} м²",
+    "cardBenef": "Завод GREE U-Match · DC Inverter · Потолок или стена",
+    "benefits": ["DC Inverter — плавное поддержание температуры", "Платформа GREE U-Match", "Монтаж под потолок или на стену", "Уровень шума внутреннего блока от 40 дБ", "Для помещений, где нужна повышенная мощность"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "EUROHOFF|Кассетные inverter (Gree)": {
+    "_источники": ["https://gree-bulgaria.com/gud-t1-u-match-vatreshno-tyalo-4-patna-kaseta/"],
+    "descTemplate": "Кассетный DC Inverter {btu} BTU · до {area} м²",
+    "cardBenef": "Завод GREE U-Match · DC Inverter · Кассета 4 потока",
+    "benefits": ["DC Inverter — плавное поддержание температуры", "Платформа GREE U-Match", "Четырёхпоточная кассета", "Декоративная панель в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DAICHI|SIBERIA (-25°C inverter)": {
+    "_источники": ["https://daichi.market/product/SIB25AVQS1R_SIB25FVS1R/", "https://air-heat.ru/siberia"],
+    "descTemplate": "SIBERIA инвертор {btu} BTU · до {area} м² · обогрев до -25 °C",
+    "cardBenef": "A++ · Обогрев до -25 °C · R32 · 170-265 В · Дежурный +8 °C",
+    "benefits": ["Тепловой насос воздух-воздух", "Обогрев при наружной температуре до -25 °C", "Охлаждение от -15 °C до +50 °C", "Сезонная энергоэффективность класса A++", "Хладагент R32", "Устойчивая работа при напряжении от 170 до 265 В", "Дежурный режим обогрева +8 °C"],
+    "compressor": "",
+    "freon": "R32"
+  },
+
+  "MARSA|TCL": {
+    "_источники": ["https://www.airventilation.ru/Marsa-RK-12MTA3.htm", "https://marsa-air.ru/catalog/rk-12mta3-rk-12mta3e/"],
+    "descTemplate": "ASTRO+ on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Заводы TCL и GREE · Ионизатор · 34 дБ · 3 года",
+    "benefits": ["Ионизатор воздуха", "Режимы: охлаждение, обогрев, осушение, вентиляция", "Уровень шума от 34 дБ", "Изготовлено на заводах TCL и GREE", "Пульт ДУ в комплекте", "Гарантия 3 года"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DAHATSU|AUX": {
+    "_источники": ["https://mircli.ru/Dahatsu-DH-NP-36-a/", "https://dahatsu.by/dh-npa"],
+    "descTemplate": "Напольно-потолочный {btu} BTU · до {area} м²",
+    "cardBenef": "Завод AUX · Низкотемпературный комплект · iClean · Авто-жалюзи",
+    "benefits": ["Монтаж горизонтально под потолком или вертикально на стене", "Автоматическое качание горизонтальных и вертикальных заслонок", "Предустановленный низкотемпературный комплект", "Функция iClean — автоматическая сушка и очистка от пыли"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DANTEX|CONCORD inverter (Gree)": {
+    "_источники": ["https://climstore.ru/product/dantex-rk-09scdgi-rk-09cdgie-nastennyy-konditsioner/", "https://dantex.ru/products/home/split-concorde-inverter/"],
+    "descTemplate": "CONCORDE инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Завод GREE · Инвертор · R32 · 7 скоростей · 130-275 В",
+    "benefits": ["Инверторный компрессор", "Хладагент R32", "7 скоростей вентилятора", "Ультраширокий диапазон напряжения 130-275 В", "Режимы охлаждения и обогрева", "Пульт ДУ в комплекте"],
+    "compressor": "GREE",
+    "freon": "R32"
+  },
+
+  "EUROHOFF|Напольно-потолочные on/off (Midea)": {
+    "_источники": ["https://www.garantklimat.com/catalog/conditioners/splitsistema_napolnaya/", "https://www.vseinstrumenti.ru/category/konditsionery-i-split-sistemy-2777/eurohoff-2106454/"],
+    "descTemplate": "Напольно-потолочный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Завод Midea · Потолок или стена · Авто-жалюзи",
+    "benefits": ["Монтаж под потолок или вертикально на стену", "Автоматическое качание жалюзи", "Режимы охлаждения и обогрева", "Проводной пульт (опция)"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DENKO|Канальные on/off (TCL)": {
+    "_источники": ["https://air-rus.ru/product-konditsioner-denko-dn-kn-36-ch/", "https://www.proclimate5.ru/catalog/kondicionery/kanalnye/denko-2/dn-kn-36-ch/"],
+    "descTemplate": "Канальный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Скрытый монтаж в воздуховоды · R410A · от 50 до 160 м²",
+    "benefits": ["Скрытый монтаж — подключается к воздуховодам", "Хладагент R410A", "Рассчитан на помещения от 50 до 160 м²", "Подходит для квартир, залов и торговых площадей", "Режимы охлаждения и обогрева"],
+    "compressor": "",
+    "freon": "R410A"
+  },
+
+  "DENKO|Changhong inverter": {
+    "_источники": ["https://mircli.ru/Denko-QW-07i-SAMURAI/", "https://technolider.com/catalog/konditsioner_invertornyy_denko_qw_07i_z_d_changhong.html"],
+    "descTemplate": "SAMURAI DC Inverter {btu} BTU · до {area} м²",
+    "cardBenef": "Завод Changhong · DC Inverter · GMCC · 23 дБ · -30% энергии",
+    "benefits": ["DC Inverter — плавная регулировка мощности", "Компрессор GMCC", "Снижение расхода электроэнергии до 30%", "Green-фильтр высокой плотности", "Уровень шума от 23 дБ", "Компактный внутренний блок"],
+    "compressor": "GMCC",
+    "freon": ""
+  },
+
+  "DAICHI|Gree inverter": {
+    "_источники": ["https://tecl.ru/product/daichi-da70blhs1r1-df70bls1r1/", "https://daichi.ru/catalog/polupromyshlennye-split-sistemy/kanalnye-split-sistemy/da-blh-r1-df/"],
+    "descTemplate": "Канальный инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Инвертор · Высоконапорный · SEER A · 34 дБ · V-теплообменник",
+    "benefits": ["Инверторный компрессор", "Высоконапорный вентилятор для длинных воздуховодов", "V-образный теплообменник внутреннего блока", "Класс сезонной энергоэффективности SEER A", "Уровень шума 34/37/40 дБ", "Скрытый монтаж в воздуховоды"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DANTEX|Gree on/off": {
+    "_источники": ["https://dantex.ru/products/semiindustrial/four_lane_cassete/seriya-rk-uhg3n-rk-hg3ne-w/rk-36uhg3n-rk-36hg3ne-w/", "https://mircli.ru/Dantex-RK-36HG3NE-W-RK-36UHG3N/"],
+    "descTemplate": "Кассетный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Завод GREE · Кассета 4 потока · 10 кВт холод · Универсальный наружный блок",
+    "benefits": ["Четырёхпоточная кассета в подвесной потолок", "Холодопроизводительность 10 кВт, обогрев 11,5 кВт", "Универсальный наружный блок — работает с канальными, кассетными и потолочными внутренними блоками", "Распределение воздуха по всему объёму помещения", "Декоративная панель в комплекте"],
+    "compressor": "GREE",
+    "freon": ""
+  },
+
+  "MARSA|AUX": {
+    "_источники": ["https://samara.teplomarket-m.ru/kassetnyj-kondicioner-marsa-mrk-60uhan-mrk-60hane-w", "https://techholod.com/catalog/konditsionery_1/kassetnye_konditsionery/105573/"],
+    "descTemplate": "Кассетный {btu} BTU · до {area} м²",
+    "cardBenef": "Завод AUX · Кассета 4 потока · Декоративная панель",
+    "benefits": ["Четырёхпоточная кассета в подвесной потолок", "Монтаж в подвесной потолок", "Декоративная панель в комплекте", "Режимы охлаждения и обогрева"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "DENKO|Колонные on/off": {
+    "_источники": ["https://zetzet.ru/1815028/", "https://planetaclimata.by/denko-6"],
+    "descTemplate": "Колонный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Напольная колонна · 14 кВт холод · Охлаждение и обогрев",
+    "benefits": ["Напольный колонный корпус — не требует монтажа на стену", "Холодопроизводительность 14 кВт", "Режимы охлаждения и обогрева", "Для залов, офисов и торговых помещений"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "YNOVIK|on/off": {
+    "_источники": ["Таблица технических характеристик YNA от владельца, 11.09.2026"],
+    "descTemplate": "on/off {btu} BTU · до {area} м²",
+    "cardBenef": "R32 · Золотое покрытие теплообменника · Шторки верт./гориз. · Трасса 15 м",
+    "benefits": ["Хладагент R32", "Теплообменник с золотым покрытием", "Шторки жалюзи по вертикали и горизонтали", "Длина фреонопровода до 15 м, перепад высот до 5 м", "Охлаждение при +16…+48 °C", "Обогрев при −7…+24 °C", "Пульт ДУ в комплекте"],
+    "compressor": "",
+    "freon": "R32"
+  },
+
+  "YUETU|GMCC on/off": {
+    "_источники": ["Макет владельца «Кондиционер YUETU 07 — компрессор GMCC», 11.09.2026"],
+    "descTemplate": "on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Компрессор GMCC · R32 · Шторки верт./гориз.",
+    "benefits": ["Компрессор GMCC", "Хладагент R32", "Шторки жалюзи по вертикали и горизонтали", "Теплообменник с золотым покрытием", "Режимы охлаждения и обогрева", "Пульт ДУ в комплекте"],
+    "compressor": "GMCC",
+    "freon": "R32"
+  },
+
+  "YUETU|GMCC inverter": {
+    "_источники": ["Макет владельца «Инверторные кондиционеры Yuetu», 11.09.2026"],
+    "descTemplate": "инвертор {btu} BTU · до {area} м²",
+    "cardBenef": "Инвертор · Компрессор GMCC · R32 · Шторки верт./гориз.",
+    "benefits": ["Инверторный компрессор", "Компрессор GMCC", "Хладагент R32", "Шторки жалюзи по вертикали и горизонтали", "Теплообменник с золотым покрытием", "Режимы охлаждения и обогрева"],
+    "compressor": "GMCC",
+    "freon": "R32"
+  },
+
+  "DANTEX|ADVANCE on/off (TCL)": {
+    "_источники": ["https://dantex.ru/products/home/onwall/seriya-advance/rk-12sat-rk-12sate/", "https://iclim.ru/catalog/konditsionery/nastennye/dantex_rk_12sat_rk_12sate/"],
+    "descTemplate": "ADVANCE on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Класс A/A · I Feel · Фильтр высокой плотности · Угольный фильтр",
+    "benefits": ["Класс энергоэффективности A/A", "I Feel — датчик температуры в пульте", "Фильтр высокой плотности", "Угольный фильтр", "Мягкое охлаждение и управление воздушным потоком", "Wi-Fi управление (опция)", "Пульт ДУ в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "EUROHOFF|COSMOS PRO (Midea)": {
+    "_источники": ["https://tochkaholoda.ru/catalog/konditsioner-eurohoff-cosmos-pro-eumd-09", "https://ruclima.ru/product/eurohoff-eumd-07"],
+    "descTemplate": "COSMOS PRO on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Завод Midea · Современный дизайн · Охлаждение и обогрев",
+    "benefits": ["Настенная сплит-система серии Cosmos Pro", "Режимы охлаждения и обогрева", "Современный дизайн внутреннего блока", "Пульт ДУ в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "EUROHOFF|Колонные on/off": {
+    "_источники": ["https://www.vseinstrumenti.ru/category/konditsionery-i-split-sistemy-2777/eurohoff-2106454/"],
+    "descTemplate": "Колонный on/off {btu} BTU · до {area} м²",
+    "cardBenef": "Напольная колонна · Охлаждение и обогрев · Без монтажа на стену",
+    "benefits": ["Напольный колонный корпус — не требует монтажа на стену", "Режимы охлаждения и обогрева", "Для залов, офисов и торговых помещений", "Пульт ДУ в комплекте"],
+    "compressor": "",
+    "freon": ""
+  },
+
+  "_модели": {
+    "_комментарий": "Точечные уточнения по конкретной модели — перебивают серию. Там, где в артикуле киловатты, а не BTU, типоразмер посчитан по мощности; площадь EUD100 = 110 м² подтверждена источником, остальные пересчитаны по тому же отношению ~11 м²/кВт.",
+    "DENKO DU-09": { "freon": "R410A", "area": 28 },
+    "EUROHOFF EUD100W1/ZD1": { "btu": "36", "area": 110 },
+    "EUROHOFF EUD140W1/ZD1": { "btu": "48", "area": 150 },
+    "EUROHOFF EUD160W1/ZD1": { "btu": "60", "area": 175 },
+    "EUROHOFF EUD100W1/T1": { "btu": "36", "area": 110 },
+    "EUROHOFF EUD140W1/T1": { "btu": "48", "area": 150 },
+    "EUROHOFF EUD160W1/T1": { "btu": "60", "area": 175 },
+    "DAICHI SIB25": { "btu": "09", "area": 25 },
+    "DAICHI DA70BLHS1R1/DF70BLS1R1": { "btu": "24", "area": 70 },
+    "DAHATSU DH-NP-36A": { "area": 105 },
+    "EUROHOFF EV-NP 36M": { "area": 105 },
+    "DENKO DKN-36A": { "area": 105 },
+    "DENKO QW-07 inv": { "area": 25 },
+    "DANTEX RK-09SCDGI/E": { "area": 25 },
+    "DAICHI DA70BLHS1R1/DF70BLS1R1": { "btu": "24", "area": 70 },
+    "DANTEX RK-36UHG3N/36HG3NE-W": { "area": 100 },
+    "DENKO DNKL-48GR": { "btu": "48", "area": 140 },
+    "YNOVIK YNA-09IN/OUT": { "compressor": "GMCC", "area": 25 },
+    "YNOVIK YNA-12IN/OUT": { "compressor": "GREE", "area": 35 },
+    "DANTEX RK-12SAT/E": { "area": 35 }
+  }
+}
