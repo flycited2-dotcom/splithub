@@ -25,6 +25,11 @@ from tools.price_sync.sync import DEFAULT_OUT
 
 SITE_ROOT = Path(__file__).resolve().parents[2]
 ASSETS = SITE_ROOT / "assets" / "img" / "products"
+
+#: Результат сначала кладём отдельно и смотрим глазами. Режим conditioner делает
+#: рекламную карточку для Telegram — с логотипом, плашками и фоном; в плитке
+#: каталога это мусор. В assets попадает только то, что реально годится.
+REVIEW = DEFAULT_OUT / "photos" / "generated"
 QUEUE = FOTOGEN_ROOT + "/queue.db"
 OUTPUT_DIR = FOTOGEN_ROOT + "/output"
 
@@ -69,12 +74,12 @@ def collect(check_only: bool) -> int:
         if check_only or not done:
             return 0
 
-        ASSETS.mkdir(parents=True, exist_ok=True)
+        REVIEW.mkdir(parents=True, exist_ok=True)
         sftp = ssh.open_sftp()
         saved = []
         try:
             for job_id, _, brand, model, output in done:
-                target = ASSETS / wanted[(brand, model)]
+                target = REVIEW / wanted[(brand, model)]
                 with sftp.open(OUTPUT_DIR + "/" + output, "rb") as handle:
                     data = handle.read()
                 with Image.open(io.BytesIO(data)) as image:
@@ -85,9 +90,9 @@ def collect(check_only: bool) -> int:
                 write(("  забрано: %-44s (задача %s)\n" % (target.name, job_id)).encode("utf-8"))
         finally:
             sftp.close()
-        write(("\nЗабрано файлов: %d. Залить: python -m tools.price_sync.deploy_file %s\n" % (
-            len(saved), " ".join("assets/img/products/" + n for n in saved[:3]) + (" ..." if len(saved) > 3 else ""))
-        ).encode("utf-8"))
+        write(("\nЗабрано файлов: %d в %s\nСмотрим глазами; годное копируем в "
+               "assets/img/products и заливаем deploy_file.\n"
+               % (len(saved), REVIEW)).encode("utf-8"))
     finally:
         ssh.close()
     return 0
