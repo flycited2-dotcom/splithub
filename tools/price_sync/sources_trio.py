@@ -26,13 +26,35 @@ PAGES = {
     "krepezh": [412],
 }
 
-#: CSS-класс наличия → наш код наличия.
+#: CSS-класс наличия → наш код наличия. Сверено с живой разметкой трио 21.09.2026:
+#: у них пять состояний и пять цветов строки — есть (зелёный), нет (красный),
+#: ожидается (синий), под заказ / по запросу (серый), Мск (фиолетовый).
 AVAILABILITY = {
     "product_available": "есть",
     "product_no": "нет",
     "product_zakaz": "под заказ",
-    "product_wait": "ожидается",
+    "product_expected": "ожидается",
+    "product_msk": "мск",
 }
+
+#: Запасной путь — по видимой подписи. Поменяет трио имя класса — состояние
+#: всё равно узнаем, а не уроним молча в «под заказ», как было с «ожидается».
+AVAILABILITY_BY_TEXT = {
+    "есть": "есть",
+    "нет": "нет",
+    "под заказ": "под заказ",
+    "по запросу": "под заказ",
+    "ожидается": "ожидается",
+    "мск": "мск",
+}
+
+
+def _availability(marker) -> str:
+    """Наличие по span-метке. «?» — метка есть, но мы её не узнали."""
+    by_class = AVAILABILITY.get(" ".join(marker.get("class") or []))
+    if by_class:
+        return by_class
+    return AVAILABILITY_BY_TEXT.get(marker.get_text(strip=True).lower(), "?")
 
 _NUMBER = re.compile(r"\d+(?:\.\d+)?")
 
@@ -66,7 +88,7 @@ def parse(html: str, page: str, section) -> list[dict]:
             marker = cells[0].find("span")
             availability = ""
             if marker is not None:
-                availability = AVAILABILITY.get(" ".join(marker.get("class") or []), "")
+                availability = _availability(marker)
                 marker.extract()
             model = cells[0].get_text(" ", strip=True)
             old, promo = cells[1].select_one(".old_price"), cells[1].select_one(".price_promotion")
@@ -120,15 +142,20 @@ def cost_of(offer: dict) -> float:
     return dealer
 
 
-#: Наличие поставщика → (stock, stockLabel) каталога.
+#: Наличие поставщика → (stock, stockLabel) каталога. Витрина повторяет цвета трио:
+#: в наличии — зелёный, нет — красный, ожидается — синий, под заказ — серый,
+#: Мск (склад в Москве, привезут за несколько дней) — фиолетовый.
 STOCK_MAP = {
     "есть": ("in_stock", "В наличии"),
-    "нет": ("order_7", "Под заказ 7 дней"),
+    "нет": ("out", "Нет в наличии"),
+    "ожидается": ("wait", "Ожидается"),
     "под заказ": ("order_7", "Под заказ 7 дней"),
-    "ожидается": ("order_7", "Под заказ 7 дней"),
-    "": ("order_7", "Под заказ 7 дней"),
+    "мск": ("days_3_5", "3–5 дней"),
 }
+
+#: Неизвестное или пустое состояние — честное «под заказ», а не «в наличии».
+UNKNOWN_STOCK = ("order_7", "Под заказ 7 дней")
 
 
 def stock_of(offer: dict) -> tuple[str, str]:
-    return STOCK_MAP[offer.get("availability", "")]
+    return STOCK_MAP.get(offer.get("availability", ""), UNKNOWN_STOCK)

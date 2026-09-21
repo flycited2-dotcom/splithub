@@ -1,6 +1,7 @@
-﻿# Сверка цен СплитХаб (по расписанию раз в 3 дня): обновляет остатки JAC, пересчитывает каталог
-# по прайсам поставщиков и кладёт результат в tools\price_sync\out.
-# НИЧЕГО НЕ ДЕПЛОИТ — заливка на сайт только руками, после просмотра price_diff.csv.
+﻿# Сверка цен и наличия СплитХаб (по расписанию раз в сутки): обновляет остатки JAC,
+# пересчитывает каталог по прайсам поставщиков, заливает на сайт через предохранитель
+# (publish.py — скачки цены больше 25% не льёт) и присылает владельцу итог в Telegram.
+# Упал шаг — повторяем; не вышло — сообщение о сбое, сайт при этом не трогаем.
 #
 #     .\run_sync.ps1              # полный прогон
 #     .\run_sync.ps1 -SkipJac     # без перезапуска скрапера JAC
@@ -22,7 +23,10 @@ New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $log = Join-Path $logDir ("sync_" + (Get-Date -Format "yyyyMMdd_HHmm") + ".log")
 
 function Write-Log([string]$text) {
-    Write-Output $text
+    # Write-Host, а не Write-Output: вывод функции в PowerShell становится её
+    # результатом, и Invoke-Step вернул бы массив строк лога — всегда «истинный»,
+    # так что сообщение о сбое не ушло бы никогда.
+    Write-Host $text
     Add-Content -Path $log -Value $text -Encoding UTF8
 }
 
@@ -54,30 +58,44 @@ if (-not $SkipOasis) {
     }
 }
 
-Write-Log "Пересчитываю каталог по прайсам..."
-Push-Location $siteRoot
-try {
-    $env:PYTHONIOENCODING = "utf-8"
-    $result = & python -m tools.price_sync.sync 2>&1
-    Write-Log ($result | Out-String).Trim()
-} finally {
-    Pop-Location
+function Invoke-Step([string]$title, [string]$module, [int]$attempts = 2) {
+    # Шаг на python с повтором: сеть до поставщиков иногда рвётся на минуту-другую.
+    Push-Location $siteRoot
+    try {
+        $env:PYTHONIOENCODING = "utf-8"
+        for ($i = 1; $i -le $attempts; $i++) {
+            $out = & python -m $module 2>&1
+            $code = $LASTEXITCODE
+            Write-Log ($out | Out-String).Trim()
+            if ($code -eq 0) { return $true }
+            if ($i -lt $attempts) {
+                Write-Log "$title — попытка $i не удалась (код $code), повтор через 5 минут..."
+                Start-Sleep -Seconds 300
+            }
+        }
+        return $false
+    } finally {
+        Pop-Location
+    }
 }
+
+function Stop-WithAlert([string]$step) {
+    $text = "⚠️ СплитХаб " + (Get-Date -Format "dd.MM HH:mm") + ": сверка упала на шаге «$step». Сайт не тронут. Лог: " + (Split-Path -Leaf $log)
+    Write-Log $text
+    Push-Location $siteRoot
+    try { & python -m tools.price_sync.notify $text | Out-Null } finally { Pop-Location }
+    exit 1
+}
+
+Write-Log "Пересчитываю каталог по прайсам..."
+if (-not (Invoke-Step "Пересчёт цен" "tools.price_sync.sync")) { Stop-WithAlert "пересчёт цен" }
 
 Write-Log "Обновляю карточки новых товаров и собираю каталог..."
-Push-Location $siteRoot
-try {
-    $env:PYTHONIOENCODING = "utf-8"
-    $cards = & python -m tools.price_sync.new_cards 2>&1
-    Write-Log ($cards | Out-String).Trim()
-    $catalog = & python -m tools.price_sync.merge 2>&1
-    Write-Log ($catalog | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0) { Write-Log "ВНИМАНИЕ: каталог не собран, см. замечания выше." }
-} finally {
-    Pop-Location
-}
+if (-not (Invoke-Step "Карточки" "tools.price_sync.new_cards" 1)) { Stop-WithAlert "карточки новых товаров" }
+if (-not (Invoke-Step "Сборка каталога" "tools.price_sync.merge" 1)) { Stop-WithAlert "сборка каталога" }
+
+Write-Log "Заливаю на сайт через предохранитель и отправляю итог в Telegram..."
+if (-not (Invoke-Step "Заливка" "tools.price_sync.publish")) { exit 1 }   # publish сам шлёт причину
 
 Write-Log ""
-Write-Log "Готово. Смотри дифф: $syncRoot\out\price_diff.csv"
-Write-Log "Готовый каталог: $syncRoot\out\catalog\"
-Write-Log "Заливка на сайт — отдельно и вручную, после проверки диффа."
+Write-Log "Готово. Дифф: $syncRoot\out\price_diff.csv"

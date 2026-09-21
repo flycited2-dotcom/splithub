@@ -794,9 +794,10 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .stock-badge{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;line-height:1.4;margin-bottom:6px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid;width:fit-content}
 .sb-in {background:rgba(209,250,229,.65);color:#047857;border-color:rgba(16,185,129,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 6px rgba(16,185,129,.12)}
 .sb-12 {background:rgba(255,228,236,.60);color:#be185d;border-color:rgba(244,114,182,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 6px rgba(244,114,182,.1)}
-.sb-35 {background:rgba(255,196,215,.55);color:#9d174d;border-color:rgba(236,72,153,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 1px 6px rgba(236,72,153,.12)}
-.sb-7  {background:rgba(254,243,199,.65);color:#b45309;border-color:rgba(245,158,11,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 6px rgba(245,158,11,.12)}
-.sb-out{background:rgba(241,245,249,.55);color:#6b7280;border-color:rgba(156,163,175,.25)}
+.sb-35 {background:rgba(243,232,255,.65);color:#7e22ce;border-color:rgba(168,85,247,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.sb-7  {background:rgba(241,245,249,.7);color:#475569;border-color:rgba(148,163,184,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.sb-wait{background:rgba(219,234,254,.65);color:#1d4ed8;border-color:rgba(59,130,246,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.sb-out{background:rgba(254,226,226,.65);color:#b91c1c;border-color:rgba(239,68,68,.35)}
 
 /* PRODUCT DETAIL BOTTOM SHEET */
 .pd-ov{position:fixed;inset:0;z-index:300;background:rgba(15,18,28,.45);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .28s}
@@ -814,9 +815,10 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .pd-stock-inline{flex-shrink:0;font-size:.66rem;font-weight:700;padding:4px 10px;border-radius:20px;line-height:1.3;text-align:center;border:1px solid}
 .si-in {background:rgba(209,250,229,.65);color:#047857;border-color:rgba(16,185,129,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
 .si-12 {background:rgba(255,228,236,.60);color:#be185d;border-color:rgba(244,114,182,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
-.si-35 {background:rgba(255,196,215,.55);color:#9d174d;border-color:rgba(236,72,153,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
-.si-7  {background:rgba(254,243,199,.65);color:#b45309;border-color:rgba(245,158,11,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
-.si-out{background:rgba(241,245,249,.55);color:#6b7280;border-color:rgba(156,163,175,.25)}
+.si-35 {background:rgba(243,232,255,.65);color:#7e22ce;border-color:rgba(168,85,247,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.si-7  {background:rgba(241,245,249,.7);color:#475569;border-color:rgba(148,163,184,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.si-wait{background:rgba(219,234,254,.65);color:#1d4ed8;border-color:rgba(59,130,246,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.si-out{background:rgba(254,226,226,.65);color:#b91c1c;border-color:rgba(239,68,68,.35)}
 .pd-close{position:absolute;top:12px;right:12px;z-index:6;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text2);flex-shrink:0;border:none;cursor:pointer;transition:background .2s}
 .pd-close:hover{background:rgba(0,0,0,.18)}
 .pd-media{display:block}
@@ -1416,6 +1418,7 @@ function getStockHtml(p) {
   if(p.stock === 'days_1_2') return '<div class="stock-badge sb-12">Под заказ &middot; 1&ndash;2 дня</div>';
   if(p.stock === 'days_3_5') return '<div class="stock-badge sb-35">Под заказ &middot; 3&ndash;5 дней</div>';
   if(p.stock === 'order_7')  return '<div class="stock-badge sb-7">Под заказ &middot; 7 дней</div>';
+  if(p.stock === 'wait')     return '<div class="stock-badge sb-wait">Ожидается</div>';
   return '';
 }
 
@@ -1426,7 +1429,10 @@ function getStockInline(p) {
   else if(p.stock === 'days_1_2') { cls='si-12';  lbl='Под заказ &middot; 1&ndash;2 дня'; }
   else if(p.stock === 'days_3_5') { cls='si-35';  lbl='Под заказ &middot; 3&ndash;5 дней'; }
   else if(p.stock === 'order_7')  { cls='si-7';   lbl='Под заказ &middot; 7 дней'; }
-  else                            { cls='si-in';  lbl='В наличии'; }
+  else if(p.stock === 'wait')     { cls='si-wait'; lbl='Ожидается'; }
+  // Незнакомый статус — «уточняйте», а не «в наличии»: иначе новое состояние
+  // поставщика молча показалось бы покупателю как товар на складе.
+  else                            { cls='si-7';   lbl='Уточняйте наличие'; }
   return '<div class="pd-stock-inline ' + cls + '">' + lbl + '</div>';
 }
 

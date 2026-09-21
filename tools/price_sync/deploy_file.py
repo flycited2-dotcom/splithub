@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -26,31 +27,50 @@ def remote_dir(cfg: dict) -> str:
     return remote.rsplit("/", 1)[0] if remote.endswith(".js") else remote
 
 
-def deploy(names: list[str]) -> int:
+def upload(pairs: list[tuple[Path, str]], attempts: int = 3) -> None:
+    """Залить (локальный файл, путь на сайте) с датированным бэкапом каждого.
+
+    Сеть до хостинга иногда рвётся — пробуем несколько раз, прежде чем сдаться.
+    """
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     site = remote_dir(cfg)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    for attempt in range(1, attempts + 1):
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(cfg["host"], port=cfg["port"], username=cfg["username"],
+                        password=cfg["password"], timeout=cfg.get("timeout", 15))
+            sftp = ssh.open_sftp()
+            try:
+                for local, name in pairs:
+                    target = site + "/" + name
+                    backup = "%s.bak.%s" % (target, stamp)
+                    _, out, _ = ssh.exec_command('cp -p "%s" "%s"' % (target, backup))
+                    out.channel.recv_exit_status()
+                    sftp.put(str(local), target)
+                    print("залито: %s (%d КБ), бэкап %s" % (
+                        name, Path(local).stat().st_size // 1024, backup.rsplit("/", 1)[-1]))
+            finally:
+                sftp.close()
+                ssh.close()
+            return
+        except Exception as error:
+            print("заливка: попытка %d из %d не удалась: %s" % (attempt, attempts, error))
+            if attempt == attempts:
+                raise
+            time.sleep(30 * attempt)
 
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(cfg["host"], port=cfg["port"], username=cfg["username"],
-                password=cfg["password"], timeout=cfg.get("timeout", 15))
-    sftp = ssh.open_sftp()
-    try:
-        for name in names:
-            local = SITE_ROOT / name
-            if not local.exists():
-                print("пропуск: нет файла " + str(local))
-                continue
-            target = site + "/" + name
-            backup = "%s.bak.%s" % (target, stamp)
-            _, out, _ = ssh.exec_command('cp -p "%s" "%s"' % (target, backup))
-            out.channel.recv_exit_status()
-            sftp.put(str(local), target)
-            print("залито: %s (%d КБ), бэкап %s" % (name, local.stat().st_size // 1024, backup.rsplit("/", 1)[-1]))
-    finally:
-        sftp.close()
-        ssh.close()
+
+def deploy(names: list[str]) -> int:
+    pairs = []
+    for name in names:
+        local = SITE_ROOT / name
+        if not local.exists():
+            print("пропуск: нет файла " + str(local))
+            continue
+        pairs.append((local, name))
+    upload(pairs)
     return 0
 
 
