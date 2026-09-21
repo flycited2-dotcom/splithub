@@ -74,7 +74,15 @@ def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5):
     пяти символов отбрасываем — иначе «LG» поймает половину каталога.
     """
     candidates = [key for key in keys(model, brand) if len(key) >= min_length]
-    for key in sorted(candidates, key=len, reverse=True):
+    ordered = sorted(candidates, key=len, reverse=True)
+    # Точное совпадение сильнее вхождения: «MULT18» входит и в «MULT18/2» (наружный
+    # блок), и совпадает с «MULT18» (внутренний). Без этого прохода внутреннему
+    # блоку доставалась цена наружного — втрое дороже.
+    for key in ordered:
+        for text, offer in text_index:
+            if key == text:
+                return offer
+    for key in ordered:
         for text, offer in text_index:
             if key in text:
                 return offer

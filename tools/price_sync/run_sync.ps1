@@ -1,4 +1,4 @@
-# Сверка цен СплитХаб (по расписанию раз в 3 дня): обновляет остатки JAC, пересчитывает каталог
+﻿# Сверка цен СплитХаб (по расписанию раз в 3 дня): обновляет остатки JAC, пересчитывает каталог
 # по прайсам поставщиков и кладёт результат в tools\price_sync\out.
 # НИЧЕГО НЕ ДЕПЛОИТ — заливка на сайт только руками, после просмотра price_diff.csv.
 #
@@ -8,6 +8,12 @@
 param([switch]$SkipJac, [switch]$SkipOasis)
 
 $ErrorActionPreference = "Stop"
+# Вывод python читаем как UTF-8, иначе в логе вместо кириллицы каракули.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# Вложенные скрипты запускаем тем же движком, что и нас. Жёстко прописанный
+# powershell.exe — это Windows PowerShell 5.1: он теряет кавычки при передаче
+# аргументов в ssh, и выгрузка SplitHome падала с «role root does not exist».
+$engine = (Get-Process -Id $PID).Path
 $syncRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $siteRoot = Split-Path -Parent (Split-Path -Parent $syncRoot)
 $jacRoot  = "C:\Users\TLT-1\Documents\GitHub\osatakti_mdv_b2b"
@@ -27,7 +33,7 @@ if (-not $SkipJac) {
     if (Test-Path $scraper) {
         Write-Log "Обновляю остатки JAC..."
         try {
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scraper 2>&1 | Tee-Object -Variable jacOut | Out-Null
+            & $engine -NoProfile -ExecutionPolicy Bypass -File $scraper 2>&1 | Tee-Object -Variable jacOut | Out-Null
             Write-Log ($jacOut | Select-Object -Last 5 | Out-String).Trim()
         } catch {
             Write-Log ("JAC-скрапер упал, беру прошлый срез: " + $_.Exception.Message)
@@ -40,7 +46,7 @@ if (-not $SkipJac) {
 if (-not $SkipOasis) {
     Write-Log "Выгружаю каталог SplitHome (Русклимат / Daichi / Бриз)..."
     try {
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $syncRoot "export_oasis.ps1") 2>&1 |
+        & $engine -NoProfile -ExecutionPolicy Bypass -File (Join-Path $syncRoot "export_oasis.ps1") 2>&1 |
             Tee-Object -Variable oasisOut | Out-Null
         Write-Log ($oasisOut | Select-Object -Last 3 | Out-String).Trim()
     } catch {

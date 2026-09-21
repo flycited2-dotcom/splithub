@@ -63,3 +63,12 @@ def test_kod_postavshchika_dlinnee_nashego():
 def test_kod_postavshchika_koroche_nashego():
     index = matching.build_text_index([techno_row("ICE20", 25900)], sources_techno.model_of)
     assert matching.lookup_either(index, "DAICHI ICE20AVQS1R-2", "DAICHI") is not None
+
+
+def test_tochnoe_sovpadenie_pobezhdaet_vhozhdenie():
+    # В прайсе наружный блок MULT-18/2 (43 300) стоит раньше внутреннего MULT-18 (14 450).
+    # «MULT18» входит в «MULT18/2», и внутреннему блоку доставалась цена наружного.
+    rows = [techno_row("MULT-18/2", 43300), techno_row("MULT-18", 14450)]
+    index = matching.build_text_index(rows, sources_techno.model_of)
+    found = matching.lookup_either(index, "DENKO MULT-18", "DENKO")
+    assert found["model"] == "MULT-18"

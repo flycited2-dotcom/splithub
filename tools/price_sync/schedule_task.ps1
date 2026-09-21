@@ -1,4 +1,4 @@
-# Регистрирует задачу Windows Task Scheduler: сверка цен СплитХаб раз в 3 дня в 20:00.
+﻿# Регистрирует задачу Windows Task Scheduler: сверка цен СплитХаб раз в 3 дня в 20:00.
 # Три дня — чтобы остатки Бриза, Daichi, Русклимата и MDV не устаревали.
 # Запусти ОДИН раз от своего пользователя:
 #     .\schedule_task.ps1
@@ -15,8 +15,15 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $runner = Join-Path $root "run_sync.ps1"
 
-$action = New-ScheduledTaskAction -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$runner`"" `
+# PowerShell 7 через стабильный алиас из WindowsApps: путь внутри пакета Store
+# меняется с каждой версией, а алиас — нет. Windows PowerShell 5.1 не годится:
+# он теряет кавычки в аргументах ssh и ломает выгрузку SplitHome.
+$pwsh = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\pwsh.exe"
+
+# conhost --headless запускает консоль без окна. Без него Windows 11 открывает
+# Терминал на весь экран поверх работы каждые три дня.
+$action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\conhost.exe" `
+    -Argument "--headless `"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$runner`"" `
     -WorkingDirectory $root
 
 $trigger = New-ScheduledTaskTrigger -Daily -DaysInterval $EveryDays -At $Time
