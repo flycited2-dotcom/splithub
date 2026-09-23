@@ -90,6 +90,8 @@ function tgIps() {
     $ips = [];
     if (defined('TG_FORCE_IP') && trim((string)TG_FORCE_IP) !== '') $ips[] = trim((string)TG_FORCE_IP);
     $ips[] = '149.154.167.220';
+    // Запасной маршрут: IPv4 до Telegram с хостинга теряется ~1 раз из 6 (замер 23.09.2026), IPv6 стабилен.
+    $ips[] = '[2001:67c:4e8:f004::9]';
     return array_values(array_unique($ips));
 }
 
@@ -104,6 +106,7 @@ function tgCall($token, $method, array $params, $asJson = true) {
             CURLOPT_HTTPHEADER     => $asJson ? ['Content-Type: application/json'] : [],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 5,
+            CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_RESOLVE        => ['api.telegram.org:443:' . $ip],
         ]);

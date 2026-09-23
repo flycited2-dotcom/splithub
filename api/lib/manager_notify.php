@@ -140,24 +140,36 @@ function sendMobileOrderTelegram(string $text, int $orderId): bool {
         return false;
     }
 
-    $ch = curl_init('https://api.telegram.org/bot' . BOT_TOKEN . '/sendMessage');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode([
-            'chat_id' => CHAT_ID,
-            'text' => $text,
-            'parse_mode' => 'HTML',
-            'reply_markup' => mobileOrderReplyMarkup($orderId),
-        ], JSON_UNESCAPED_UNICODE),
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 10,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_RESOLVE => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') && TG_FORCE_IP ? TG_FORCE_IP : '149.154.167.220')],
-    ]);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    $data = json_decode((string)$response, true);
+    $payload = json_encode([
+        'chat_id' => CHAT_ID,
+        'text' => $text,
+        'parse_mode' => 'HTML',
+        'reply_markup' => mobileOrderReplyMarkup($orderId),
+    ], JSON_UNESCAPED_UNICODE);
+    // Запасной маршрут: IPv4 до Telegram с хостинга теряется ~1 раз из 6 (замер 23.09.2026), IPv6 стабилен.
+    $ips = array_values(array_unique([
+        defined('TG_FORCE_IP') && TG_FORCE_IP ? TG_FORCE_IP : '149.154.167.220',
+        '[2001:67c:4e8:f004::9]',
+    ]));
+    $data = null;
+    foreach ($ips as $ip) {
+        $ch = curl_init('https://api.telegram.org/bot' . BOT_TOKEN . '/sendMessage');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_RESOLVE => ['api.telegram.org:443:' . $ip],
+        ]);
+        $response = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $data = json_decode((string)$response, true);
+        if ($code > 0) break; // Telegram ответил — другой маршрут не поможет
+    }
     return (bool)($data['ok'] ?? false);
 }
 
