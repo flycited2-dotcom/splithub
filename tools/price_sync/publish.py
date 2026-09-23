@@ -38,7 +38,8 @@ MAX_JUMP = 0.25
 MAX_SHRINK = 0.10
 
 STOCK_NAMES = {"in_stock": "в наличии", "out": "нет", "wait": "ожидается",
-               "order_7": "под заказ", "days_3_5": "Мск", "days_1_2": "1–2 дня"}
+               "order_7": "под заказ", "days_7": "7 дней", "days_3_5": "3–5 дней",
+               "days_1_2": "1–2 дня"}
 
 
 def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):

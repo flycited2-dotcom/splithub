@@ -1417,7 +1417,8 @@ function getStockHtml(p) {
   if(p.stock === 'out')      return '<div class="stock-badge sb-out">Нет в наличии</div>';
   if(p.stock === 'days_1_2') return '<div class="stock-badge sb-12">Под заказ &middot; 1&ndash;2 дня</div>';
   if(p.stock === 'days_3_5') return '<div class="stock-badge sb-35">Под заказ &middot; 3&ndash;5 дней</div>';
-  if(p.stock === 'order_7')  return '<div class="stock-badge sb-7">Под заказ &middot; 7 дней</div>';
+  if(p.stock === 'days_7')   return '<div class="stock-badge sb-35">7 дней</div>';
+  if(p.stock === 'order_7')  return '<div class="stock-badge sb-7">Под заказ &middot; от 7 дней</div>';
   if(p.stock === 'wait')     return '<div class="stock-badge sb-wait">Ожидается</div>';
   return '';
 }
@@ -1428,7 +1429,8 @@ function getStockInline(p) {
   else if(p.stock === 'out')      { cls='si-out'; lbl='Нет в наличии'; }
   else if(p.stock === 'days_1_2') { cls='si-12';  lbl='Под заказ &middot; 1&ndash;2 дня'; }
   else if(p.stock === 'days_3_5') { cls='si-35';  lbl='Под заказ &middot; 3&ndash;5 дней'; }
-  else if(p.stock === 'order_7')  { cls='si-7';   lbl='Под заказ &middot; 7 дней'; }
+  else if(p.stock === 'days_7')   { cls='si-35';  lbl='7 дней'; }
+  else if(p.stock === 'order_7')  { cls='si-7';   lbl='Под заказ &middot; от 7 дней'; }
   else if(p.stock === 'wait')     { cls='si-wait'; lbl='Ожидается'; }
   // Незнакомый статус — «уточняйте», а не «в наличии»: иначе новое состояние
   // поставщика молча показалось бы покупателю как товар на складе.
