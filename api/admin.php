@@ -369,7 +369,7 @@ switch ($action) {
             }
         }
         $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
-        curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode(['chat_id'=>$chatId,'text'=>$msg,'parse_mode'=>'Markdown']),CURLOPT_HTTPHEADER=>['Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>5,CURLOPT_SSL_VERIFYPEER=>false,CURLOPT_RESOLVE=>['api.telegram.org:443:'.(defined('TG_FORCE_IP')?TG_FORCE_IP:'149.154.167.220')]]);
+        curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode(['chat_id'=>$chatId,'text'=>$msg,'parse_mode'=>'Markdown']),CURLOPT_HTTPHEADER=>['Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>5,CURLOPT_SSL_VERIFYPEER=>false,CURLOPT_RESOLVE=>['api.telegram.org:443:'.(defined('TG_FORCE_IP')&&TG_FORCE_IP?TG_FORCE_IP:'149.154.167.220')]]);
         $res = curl_exec($ch); curl_close($ch);
         $ok  = (bool)(json_decode($res,true)['ok'] ?? false);
         jsonResponse(['ok' => $ok]);
@@ -390,17 +390,12 @@ switch ($action) {
     // ── Settings get ──
     case 'settings_get':
         require_once __DIR__ . '/lib/app_config.php';
-        $cfgFile = appConfigPath();
+        // Берём реальные значения констант (config.php уже подключён), а не парсим файл регэкспом:
+        // регэксп не видел define("..."), define('CHAT_ID', -100...) и т.п. → в форме было пусто,
+        // и следующее «Сохранить» затирало рабочий CHAT_ID/TG_FORCE_IP пустой строкой.
         $cfg = [];
-        if (file_exists($cfgFile)) {
-            $lines = file($cfgFile, FILE_IGNORE_NEW_LINES);
-            foreach ($lines as $line) {
-                if (preg_match("/define\('([^']+)',\s*'([^']*)'\)/", $line, $m)) {
-                    $cfg[$m[1]] = $m[2];
-                } elseif (preg_match('/define\(\'([^\']+)\',\s*(\d+)\)/', $line, $m)) {
-                    $cfg[$m[1]] = $m[2];
-                }
-            }
+        foreach (adminConfigKeys() as $key) {
+            if (defined($key)) $cfg[$key] = (string)constant($key);
         }
         // Merge app_settings (bonuses_enabled etc.)
         try {
@@ -416,25 +411,30 @@ switch ($action) {
         require_once __DIR__ . '/lib/app_config.php';
         $raw = json_decode(file_get_contents('php://input'), true);
         if (!is_array($raw)) $raw = [];
-        $allowed_keys = ['BOT_TOKEN','CHAT_ID','TG_ADMIN_ID','EMAIL_TO','CRON_SECRET','ALLOWED_ORIGIN','TG_FORCE_IP'];
         $cfgFile = appConfigPath();
 
-        $content = "<?php\n";
-        foreach ($allowed_keys as $key) {
-            if (array_key_exists($key, $raw)) {
-                $val = trim($raw[$key]);
-            } elseif (defined($key)) {
-                $val = (string)constant($key);
-            } else {
-                continue;
-            }
-            $val = addslashes($val);
-            $content .= "define('{$key}', '{$val}');\n";
+        // Правим config.php ТОЧЕЧНО: меняем только изменённые ключи, остальные строки
+        // (WEBHOOK_SECRET, RATE_LIMIT_SEC, SMTP/push-ключи и т.д.) не трогаем.
+        // Пустое поле = «не менять» — пустая строка не должна затирать BOT_TOKEN/CHAT_ID/TG_FORCE_IP.
+        $changes = [];
+        foreach (adminConfigKeys() as $key) {
+            if (!array_key_exists($key, $raw) || !is_scalar($raw[$key])) continue;
+            $val = trim((string)$raw[$key]);
+            if ($val === '') continue;
+            if (defined($key) && (string)constant($key) === $val) continue;
+            $changes[$key] = $val;
         }
-        $rateLimit = defined('RATE_LIMIT_SEC') ? (int)RATE_LIMIT_SEC : 30;
-        $content .= "define('RATE_LIMIT_SEC', {$rateLimit});\n";
-
-        file_put_contents($cfgFile, $content);
+        if ($changes) {
+            $content = file_get_contents($cfgFile);
+            if ($content === false) jsonResponse(['ok' => false, 'error' => 'Не удалось прочитать config.php'], 500);
+            $content = adminConfigApply($content, $changes);
+            @copy($cfgFile, $cfgFile . '.bak.' . date('Ymd-His'));
+            $tmp = $cfgFile . '.tmp';
+            if (file_put_contents($tmp, $content) === false || !rename($tmp, $cfgFile)) {
+                @unlink($tmp);
+                jsonResponse(['ok' => false, 'error' => 'Не удалось записать config.php'], 500);
+            }
+        }
 
         // Save app_settings (bonuses_enabled)
         if (isset($raw['bonuses_enabled'])) {
@@ -443,7 +443,7 @@ switch ($action) {
                 $db->prepare("INSERT OR REPLACE INTO app_settings (key, value) VALUES ('bonuses_enabled', ?)")->execute([$bval]);
             } catch (Throwable $e) {}
         }
-        jsonResponse(['ok' => true]);
+        jsonResponse(['ok' => true, 'changed' => array_keys($changes)]);
         break;
 
     // ── Upload product photo ──
@@ -625,8 +625,7 @@ switch ($action) {
         $tmpPath = sys_get_temp_dir() . '/' . uniqid('price_', true) . '_' . $filename;
         file_put_contents($tmpPath, $fileContent);
 
-        $cfgFile = __DIR__ . '/../config.php';
-        if (file_exists($cfgFile)) require_once $cfgFile;
+        require_once __DIR__ . '/lib/app_config.php';
         $errors = [];
 
         if ($channel === 'tg' || $channel === 'both') {
@@ -646,7 +645,7 @@ switch ($action) {
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_TIMEOUT => 30,
                     CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_RESOLVE => ['api.telegram.org:443:'.(defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
+                    CURLOPT_RESOLVE => ['api.telegram.org:443:'.(defined('TG_FORCE_IP') && TG_FORCE_IP ? TG_FORCE_IP : '149.154.167.220')],
                 ]);
                 $res = curl_exec($ch); curl_close($ch);
                 $tgResult = json_decode($res, true);
@@ -882,8 +881,7 @@ switch ($action) {
 
         $shNum = 'SH-' . str_pad($orderId, 5, '0', STR_PAD_LEFT);
         $sNames = ['new'=>'Новый','confirmed'=>'Подтверждён','in_progress'=>'В работе','shipped'=>'Отгружен','completed'=>'Выполнен','cancelled'=>'Отменён'];
-        $cfgFile = __DIR__ . '/../config.php';
-        if (file_exists($cfgFile)) require_once $cfgFile;
+        require_once __DIR__ . '/lib/app_config.php';
 
         if ($channel === 'tg') {
             $token  = defined('BOT_TOKEN') ? BOT_TOKEN : '';
@@ -915,7 +913,7 @@ switch ($action) {
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
                 CURLOPT_POSTFIELDS => json_encode(['chat_id'=>$chatId,'text'=>$msg,'parse_mode'=>'Markdown']),
-                CURLOPT_RESOLVE => ['api.telegram.org:443:'.(defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
+                CURLOPT_RESOLVE => ['api.telegram.org:443:'.(defined('TG_FORCE_IP') && TG_FORCE_IP ? TG_FORCE_IP : '149.154.167.220')],
             ]);
             $res = curl_exec($ch); curl_close($ch);
             $ok2 = (bool)(json_decode($res, true)['ok'] ?? false);
@@ -1299,4 +1297,28 @@ function exportXlsx($db) {
     $w->addSheet('Заказы', $orders);
     $w->addSheet('Посетители', $visitors);
     $w->download('splithub_export_' . date('Y-m-d') . '.xlsx');
+}
+
+
+function adminConfigKeys(): array {
+    return ['BOT_TOKEN','CHAT_ID','TG_ADMIN_ID','EMAIL_TO','CRON_SECRET','ALLOWED_ORIGIN','TG_FORCE_IP'];
+}
+
+/**
+ * Заменяет define('KEY', ...) для переданных ключей в тексте config.php; отсутствующие — дописывает.
+ * Остальное содержимое файла сохраняется как есть.
+ */
+function adminConfigApply(string $content, array $changes): string {
+    foreach ($changes as $key => $val) {
+        $line = 'define(' . var_export($key, true) . ', ' . var_export((string)$val, true) . ');';
+        $re = '/^[ \t]*define\(\s*[\'"]' . preg_quote($key, '/') . '[\'"]\s*,.*\)\s*;[ \t]*$/m';
+        if (preg_match($re, $content)) {
+            $content = preg_replace_callback($re, fn() => $line, $content, 1);
+        } elseif (preg_match('/\?>\s*$/', $content)) {
+            $content = preg_replace('/\?>\s*$/', $line . "\n?>\n", $content, 1);
+        } else {
+            $content = rtrim($content) . "\n" . $line . "\n";
+        }
+    }
+    return $content;
 }

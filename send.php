@@ -42,6 +42,14 @@ try {
     error_log('[SplitHub] catalog validate skipped: ' . $e->getMessage());
 }
 
+// ── Telegram: экранирование пользовательских данных ──
+// Уведомление шлётся с parse_mode=HTML. Имя/комментарий/@username/наименования товаров
+// экранируем, иначе символы вроде «_», «*», «<» (например «@ivan_petrov» или
+// «15мм*20м») ломают разметку → Telegram отвечает 400 и уведомление теряется.
+function tgEsc($s) {
+    return htmlspecialchars((string)$s, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
 $date  = date('d.m.Y H:i', time() + 3 * 3600);
 $total = 0;
 $num   = 1;
@@ -61,7 +69,7 @@ foreach ($items as $item) {
     $displayName = ($itemBrand !== '' && mb_strpos($itemName, $itemBrand) === false)
         ? $itemBrand . ' ' . $itemName
         : $itemName;
-    $tgLines  .= "  {$num}. {$displayName} — {$pf} ₽ × {$qty} шт. = {$sf} ₽\n";
+    $tgLines  .= "  {$num}. " . tgEsc($displayName) . " — {$pf} ₽ × {$qty} шт. = {$sf} ₽\n";
     $htmlRows .= "<tr>"
         . "<td style='padding:8px 12px;border-bottom:1px solid #eee'>{$num}</td>"
         . "<td style='padding:8px 12px;border-bottom:1px solid #eee'>{$n}</td>"
@@ -74,42 +82,69 @@ foreach ($items as $item) {
 $totalf = number_format($total, 0, '.', ' ');
 $cnt    = count($items);
 
-// ── Telegram (идентично Desktop send.php) ──
-function sendTg($token, $chatId, $text) {
-    $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
-    curl_setopt_array($ch, [
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => json_encode([
-            'chat_id'    => $chatId,
-            'text'       => $text,
-            'parse_mode' => 'Markdown',
-        ]),
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 5,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
-    ]);
-    $resp = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    return ['resp' => $resp, 'code' => $code, 'result' => json_decode($resp, true)];
+// ── Telegram ──
+// CURLOPT_RESOLVE на TG_FORCE_IP обязателен (обход блокировки api.telegram.org по DNS/IP).
+// Пустой TG_FORCE_IP (например, после сохранения пустого поля в админке) раньше давал
+// невалидный resolve 'api.telegram.org:443:' → запрос шёл мимо обхода и не доходил.
+function tgIps() {
+    $ips = [];
+    if (defined('TG_FORCE_IP') && trim((string)TG_FORCE_IP) !== '') $ips[] = trim((string)TG_FORCE_IP);
+    $ips[] = '149.154.167.220';
+    return array_values(array_unique($ips));
 }
 
-$tgMsg  = "🛒 *Новая заявка — СплитХаб*\n";
-$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "👤 *Имя:* {$name}\n";
-$tgMsg .= "📞 *Телефон:* {$phone}\n";
-if ($clientTg !== '') $tgMsg .= "💬 *Telegram:* {$clientTg}\n";
-$tgMsg .= "📅 *Время:* {$date}\n";
-$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "📦 *Позиции ({$cnt} шт.):*\n{$tgLines}";
-$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
-$tgMsg .= "💰 *Итого:* {$totalf} ₽\n";
-if ($comment !== '') $tgMsg .= "━━━━━━━━━━━━━━━━━━\n💬 *Комментарий:* {$comment}\n";
-$tgMsg .= "\n_Клиент ждёт звонка_";
+function tgCall($token, $method, array $params, $asJson = true) {
+    $last = ['resp' => '', 'code' => 0, 'result' => null, 'err' => 'BOT_TOKEN не задан'];
+    if ((string)$token === '') return $last;
+    foreach (tgIps() as $ip) {
+        $ch = curl_init("https://api.telegram.org/bot{$token}/{$method}");
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $asJson ? json_encode($params, JSON_UNESCAPED_UNICODE) : $params,
+            CURLOPT_HTTPHEADER     => $asJson ? ['Content-Type: application/json'] : [],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 5,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_RESOLVE        => ['api.telegram.org:443:' . $ip],
+        ]);
+        $resp = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        curl_close($ch);
+        $last = ['resp' => (string)$resp, 'code' => $code, 'result' => json_decode((string)$resp, true), 'err' => $err];
+        if ($code > 0) break; // Telegram ответил (успех или ошибка API) — другой IP не поможет
+    }
+    return $last;
+}
 
-$tgResult = sendTg(BOT_TOKEN, CHAT_ID, $tgMsg);
+function sendTg($token, $chatId, $text) {
+    $r = tgCall($token, 'sendMessage', ['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'HTML']);
+    if (!($r['result']['ok'] ?? false) && $r['code'] > 0) {
+        // Разметка не принята (или иная ошибка API) — повторяем простым текстом, чтобы заявка не потерялась.
+        error_log('[SplitHub] TG HTML send failed, retry plain: ' . $r['resp']);
+        $plain = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $r = tgCall($token, 'sendMessage', ['chat_id' => $chatId, 'text' => $plain]);
+    }
+    return $r;
+}
+
+$botToken = defined('BOT_TOKEN') ? (string)BOT_TOKEN : '';
+$chatId   = defined('CHAT_ID')   ? (string)CHAT_ID   : '';
+
+$tgMsg  = "🛒 <b>Новая заявка — СплитХаб</b>\n";
+$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "👤 <b>Имя:</b> " . tgEsc($name) . "\n";
+$tgMsg .= "📞 <b>Телефон:</b> " . tgEsc($phone) . "\n";
+if ($clientTg !== '') $tgMsg .= "💬 <b>Telegram:</b> " . tgEsc($clientTg) . "\n";
+$tgMsg .= "📅 <b>Время:</b> {$date}\n";
+$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "📦 <b>Позиции ({$cnt} шт.):</b>\n{$tgLines}";
+$tgMsg .= "━━━━━━━━━━━━━━━━━━\n";
+$tgMsg .= "💰 <b>Итого:</b> {$totalf} ₽\n";
+if ($comment !== '') $tgMsg .= "━━━━━━━━━━━━━━━━━━\n💬 <b>Комментарий:</b> " . tgEsc($comment) . "\n";
+$tgMsg .= "\n<i>Клиент ждёт звонка</i>";
+
+$tgResult = sendTg($botToken, $chatId, $tgMsg);
 $tgOk     = $tgResult['result']['ok'] ?? false;
 
 // ── Вторичные функции (сбой не влияет на ответ) ──
@@ -146,16 +181,7 @@ try {
                     ['text' => '✅ Подтвердить', 'callback_data' => 'st:confirmed:' . $orderId],
                     ['text' => '❌ Отменить',   'callback_data' => 'st:cancelled:' . $orderId],
                 ]]];
-                $eh = curl_init("https://api.telegram.org/bot" . BOT_TOKEN . "/editMessageReplyMarkup");
-                curl_setopt_array($eh, [
-                    CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => ['chat_id' => CHAT_ID, 'message_id' => $mid, 'reply_markup' => json_encode($kb)],
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 5,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_RESOLVE        => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
-                ]);
-                curl_exec($eh); curl_close($eh);
+                tgCall($botToken, 'editMessageReplyMarkup', ['chat_id' => $chatId, 'message_id' => $mid, 'reply_markup' => json_encode($kb)], false);
             }
         } else {
             // Гостевой заказ
@@ -253,9 +279,10 @@ $headers   = "From: =?UTF-8?B?" . base64_encode("СплитХаб") . "?= <zakaz
 $headers  .= "MIME-Version: 1.0\r\n";
 $headers  .= "Content-Type: text/html; charset=UTF-8\r\n";
 $emailSubj = "=?UTF-8?B?" . base64_encode("Новая заявка СплитХаб — {$name} — {$totalf} руб") . "?=";
-$mailOk    = @mail(EMAIL_TO, $emailSubj, $emailHtml, $headers);
+$emailTo   = defined('EMAIL_TO') ? (string)EMAIL_TO : '';
+$mailOk    = $emailTo !== '' ? @mail($emailTo, $emailSubj, $emailHtml, $headers) : false;
 
-error_log('[SplitHub] tg=' . ($tgOk?'ok':'FAIL:'.($tgResult['resp']??'')) . ' mail=' . ($mailOk?'ok':'fail') . ' order=' . ($orderId??'null') . ' guest=' . ($guestSaved?'yes':'no'));
+error_log('[SplitHub] tg=' . ($tgOk?'ok':'FAIL:http='.$tgResult['code'].' curl='.($tgResult['err']??'').' resp='.($tgResult['resp']??'')) . ' mail=' . ($mailOk?'ok':'fail') . ' order=' . ($orderId??'null') . ' guest=' . ($guestSaved?'yes':'no'));
 
 // ── Ответ ──
 if ($tgOk || $orderId || $guestSaved) {

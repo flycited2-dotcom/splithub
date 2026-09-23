@@ -45,7 +45,7 @@ function tgApi($token, $method, $params) {
     curl_setopt_array($ch, [
         CURLOPT_POST => true, CURLOPT_POSTFIELDS => $params,
         CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 25, CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_RESOLVE => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') ? TG_FORCE_IP : '149.154.167.220')],
+        CURLOPT_RESOLVE => ['api.telegram.org:443:' . (defined('TG_FORCE_IP') && TG_FORCE_IP ? TG_FORCE_IP : '149.154.167.220')],
     ]);
     $r = curl_exec($ch); curl_close($ch);
     return $r;
