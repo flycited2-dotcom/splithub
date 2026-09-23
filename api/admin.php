@@ -1,7 +1,39 @@
 <?php
+ob_start();
 /**
  * Admin API
  */
+
+// Admin endpoints must always return JSON. Without this guard a PHP warning or
+// fatal error turns into an HTML/empty response and the UI can only show the
+// unhelpful "Некорректный ответ сервера" message.
+set_error_handler(function($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+set_exception_handler(function($error) {
+    $errorId = date('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $logLine = date('c') . ' [' . $errorId . '] ' . get_class($error) . ': ' . $error->getMessage() . ' in ' . $error->getFile() . ':' . $error->getLine() . PHP_EOL;
+    error_log('[SplitHub admin][' . $errorId . '] ' . $error->getMessage() . ' in ' . $error->getFile() . ':' . $error->getLine());
+    @file_put_contents(__DIR__ . '/../db/admin-errors.log', $logLine, FILE_APPEND | LOCK_EX);
+    if (ob_get_length()) ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Ошибка сервера. Код: ' . $errorId], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if (!$error || !in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
+    $errorId = date('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $logLine = date('c') . ' [' . $errorId . '] Fatal: ' . ($error['message'] ?? '') . ' in ' . ($error['file'] ?? '?') . ':' . ($error['line'] ?? 0) . PHP_EOL;
+    error_log('[SplitHub admin][' . $errorId . '] Fatal: ' . ($error['message'] ?? '') . ' in ' . ($error['file'] ?? '?') . ':' . ($error['line'] ?? 0));
+    @file_put_contents(__DIR__ . '/../db/admin-errors.log', $logLine, FILE_APPEND | LOCK_EX);
+    if (ob_get_length()) ob_clean();
+    if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Критическая ошибка сервера. Код: ' . $errorId], JSON_UNESCAPED_UNICODE);
+});
 
 require __DIR__ . '/../db/init.php';
 require_once __DIR__ . '/lib/push.php';
@@ -15,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 // Public product overrides — no auth required
 $action = $_GET['action'] ?? '';
 if ($action === 'products_overrides_public') {
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     $db = getDB();
     $rows = $db->query("SELECT sku, description, badge, badge_label, active, data_json, updated_at FROM product_overrides")->fetchAll();
     $map = [];
@@ -203,7 +236,11 @@ switch ($action) {
         if ($search !== '') {
             $num = preg_replace('/^(SH-?|#)/i', '', $search);
             if (ctype_digit($num)) { $where[] = 'o.id = ?'; $params[] = (int)$num; }
-            else                   { $where[] = 'u.name LIKE ?'; $params[] = '%'.$search.'%'; }
+            else {
+                $where[] = '(u.name LIKE ? OR u.phone LIKE ? OR u.email LIKE ? OR o.comment LIKE ?)';
+                $like = '%'.$search.'%';
+                array_push($params, $like, $like, $like, $like);
+            }
         }
         $whereSQL = $where ? 'WHERE '.implode(' AND ', $where) : '';
 
@@ -328,7 +365,7 @@ switch ($action) {
         $uid     = intval($raw['user_id'] ?? 0);
         $newPass = (string)($raw['password'] ?? '');
         $email   = trim((string)($raw['email'] ?? ''));
-        if (!$uid || strlen($newPass) < 4) jsonResponse(['ok' => false, 'error' => 'Нужен клиент и пароль от 4 символов'], 422);
+        if (!$uid || strlen($newPass) < 8) jsonResponse(['ok' => false, 'error' => 'Нужен клиент и пароль от 8 символов'], 422);
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) jsonResponse(['ok' => false, 'error' => 'Некорректный email'], 422);
         if ($email !== '') {
             $db->prepare('UPDATE users SET password_hash = ?, email = ? WHERE id = ?')
@@ -402,6 +439,13 @@ switch ($action) {
             $appRows = $db->query("SELECT key, value FROM app_settings")->fetchAll();
             foreach ($appRows as $r) { $cfg[$r['key']] = $r['value']; }
         } catch (Throwable $e) {}
+        $configured = [];
+        foreach (array_keys($cfg) as $configKey) {
+            if (!preg_match('/(TOKEN|SECRET|PASSWORD|KEY)/i', $configKey)) continue;
+            $configured[$configKey] = !empty($cfg[$configKey]);
+            unset($cfg[$configKey]);
+        }
+        $cfg['_configured'] = $configured;
         jsonResponse(['ok' => true, 'settings' => $cfg]);
         break;
 
@@ -429,8 +473,11 @@ switch ($action) {
             if ($content === false) jsonResponse(['ok' => false, 'error' => 'Не удалось прочитать config.php'], 500);
             $content = adminConfigApply($content, $changes);
             @copy($cfgFile, $cfgFile . '.bak.' . date('Ymd-His'));
-            $tmp = $cfgFile . '.tmp';
-            if (file_put_contents($tmp, $content) === false || !rename($tmp, $cfgFile)) {
+            $tmp = $cfgFile . '.tmp.' . bin2hex(random_bytes(4));
+            $cfgMode = @fileperms($cfgFile);
+            $written = file_put_contents($tmp, $content, LOCK_EX) !== false;
+            if ($written && $cfgMode !== false) @chmod($tmp, $cfgMode & 0777);
+            if (!$written || !rename($tmp, $cfgFile)) {
                 @unlink($tmp);
                 jsonResponse(['ok' => false, 'error' => 'Не удалось записать config.php'], 500);
             }
@@ -459,6 +506,11 @@ switch ($action) {
         $ext = strtolower(pathinfo($original, PATHINFO_EXTENSION));
         $allowed = ['jpg','jpeg','png','webp','gif'];
         if (!in_array($ext, $allowed, true)) jsonResponse(['ok' => false, 'error' => 'Поддерживаются JPG, PNG, WEBP, GIF'], 422);
+        $imageInfo = @getimagesize($_FILES['photo']['tmp_name']);
+        $allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!$imageInfo || !in_array($imageInfo['mime'] ?? '', $allowedMime, true)) {
+            jsonResponse(['ok' => false, 'error' => 'Файл не является корректным изображением'], 422);
+        }
         $dir = __DIR__ . '/../assets/img/products';
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             jsonResponse(['ok' => false, 'error' => 'Не удалось создать папку изображений'], 500);
@@ -469,6 +521,68 @@ switch ($action) {
             jsonResponse(['ok' => false, 'error' => 'Не удалось сохранить файл'], 500);
         }
         jsonResponse(['ok' => true, 'filename' => $filename, 'path' => 'assets/img/products/' . $filename]);
+        break;
+
+    // Upload a catalog image preserving its filename. Used by the master-file
+    // workflow because the XLSX photo column refers to exact filenames.
+    case 'catalog_image_upload':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        if (empty($_FILES['photo']) || !is_uploaded_file($_FILES['photo']['tmp_name'])) {
+            jsonResponse(['ok' => false, 'error' => 'photo required'], 422);
+        }
+        if (($_FILES['photo']['size'] ?? 0) > 8 * 1024 * 1024) {
+            jsonResponse(['ok' => false, 'error' => 'Файл больше 8 МБ'], 422);
+        }
+        $filename = adminNormalizeImageName($_FILES['photo']['name'] ?? '');
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        if ($filename === '' || !in_array($ext, ['jpg','jpeg','png','webp','gif'], true)) {
+            jsonResponse(['ok' => false, 'error' => 'Поддерживаются JPG, PNG, WEBP, GIF'], 422);
+        }
+        $imageInfo = @getimagesize($_FILES['photo']['tmp_name']);
+        if (!$imageInfo || !in_array($imageInfo['mime'] ?? '', ['image/jpeg','image/png','image/webp','image/gif'], true)) {
+            jsonResponse(['ok' => false, 'error' => 'Файл не является корректным изображением'], 422);
+        }
+        $dir = __DIR__ . '/../assets/img/products';
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) jsonResponse(['ok' => false, 'error' => 'Не удалось создать папку изображений'], 500);
+        $target = $dir . '/' . $filename;
+        $tmpTarget = $target . '.upload.' . bin2hex(random_bytes(4));
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $tmpTarget)) jsonResponse(['ok' => false, 'error' => 'Не удалось сохранить изображение'], 500);
+        if (!rename($tmpTarget, $target)) {
+            @unlink($tmpTarget);
+            jsonResponse(['ok' => false, 'error' => 'Не удалось заменить изображение'], 500);
+        }
+        jsonResponse(['ok' => true, 'filename' => $filename, 'path' => 'assets/img/products/' . $filename]);
+        break;
+
+    // Replace the base catalog generated from the XLSX master file. Manual
+    // overrides live in SQLite and deliberately remain untouched.
+    case 'catalog_master_import':
+        if ($method !== 'POST') jsonResponse(['ok' => false, 'error' => 'POST only'], 405);
+        $raw = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($raw) || !isset($raw['products']) || !is_array($raw['products'])) {
+            jsonResponse(['ok' => false, 'error' => 'Список товаров не передан'], 422);
+        }
+        [$products, $errors, $warnings] = adminValidateMasterProducts($raw['products']);
+        if ($errors) jsonResponse(['ok' => false, 'error' => 'Мастер-файл не прошёл проверку', 'errors' => array_slice($errors, 0, 50), 'warnings' => array_slice($warnings, 0, 50)], 422);
+        if (!$products) jsonResponse(['ok' => false, 'error' => 'В мастер-файле нет активных товаров'], 422);
+        $backup = adminWriteMasterCatalog($products);
+        $baseSkus = array_fill_keys(array_column($products, 'sku'), true);
+        $overrideSkus = $db->query('SELECT sku FROM product_overrides')->fetchAll(PDO::FETCH_COLUMN);
+        $orphanOverrides = array_values(array_filter($overrideSkus, function($sku) use ($baseSkus) { return !isset($baseSkus[$sku]); }));
+        $photoDir = __DIR__ . '/../assets/img/products';
+        $missingPhotos = [];
+        foreach ($products as $product) {
+            $photo = adminNormalizeImageName($product['photo'] ?? '');
+            if ($photo !== '' && !preg_match('#^https?://#i', $photo) && !is_file($photoDir . '/' . $photo)) $missingPhotos[] = $photo;
+        }
+        jsonResponse([
+            'ok' => true,
+            'imported' => count($products),
+            'backup' => $backup,
+            'warnings' => array_slice($warnings, 0, 50),
+            'missing_photos' => array_values(array_unique($missingPhotos)),
+            'orphan_overrides' => $orphanOverrides,
+        ]);
         break;
 
     // ── List products + overrides ──
@@ -493,6 +607,13 @@ switch ($action) {
         foreach ($customRows as $r) {
             $products[] = adminDecodeCustomProductRow($r);
         }
+
+        $summary = [
+            'total' => count($products),
+            'active' => count(array_filter($products, function($p) { return (int)($p['_active'] ?? 1) === 1; })),
+            'hidden' => count(array_filter($products, function($p) { return (int)($p['_active'] ?? 1) === 0; })),
+            'custom' => count(array_filter($products, function($p) { return !empty($p['_is_custom']); })),
+        ];
 
         $search = trim($_GET['search'] ?? '');
         $group = trim($_GET['group'] ?? '');
@@ -528,7 +649,8 @@ switch ($action) {
             'products' => array_slice($products, $offset, $limit),
             'total' => count($products),
             'page' => $page,
-            'limit' => $limit
+            'limit' => $limit,
+            'summary' => $summary
         ]);
         break;
 
@@ -546,15 +668,12 @@ switch ($action) {
         $active = array_key_exists('active', $raw) ? (int)!!$raw['active'] : 1;
         if (!in_array($badge, ['', 'new', 'sale', 'clearance'])) jsonResponse(['ok' => false, 'error' => 'Invalid badge'], 422);
         unset($data['id'], $data['sku'], $data['active'], $data['is_custom'], $data['_source'], $data['_is_custom']);
-        $db->prepare("INSERT INTO product_overrides (sku, description, badge, badge_label, active, data_json, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(sku) DO UPDATE SET
-                description = excluded.description,
-                badge = excluded.badge,
-                badge_label = excluded.badge_label,
-                active = excluded.active,
-                data_json = excluded.data_json,
-                updated_at = CURRENT_TIMESTAMP")
+        // PHP-FPM on the hosting uses an older SQLite parser than CLI and does
+        // not understand "ON CONFLICT ... DO UPDATE". REPLACE is compatible
+        // with both runtimes and this table has no dependent foreign keys.
+        $db->prepare("INSERT OR REPLACE INTO product_overrides
+            (sku, description, badge, badge_label, active, data_json, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)")
             ->execute([$sku, $desc, $badge, $blabel, $active, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
         jsonResponse(['ok' => true]);
         break;
@@ -577,20 +696,30 @@ switch ($action) {
         $sku = trim($data['sku'] ?? ($raw['sku'] ?? ''));
         if ($sku === '') jsonResponse(['ok' => false, 'error' => 'sku required'], 422);
         if (trim($data['model'] ?? '') === '') jsonResponse(['ok' => false, 'error' => 'model required'], 422);
+        $existingCustom = $db->prepare('SELECT id FROM custom_products WHERE sku = ?');
+        $existingCustom->execute([$sku]);
+        $customExists = (bool)$existingCustom->fetch();
+        if (!$customExists) {
+            foreach (adminReadProductsJs() as $baseProduct) {
+                if (trim((string)($baseProduct['sku'] ?? '')) === $sku) {
+                    jsonResponse(['ok' => false, 'error' => 'Такой SKU уже есть в основном каталоге'], 409);
+                }
+            }
+        }
         $active = array_key_exists('active', $raw) ? (int)!!$raw['active'] : (int)($data['active'] ?? 1);
         $id = trim($data['id'] ?? ($raw['id'] ?? ''));
         if ($id === '') $id = adminProductIdFromSku($sku);
         $data['id'] = $id;
         $data['sku'] = $sku;
         $data['active'] = $active;
-        $db->prepare("INSERT INTO custom_products (id, sku, data_json, active, updated_at, created_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            ON CONFLICT(sku) DO UPDATE SET
-                id = excluded.id,
-                data_json = excluded.data_json,
-                active = excluded.active,
-                updated_at = CURRENT_TIMESTAMP")
-            ->execute([$id, $sku, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $active]);
+        $encodedData = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($customExists) {
+            $db->prepare('UPDATE custom_products SET id = ?, data_json = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ?')
+                ->execute([$id, $encodedData, $active, $sku]);
+        } else {
+            $db->prepare('INSERT INTO custom_products (id, sku, data_json, active, updated_at, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)')
+                ->execute([$id, $sku, $encodedData, $active]);
+        }
         jsonResponse(['ok' => true, 'product' => $data]);
         break;
 
@@ -769,19 +898,27 @@ switch ($action) {
         $raw = json_decode(file_get_contents('php://input'), true);
         $uid = intval($raw['user_id'] ?? 0);
         if (!$uid) jsonResponse(['ok' => false, 'error' => 'user_id required'], 422);
-        $allowed = ['name','phone','telegram','company_name','inn','kpp','legal_address'];
+        $allowed = ['name','phone','email','telegram','company_name','inn','kpp','legal_address'];
         $fields = []; $vals = [];
         foreach ($allowed as $f) {
             if (array_key_exists($f, $raw)) {
                 $fields[] = "$f = ?";
                 $val = trim($raw[$f] ?? '');
                 if ($f === 'phone') $val = normalizePhone($val);
+                if ($f === 'email' && $val !== '' && !filter_var($val, FILTER_VALIDATE_EMAIL)) {
+                    jsonResponse(['ok' => false, 'error' => 'Некорректный email'], 422);
+                }
                 $vals[] = $val;
             }
         }
         if (empty($fields)) jsonResponse(['ok' => false, 'error' => 'No fields to update'], 422);
         $vals[] = $uid;
-        $db->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($vals);
+        try {
+            $db->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($vals);
+        } catch (PDOException $e) {
+            if (stripos($e->getMessage(), 'unique') !== false) jsonResponse(['ok' => false, 'error' => 'Этот email уже используется'], 409);
+            throw $e;
+        }
         jsonResponse(['ok' => true]);
         break;
 
@@ -817,7 +954,7 @@ switch ($action) {
         $raw = json_decode(file_get_contents('php://input'), true);
         $targetUid = intval($raw['user_id'] ?? 0);
         $newPass   = $raw['new_password'] ?? '';
-        if (!$targetUid || strlen($newPass) < 4) jsonResponse(['ok' => false, 'error' => 'user_id и пароль (мин. 4 символа) обязательны'], 422);
+        if (!$targetUid || strlen($newPass) < 8) jsonResponse(['ok' => false, 'error' => 'user_id и пароль (мин. 8 символов) обязательны'], 422);
         $hash = password_hash($newPass, PASSWORD_DEFAULT);
         $db->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$hash, $targetUid]);
         jsonResponse(['ok' => true]);
@@ -836,8 +973,7 @@ switch ($action) {
             $db->prepare('UPDATE custom_products SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ? OR id = ?')
                 ->execute([$active, $sku, $sku]);
         } else {
-            $db->prepare("INSERT INTO product_overrides (sku, active) VALUES (?, ?) ON CONFLICT(sku) DO UPDATE SET active=excluded.active, updated_at=CURRENT_TIMESTAMP")
-                ->execute([$sku, $active]);
+            adminSetProductActive($db, $sku, $active);
         }
         jsonResponse(['ok' => true]);
         break;
@@ -856,8 +992,7 @@ switch ($action) {
                 $db->prepare('UPDATE custom_products SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ? OR id = ?')
                     ->execute([$active, $sku, $sku]);
             } else {
-                $db->prepare("INSERT INTO product_overrides (sku, active) VALUES (?, ?) ON CONFLICT(sku) DO UPDATE SET active=excluded.active, updated_at=CURRENT_TIMESTAMP")
-                    ->execute([$sku, $active]);
+                adminSetProductActive($db, $sku, $active);
             }
         }
         jsonResponse(['ok' => true, 'updated' => count($skus)]);
@@ -946,6 +1081,8 @@ switch ($action) {
         if ($type === 'guest_orders' || $type === 'all') $tables[] = 'guest_orders';
         if (!$tables) jsonResponse(['ok' => false, 'error' => 'Некорректный тип'], 422);
         foreach ($tables as $tbl) {
+            $rowsCount = (int)$db->query("SELECT COUNT(*) FROM {$tbl}")->fetchColumn();
+            if ($rowsCount > 0) jsonResponse(['ok' => false, 'error' => "Сначала удалите все записи раздела {$tbl}"], 409);
             try { $db->exec("DELETE FROM sqlite_sequence WHERE name='{$tbl}'"); } catch (Throwable $e) {}
         }
         jsonResponse(['ok' => true, 'reset' => $tables]);
@@ -998,6 +1135,77 @@ function adminReadProductsJs() {
     $js = rtrim($js, ";\r\n ");
     $products = json_decode($js, true);
     return is_array($products) ? $products : [];
+}
+
+function adminSetProductActive($db, $sku, $active) {
+    $exists = $db->prepare('SELECT 1 FROM product_overrides WHERE sku = ?');
+    $exists->execute([$sku]);
+    if ($exists->fetchColumn()) {
+        $db->prepare('UPDATE product_overrides SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE sku = ?')
+            ->execute([(int)$active, $sku]);
+    } else {
+        $db->prepare('INSERT INTO product_overrides (sku, active) VALUES (?, ?)')
+            ->execute([$sku, (int)$active]);
+    }
+}
+
+function adminValidateMasterProducts($rows) {
+    $products = [];
+    $errors = [];
+    $warnings = [];
+    $seenSku = [];
+    $seenId = [];
+    $validGroups = ['inv','onoff','truba','rashod','poluprom','multi','pac_inv','pac_onoff'];
+    $validStocks = ['in_stock','days_1_2','days_3_5','order_7','order_14','order_30','out'];
+    foreach ($rows as $index => $row) {
+        $line = $index + 2;
+        if (!is_array($row)) { $errors[] = "Строка {$line}: неверный формат"; continue; }
+        $product = adminNormalizeProductPayload($row, true);
+        unset($product['active']);
+        $sku = trim((string)($product['sku'] ?? ''));
+        $id = trim((string)($product['id'] ?? ''));
+        if ($id === '') {
+            $id = strtolower(preg_replace('/[^a-zA-Z0-9_-]+/', '-', $sku));
+            $product['id'] = trim($id, '-_');
+        }
+        foreach (['sku' => 'SKU', 'brand' => 'бренд', 'model' => 'модель', 'group' => 'группа', 'stock' => 'наличие', 'stockLabel' => 'текст наличия', 'descShort' => 'краткое описание'] as $field => $label) {
+            if (trim((string)($product[$field] ?? '')) === '') $errors[] = "Строка {$line}: поле «{$label}» пустое";
+        }
+        if ((int)($product['price'] ?? 0) <= 0) $errors[] = "Строка {$line}: цена должна быть больше нуля";
+        if ($sku !== '' && isset($seenSku[$sku])) $errors[] = "Строка {$line}: SKU «{$sku}» повторяется";
+        if ($id !== '' && isset($seenId[$id])) $errors[] = "Строка {$line}: ID «{$id}» повторяется";
+        if ($sku !== '') $seenSku[$sku] = true;
+        if ($id !== '') $seenId[$id] = true;
+        if (!in_array($product['group'] ?? '', $validGroups, true)) $warnings[] = "Строка {$line}: неизвестная группа «" . ($product['group'] ?? '') . '»';
+        if (!in_array($product['stock'] ?? '', $validStocks, true)) $warnings[] = "Строка {$line}: неизвестный статус наличия «" . ($product['stock'] ?? '') . '»';
+        $products[] = $product;
+    }
+    return [$products, $errors, $warnings];
+}
+
+function adminWriteMasterCatalog($products) {
+    $root = realpath(__DIR__ . '/..');
+    if (!$root) throw new RuntimeException('Корень сайта не найден');
+    $jsFile = $root . '/products.js';
+    $jsonFile = $root . '/products.json';
+    $json = json_encode(array_values($products), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    if ($json === false) throw new RuntimeException('Не удалось сформировать каталог: ' . json_last_error_msg());
+    $json .= "\n";
+    $js = 'var PRODUCTS = ' . $json . ";\n";
+    $backupDir = __DIR__ . '/../db/catalog_backups';
+    if (!is_dir($backupDir) && !mkdir($backupDir, 0770, true)) throw new RuntimeException('Не удалось создать папку резервных копий');
+    $stamp = date('Ymd_His');
+    if (is_file($jsFile)) copy($jsFile, $backupDir . '/products_' . $stamp . '.js');
+    if (is_file($jsonFile)) copy($jsonFile, $backupDir . '/products_' . $stamp . '.json');
+    $jsTmp = $jsFile . '.tmp.' . bin2hex(random_bytes(4));
+    $jsonTmp = $jsonFile . '.tmp.' . bin2hex(random_bytes(4));
+    if (file_put_contents($jsTmp, $js, LOCK_EX) === false || file_put_contents($jsonTmp, $json, LOCK_EX) === false) {
+        @unlink($jsTmp); @unlink($jsonTmp);
+        throw new RuntimeException('Не удалось записать временные файлы каталога');
+    }
+    if (!rename($jsonTmp, $jsonFile)) { @unlink($jsTmp); @unlink($jsonTmp); throw new RuntimeException('Не удалось обновить products.json'); }
+    if (!rename($jsTmp, $jsFile)) { @unlink($jsTmp); throw new RuntimeException('Не удалось обновить products.js'); }
+    return 'db/catalog_backups/products_' . $stamp;
 }
 
 function adminProductFields() {
