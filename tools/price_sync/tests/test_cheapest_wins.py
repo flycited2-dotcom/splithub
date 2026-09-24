@@ -1,22 +1,27 @@
 # -*- coding: utf-8 -*-
-"""Позиция есть у нескольких поставщиков — побеждает самая низкая цена витрины."""
+"""Позиция есть у нескольких поставщиков — побеждает самая низкая цена витрины.
+
+Но сначала — наличие: дешёвое «нет»/«под заказ» не перебивает «в наличии» у другого
+поставщика (24.09.2026: DAICHI ICE25 шла «Нет в наличии» по цене трио, хотя у
+Техносистемса она была на складе).
+"""
 from tools.price_sync import matching, sources_techno, sources_trio, sync
 
 
-def techno_row(model, price):
+def techno_row(model, price, availability="есть"):
     return {"source": "techno", "brand": "DAICHI", "series": "ICE", "model": model,
             "category": "настенный", "price_1": price, "price_2": 0.0,
-            "availability": "есть", "note": ""}
+            "availability": availability, "note": ""}
 
 
-def trio_row(model, dealer):
+def trio_row(model, dealer, availability="есть"):
     return {"source": "trio", "page": "bytovye-kondicionery", "section": 27, "series": "ICE",
-            "model": model, "availability": "есть", "dealer": dealer, "promo": None}
+            "model": model, "availability": availability, "dealer": dealer, "promo": None}
 
 
-def build(techno_price, trio_dealer):
-    techno_rows = [techno_row("ICE35", techno_price)]
-    trio_rows = [trio_row("ICE35AVQS1R-2", trio_dealer)]
+def build(techno_price, trio_dealer, techno_avail="есть", trio_avail="есть"):
+    techno_rows = [techno_row("ICE35", techno_price, techno_avail)]
+    trio_rows = [trio_row("ICE35AVQS1R-2", trio_dealer, trio_avail)]
     return {
         "techno": (matching.build_text_index(techno_rows, sources_techno.model_of),
                    sources_techno, techno_rows),
@@ -72,3 +77,22 @@ def test_tochnoe_sovpadenie_pobezhdaet_vhozhdenie():
     index = matching.build_text_index(rows, sources_techno.model_of)
     found = matching.lookup_either(index, "DENKO MULT-18", "DENKO")
     assert found["model"] == "MULT-18"
+
+
+def test_v_nalichii_vazhnee_deshevizny():
+    # трио «нет» 30 000 → 31 590, Техносистемс «есть» 31 650 → 34 890: продаём то, что есть
+    source, _, _ = sync.find_offer(build(31650, 30000, trio_avail="нет"), PRODUCT)
+    assert source == "techno"
+
+
+def test_pod_zakaz_ne_perebivaet_nalichie():
+    source, _, _ = sync.find_offer(build(31650, 30000, trio_avail="под заказ"), PRODUCT)
+    assert source == "techno"
+
+
+def test_bez_ostatka_u_vseh_pobezhdaet_deshevle():
+    # Ни у кого нет на складе — прежнее правило: дешевле. «Под заказ» у одного не
+    # перебивает «нет» у другого: владелец велел показывать «нет», как у трио.
+    source, _, _ = sync.find_offer(
+        build(31650, 30000, techno_avail="под заказ", trio_avail="нет"), PRODUCT)
+    assert source == "trio"

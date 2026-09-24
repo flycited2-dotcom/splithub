@@ -49,7 +49,7 @@ def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
     """
     before = {product["id"]: product for product in live}
     final, held = [], []
-    prices = stocks = added = 0
+    prices = stocks = added = replaced = 0
     for product in built:
         item = dict(product)
         old = before.get(item["id"])
@@ -57,7 +57,11 @@ def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
             added += 1
         else:
             old_price, new_price = old.get("price") or 0, item.get("price") or 0
-            if old_price and new_price != old_price:
+            if item.get("model") != old.get("model"):
+                # Карточку перевели на новую ревизию модели: прежняя цена была у другого
+                # товара и ей не ориентир — держать её значит оставить ошибку на сайте.
+                replaced += 1
+            elif old_price and new_price != old_price:
                 jump = (new_price - old_price) / old_price
                 if abs(jump) > max_jump:
                     held.append({"model": item["model"], "old": old_price,
@@ -68,7 +72,8 @@ def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
             if item.get("stock") != old.get("stock"):
                 stocks += 1
         final.append(item)
-    return final, {"prices": prices, "stocks": stocks, "held": held, "added": added}
+    return final, {"prices": prices, "stocks": stocks, "held": held, "added": added,
+                   "replaced": replaced}
 
 
 def shrank_too_much(live: list[dict], built: list[dict], limit: float = MAX_SHRINK) -> bool:
@@ -81,9 +86,11 @@ def message(report: dict, published: bool, when: datetime) -> str:
         head = "ℹ️ СплитХаб %s: сверка прошла, изменений нет — сайт не трогали." % stamp
     else:
         head = "✅ СплитХаб %s: цены и остатки обновлены, сайт обновлён." % stamp
-    lines = [head,
-             "Цен изменилось: %d · наличие: %d · новых позиций: %d"
-             % (report["prices"], report["stocks"], report["added"])]
+    counts = ("Цен изменилось: %d · наличие: %d · новых позиций: %d"
+              % (report["prices"], report["stocks"], report["added"]))
+    if report.get("replaced"):
+        counts += " · заменено моделей: %d" % report["replaced"]
+    lines = [head, counts]
     if report["held"]:
         lines.append("⏸ На проверку, цена не залита (скачок больше %d%%):" % int(MAX_JUMP * 100))
         for item in report["held"][:8]:

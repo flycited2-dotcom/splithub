@@ -106,11 +106,22 @@ def _offer_in(sources, name, product):
     return matching.lookup(index, product["model"], product["brand"])
 
 
+#: Реальный остаток у поставщика: чем быстрее привезём, тем выше. Всё, чего нет на
+#: складе («под заказ», «ожидается», «нет»), — один последний уровень.
+STOCK_RANK = {"in_stock": 0, "days_1_2": 1, "days_3_5": 2, "days_7": 3}
+NO_STOCK_RANK = 4
+
+
 def find_offer(sources, product):
-    """Из всех поставщиков, у кого есть позиция, побеждает самая низкая цена витрины.
+    """Из всех поставщиков, у кого есть позиция, побеждает самая низкая цена витрины —
+    среди тех, у кого она есть на складе.
 
     Правило владельца: «если дешевле у трио — берём трио, если у Техносистемса —
     берём его». Сравниваем итоговую цену, а не закупку: наценки у поставщиков разные.
+    Но дешёвое «нет» или «под заказ» не перебивает «в наличии» у другого поставщика:
+    иначе DAICHI ICE25 шла «Нет в наличии», хотя у Техносистемса была на складе.
+    Если на складе нет ни у кого — побеждает просто самая низкая цена, и «под заказ»
+    не перебивает «нет» у трио (владелец: у трио «нет» — ставим «нет»).
     """
     best = None
     for name in SOURCE_ORDER:
@@ -123,8 +134,9 @@ def find_offer(sources, product):
             continue
         source = price_source(name, product, offer)
         price = pricing.compute_price(cost, source)
-        if best is None or price < best[0]:
-            best = (price, source, module, offer)
+        rank = (STOCK_RANK.get(module.stock_of(offer)[0], NO_STOCK_RANK), price)
+        if best is None or rank < best[0]:
+            best = (rank, source, module, offer)
     if best is not None:
         return best[1], best[2], best[3]
     # Расходники моделью не совпадают — ищем по характеристикам товара.
@@ -132,6 +144,29 @@ def find_offer(sources, product):
     if offer is not None:
         return price_source("trio", product, offer), sources_trio, offer
     return None, None, None
+
+
+#: Модели, которые производитель сменил новой ревизией: {старый код карточки: новый}.
+#: Старую не продаёт уже никто, а точное сравнение кодов цепляло её залежалую строку
+#: у Daichi (0 шт., цена двухлетней давности). Карточка та же — меняется только код.
+REVISIONS_FILE = Path(__file__).resolve().parent / "model_revisions.json"
+
+
+def load_revisions(path: Path = REVISIONS_FILE) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {old: new for old, new in data.items() if not old.startswith("_")}
+
+
+def apply_revisions(catalog: list[dict], revisions: dict[str, str] | None = None) -> list[dict]:
+    """Перевести карточки со снятых моделей на новые. Повторный вызов ничего не меняет."""
+    revisions = load_revisions() if revisions is None else revisions
+    for product in catalog:
+        new = revisions.get(product.get("model", ""))
+        if new:
+            product["model"] = new
+    return catalog
 
 
 def restore_missing(catalog: list[dict]) -> list[dict]:
@@ -151,7 +186,7 @@ def supplier_model(source: str, offer: dict) -> str:
 
 
 def sync(catalog_source: str, out_dir: Path, jac_path=None, restore: bool = True, oasis_path=None):
-    catalog = load_catalog(catalog_source)
+    catalog = apply_revisions(load_catalog(catalog_source))
     restored = restore_missing(catalog) if restore else []
     catalog = catalog + restored
     restored_ids = {p["id"] for p in restored}

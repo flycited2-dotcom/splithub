@@ -58,3 +58,18 @@ def test_soobshchenie_korotkoe_i_s_zaderzhannymi():
 def test_soobshchenie_bez_izmeneniy():
     report = {"prices": 0, "stocks": 0, "added": 0, "held": []}
     assert "изменений нет" in publish.message(report, False, datetime(2026, 9, 21, 20, 5))
+
+
+def test_smena_modeli_ne_zaderzhivaetsya():
+    # MSFE-12N8D6 сменилась ревизией MSFE1S-12FRN8G1: это другая модель, и старая цена
+    # (залежалая строка Daichi) ей не ориентир — предохранитель её не держит.
+    final, report = publish.guard(
+        [item("1", 30890, "order_7", model="MIDEA MSFE-12N8D6-I inv")],
+        [item("1", 40090, "in_stock", model="MIDEA MSFE1S-12FRN8G1-I inv")])
+    assert final[0]["price"] == 40090 and not report["held"]
+    assert report["replaced"] == 1
+
+
+def test_soobshchenie_pro_zamenu_modeley():
+    report = {"prices": 0, "stocks": 4, "added": 0, "held": [], "replaced": 4}
+    assert "заменено моделей: 4" in publish.message(report, True, datetime(2026, 9, 24, 12, 0))
