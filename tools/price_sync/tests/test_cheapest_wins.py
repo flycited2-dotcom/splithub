@@ -5,7 +5,7 @@
 поставщика (24.09.2026: DAICHI ICE25 шла «Нет в наличии» по цене трио, хотя у
 Техносистемса она была на складе).
 """
-from tools.price_sync import matching, sources_techno, sources_trio, sync
+from tools.price_sync import matching, sources_oasis, sources_techno, sources_trio, sync
 
 
 def techno_row(model, price, availability="есть"):
@@ -96,6 +96,38 @@ def test_bez_ostatka_u_vseh_pobezhdaet_deshevle():
     source, _, _ = sync.find_offer(
         build(31650, 30000, techno_avail="под заказ", trio_avail="нет"), PRODUCT)
     assert source == "trio"
+
+
+def breez_row(title, warehouse, quantity, base):
+    return {"source": "oasis", "supplier": "breeze", "nc_code": "НС-1", "brand": "ROYAL CLIMA",
+            "title": title, "series": "", "price_wholesale": base * 1.4, "price_base": 0.0,
+            "warehouse": warehouse, "quantity": quantity, "breez_base": base}
+
+
+def test_briz_vne_kryma_pod_zakaz_7_dney_no_silnee_net_u_trio():
+    # Владелец 24.09: склады Бриза вне Крыма — «Под заказ 7 дней». Но товар там реально
+    # есть: дешёвое «нет» у трио не должно его перебить и сделать карточку «Нет в наличии».
+    title = "Классическая сплит-система серии VELA NUOVA RC-VNE28HN (комплект)"
+    oasis_rows = [breez_row(title, "ФРЦ Бриз Шерризон-Норд WMS", 5, 17000.0)]
+    trio_rows = [{"source": "trio", "page": "bytovye-kondicionery", "section": 32, "series": "",
+                  "model": "RC-VNE28HN", "availability": "нет", "dealer": 15000.0, "promo": None}]
+    sources = {
+        "techno": ([], sources_techno, []),
+        "trio": (matching.build_index(trio_rows, lambda o: o["model"]), sources_trio, trio_rows),
+        "jac": ({}, None, []),
+        "oasis": (matching.build_text_index(oasis_rows, sources_oasis.model_of), sources_oasis, oasis_rows),
+    }
+    product = {"model": "ROYAL CLIMA RC-VNE28HN on/off", "brand": "ROYAL CLIMA", "group": "onoff"}
+    source, module, offer = sync.find_offer(sources, product)
+    assert source == "oasis"
+    assert module.stock_of(offer) == ("order_7", "Под заказ 7 дней")
+
+
+def test_sklady_vne_kryma_u_drugih_postavshchikov_po_prezhnemu_3_5_dney():
+    row = breez_row("x", "Москва", 3, 1000.0)
+    row["supplier"] = "rusklimat"
+    assert sources_oasis.stock_of(row) == ("days_3_5", "3–5 дней")
+    assert sources_oasis.stock_of(breez_row("x", "Симферополь", 2, 1000.0)) == ("in_stock", "В наличии")
 
 
 def techno_row_series(model, price, series):

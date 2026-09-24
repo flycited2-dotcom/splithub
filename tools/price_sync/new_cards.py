@@ -229,9 +229,6 @@ def build(offers: list[dict], catalog: list[dict]) -> list[dict]:
 
 SERIES_FILE = Path(__file__).resolve().parent / "series_map.json"
 
-#: Склад Бриза, который для СплитХаба означает «в наличии».
-CRIMEA = "Симферополь"
-
 #: Типоразмер в киловаттах×10 (DAICHI DA20, FUNAI KD55) → BTU витрины.
 KW_TO_BTU = {"20": "07", "22": "07", "25": "09", "26": "09", "28": "09", "30": "09",
              "35": "12", "40": "12", "45": "18", "50": "18", "53": "18", "55": "18",
@@ -286,8 +283,9 @@ def breez_code(title: str, series: str) -> str:
             tail = title[position + len(needle):]
             break
         words.pop()
-    tokens = [token for token in re.sub(r"\(комплект\)", "", tail, flags=re.I).split()
-              if not _REFRIGERANT.fullmatch(token)]
+    # В кодах Бриза попадаются русские С и В вместо латинских («RCI-GRС28HN»).
+    tail = matching.latin(re.sub(r"\(комплект\)", "", tail, flags=re.I))
+    tokens = [token for token in tail.split() if not _REFRIGERANT.fullmatch(token)]
     first = next((i for i, token in enumerate(tokens) if re.search(r"\d", token)), None)
     if first and re.match(r"[A-Za-z]", tokens[first]):
         tokens = tokens[first:]
@@ -307,7 +305,8 @@ def size_of(code: str, kind: str) -> str:
 def supplier_offers(trio_rows: list[dict], oasis_rows: list[dict], registry: list[dict]):
     """(серия реестра, код модели, строка прайса) — всё, что есть в наличии.
 
-    Трио — только «есть». Бриз — только остаток на складе в Симферополе.
+    Трио — только «есть». Бриз — остаток на любом его складе: в Симферополе это
+    «В наличии», на остальных — «Под заказ 7 дней» (владелец 24.09.2026, вечер).
     """
     for entry in registry:
         match = _title(entry["match"])
@@ -328,7 +327,7 @@ def supplier_offers(trio_rows: list[dict], oasis_rows: list[dict], registry: lis
             for row in oasis_rows:
                 if (row.get("supplier") or "").lower() not in ("breeze", "breez", "бриз"):
                     continue
-                if row.get("warehouse") != CRIMEA or row.get("quantity", 0) <= 0:
+                if row.get("quantity", 0) <= 0:
                     continue
                 wanted = entry.get("brand_at_supplier")
                 if wanted and (row.get("brand") or "").lower() != wanted.lower():
@@ -355,13 +354,21 @@ def already_listed(codes: list[str], code: str, min_length: int = 5, min_tail: i
     На сайте «DAICHI SIB25» (короткий код Техносистемса), у трио «SIB25AVQS1R» — один товар.
     Но хвост в одну-две буквы — это уже другой товар того же ряда: у Hisense
     «AS-10HW4SYDTG5B» (чёрный BLACK CRYSTAL) и «AS-10HW4SYDTG5» (белый NEO Premium).
+    И хвост «WI-FI» — отдельная позиция Бриза (комплект с Wi-Fi модулем).
     """
     mine = matching.normalize(code)
     if len(mine) < min_length:
         return False
-    return any(len(other) >= min_length and (
-        other == mine or ((other in mine or mine in other) and abs(len(other) - len(mine)) >= min_tail))
-        for other in codes)
+
+    def same(other: str) -> bool:
+        if other == mine:
+            return True
+        shorter, longer = sorted((other, mine), key=len)
+        if shorter not in longer or len(longer) - len(shorter) < min_tail:
+            return False
+        return longer != shorter + "WIFI"
+
+    return any(len(other) >= min_length and same(other) for other in codes)
 
 
 #: Витрина сама дописывает к названию серии «Inverter» или «On/Off» по группе

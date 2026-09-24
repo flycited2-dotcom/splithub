@@ -46,8 +46,11 @@ def test_breez_bez_klyucha_ceny_ne_daet(tmp_path):
 def test_nalichie_krym_i_materik(tmp_path):
     rows = sources_oasis.load(write(tmp_path))
     assert sources_oasis.stock_of(rows[0]) == ("in_stock", "В наличии")
-    assert sources_oasis.stock_of(rows[2]) == ("days_3_5", "3–5 дней")
+    # склад Бриза вне Крыма — «Под заказ 7 дней» (владелец 24.09.2026), но остаток реальный
+    assert sources_oasis.stock_of(rows[2]) == ("order_7", "Под заказ 7 дней")
+    assert sources_oasis.stock_rank(rows[2]) == 2
     assert sources_oasis.stock_of(rows[3]) == ("order_7", "Под заказ 7 дней")
+    assert sources_oasis.stock_rank(rows[3]) == 4
 
 
 BREEZ_JSON = """{"NC-3": {"nc": "NC-3", "price": [{"base": 21500}, {"ric": 31000}]}}"""

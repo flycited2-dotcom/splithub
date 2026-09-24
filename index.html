@@ -1584,7 +1584,7 @@ function renderAll() {
       } else {
         Object.keys(bData.series).forEach(function(sName) {
           var sData = bData.series[sName];
-          var suffix = gid==='inv' ? ' Inverter' : (gid==='onoff' ? ' On/Off' : '');
+          var suffix = gid==='inv' ? (/invert[eo]r|инвертор/i.test(sName) ? '' : ' Inverter') : (gid==='onoff' ? (/on\s*\/\s*off/i.test(sName) ? '' : ' On/Off') : ''); // тип уже в названии серии («HARUKI inverter») — не дублируем
           html += '<div class="sub-block">';
           html += '<div class="series-badge g">'
             + '<div><b>'+sName+suffix+'</b>'+sData.cardBenef+'</div>'

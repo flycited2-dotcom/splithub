@@ -81,7 +81,8 @@ def test_trio_beryotsya_tolko_v_nalichii():
     assert [code for _, code, _ in found] == ["MSES1S-07FRN8G1"]
 
 
-def test_briz_tolko_simferopol_i_ostatok():
+def test_briz_ostatok_na_lyubom_sklade():
+    # 24.09 вечер: и склады Бриза вне Крыма («Под заказ 7 дней»); без остатка — нет
     series = "Инверторные сплит-системы серии KADZOKU Inverter 2025"
     rows = [breez_row("Инверторная сплит-система серии KADZOKU Inverter 2025 RAC-I-KD25HP.D03 (комплект)", series),
             breez_row("Инверторная сплит-система серии KADZOKU Inverter 2025 RAC-I-KD35HP.D03 (комплект)", series,
@@ -89,7 +90,18 @@ def test_briz_tolko_simferopol_i_ostatok():
             breez_row("Инверторная сплит-система серии KADZOKU Inverter 2025 RAC-I-KD55HP.D03 (комплект)", series,
                       quantity=0)]
     found = list(new_cards.supplier_offers([], rows, [KADZOKU]))
-    assert [code for _, code, _ in found] == ["RAC-I-KD25HP.D03"]
+    assert [code for _, code, _ in found] == ["RAC-I-KD25HP.D03", "RAC-I-KD35HP.D03"]
+
+
+def test_russkie_bukvy_v_kode_briza():
+    assert new_cards.breez_code(
+        "Инверторная сплит-система серии GRIDA DC EU Inverter RCI-GRС28HN (комплект)",
+        "Инверторные сплит-системы серии GRIDA DC EU Inverter") == "RCI-GRC28HN"
+
+
+def test_wifi_versiya_otdelnyy_tovar():
+    index = new_cards.catalog_codes([{"brand": "HISENSE", "model": "HISENSE AUD-48UX4REH8/AUW-48U6RN8"}])
+    assert not new_cards.already_listed(index, "AUD-48UX4REH8/AUW-48U6RN8 WI-FI")
 
 
 def test_uzhe_est_na_sayte_korotkim_kodom():

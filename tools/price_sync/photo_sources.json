@@ -1,5 +1,5 @@
 {
- "_comment": "Фото серий из оригиналов производителя (база SplitHome / Бриз). set — готовый комплект на белом фоне, parts — отдельные PNG блоков и пульта (раскладка угадывается по пропорциям), indoor/outdoor/remote — кадры выбраны руками по обзорным листам. Нет outdoor — у Бриза нет снимка наружного блока серии: чужой не подставляем, раскладка без него (compose_without_outdoor).",
+ "_comment": "Фото серий из оригиналов производителя (база SplitHome / Бриз). set — готовый комплект на белом фоне, parts — отдельные PNG блоков и пульта (раскладка угадывается по пропорциям), indoor/outdoor/remote — кадры выбраны руками по обзорным листам. На каждой карточке все три — внутренний блок, пульт и наружный (стиль витрины, владелец 24.09.2026): если у серии нет своего снимка, стоит кадр того же бренда и типа, откуда он — в _outdoor_from / _donor.",
  "midea-easy.webp": {
   "set": "https://daichi.business/upload/iblock/010/1t5h833x5k1a2kf2gzqax54tyli4q1zw/2c6b6lt6hl0b41z60c5ntafxbtgqu1e0.jpg",
   "_series": "MIDEA|EASY on/off"
@@ -207,9 +207,10 @@
  },
  "royalclima-attica-nero-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/attica-nero-inverter/attica-nero-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/gloria-inv-upgrade/gloria-inv-upgrade-04.png",
   "remote": "https://images.breez.ru/catalog/royal-clima/attica-nero-inverter/attica-nero-inverter-08.png",
   "_series": "ROYAL CLIMA|ATTICA NERO inverter",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "ROYAL CLIMA GLORIA inverter (тот же компрессор RECHI)"
  },
  "royalclima-felicita-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/felicita-inverter/felicita-inverter-01.png",
@@ -237,9 +238,10 @@
  },
  "royalclima-renaissance-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/renaissance-inv-2023/renaissance-inv-2023-02.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/perfetto-dc-eu-inverter/perfetto-dc-eu-inverter-03.png",
   "remote": "https://images.breez.ru/catalog/royal-clima/renaissance-inv-2023/renaissance-inv-2023-06.png",
   "_series": "ROYAL CLIMA|RENAISSANCE inverter 2024",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "ROYAL CLIMA PERFETTO inverter"
  },
  "royalclima-supremo-blanco-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/royal-supremo-blanco-inv/royal-supremo-blanco-inv-01.png",
@@ -261,9 +263,10 @@
  },
  "royalclima-vela-nuova-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/vela-nuova-inv/vela-nuova-inv-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/triumph-invert-2023/triumph-invert-2023-04.png",
   "remote": "https://images.breez.ru/catalog/royal-clima/vela-nuova-inv/vela-nuova-inv-07.png",
   "_series": "ROYAL CLIMA|VELA NUOVA inverter",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "ROYAL CLIMA TRIUMPH LITE inverter (компрессор GMCC)"
  },
  "royalclima-grande.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/grande-classic/grande-classic-01.png",
@@ -273,9 +276,10 @@
  },
  "royalclima-attica-nero.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/attica-nero-classic/attica-nero-classic-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/gloria-upgrade/gloria-upgrade-04.png",
   "remote": "https://images.breez.ru/catalog/royal-clima/attica-nero-classic/attica-nero-classic-08.png",
   "_series": "ROYAL CLIMA|ATTICA NERO on/off",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "ROYAL CLIMA GLORIA on/off"
  },
  "royalclima-felicita.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/felicita/felicita-01.png",
@@ -309,9 +313,10 @@
  },
  "royalclima-renaissance.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/renaissance-2023/renaissance-2023-02.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/pandora-classic/pandora-classic-10.png",
   "remote": "https://images.breez.ru/catalog/royal-clima/renaissance-2023/renaissance-2023-06.png",
   "_series": "ROYAL CLIMA|RENAISSANCE on/off 2025",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "ROYAL CLIMA PANDORA on/off 2025"
  },
  "royalclima-triumph-lite.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/triumph-upgrade/triumph-upgrade-01.png",
@@ -321,9 +326,10 @@
  },
  "royalclima-vela-nuova.webp": {
   "indoor": "https://images.breez.ru/catalog/royal-clima/vela-nuova-classic/vela-nuova-classic-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/grida-classic/grida-classic-09.png",
   "remote": "https://images.breez.ru/catalog/royal-clima/vela-nuova-classic/vela-nuova-classic-09.png",
   "_series": "ROYAL CLIMA|VELA NUOVA on/off",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "ROYAL CLIMA GRIDA on/off (компрессор GREE)"
  },
  "hisense-city-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/invert-split-system-city-2-0-dc-inverter/invert-split-system-city-2-0-dc-inverter-01.png",
@@ -357,9 +363,10 @@
  },
  "hisense-vibe-pro-champagne-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/vibe-pro-champagne-eu-dc-inverter/vibe-pro-champagne-eu-dc-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/vibe-dc-inverter/vibe-dc-inverter-08.png",
   "remote": "https://images.breez.ru/catalog/hisense/vibe-pro-champagne-eu-dc-inverter/vibe-pro-champagne-eu-dc-inverter-03.png",
   "_series": "HISENSE|VIBE PRO CHAMPAGNE inverter",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "HISENSE VIBE inverter"
  },
  "hisense-vision-pro-carbon-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/vision-pro-2-0-carbon-superior-dc-inverter/vision-pro-2-0-carbon-superior-dc-inverter-01.png",
@@ -369,15 +376,17 @@
  },
  "hisense-zoom-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/zoom-2-0-dc-inverter/zoom-2-0-dc-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/invert-split-system-city-2-0-dc-inverter/invert-split-system-city-2-0-dc-inverter-07.png",
   "remote": "https://images.breez.ru/catalog/hisense/zoom-2-0-dc-inverter/zoom-2-0-dc-inverter-08.png",
   "_series": "HISENSE|ZOOM 2.0 inverter",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "HISENSE CITY 2.0 inverter"
  },
  "hisense-city.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/classic-split-system-city-a/classic-split-system-city-a-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/zoom-classic-a/zoom-classic-a-09.png",
   "remote": "https://images.breez.ru/catalog/hisense/classic-split-system-city-a/classic-split-system-city-a-11.png",
   "_series": "HISENSE|CITY 2.0 on/off",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "HISENSE ZOOM 2.0 on/off (та же платформа RLRK)"
  },
  "hisense-strong-vibe.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-01.png",
@@ -393,21 +402,24 @@
  },
  "hisense-black-crystal.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/crystal-black-classic-a/crystal-black-classic-a-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/neo-premium-classic-a-wi-fi/neo-premium-classic-a-wi-fi-03.png",
   "remote": "https://images.breez.ru/catalog/hisense/crystal-black-classic-a/crystal-black-classic-a-03.png",
   "_series": "HISENSE|BLACK CRYSTAL on/off",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "HISENSE NEO Premium (та же платформа SYDTG5)"
  },
  "hisense-easy.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/easy-classic-a/easy-classic-a-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/neo-classic-a-r32/neo-classic-a-r32-06.png",
   "remote": "https://images.breez.ru/catalog/hisense/easy-classic-a/easy-classic-a-06.png",
   "_series": "HISENSE|EASY on/off",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "HISENSE NEO on/off (та же платформа RYDD)"
  },
  "hisense-era.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/era-classic-a-wi-fi/era-classic-a-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/zoom-classic-a/zoom-classic-a-09.png",
   "remote": "https://images.breez.ru/catalog/hisense/era-classic-a-wi-fi/era-classic-a-wi-fi-04.png",
   "_series": "HISENSE|ERA on/off",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "HISENSE ZOOM 2.0 on/off (та же платформа RLRK)"
  },
  "hisense-neo.webp": {
   "indoor": "https://images.breez.ru/catalog/hisense/neo-classic-a-r32/neo-classic-a-r32-01.png",
@@ -501,15 +513,17 @@
  },
  "hitachi-shiratama-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/hitachi/shiratama/shiratama-02.png",
+  "outdoor": "https://www.hitachiaircon.com/storage/images/product_header_images/product_header_image_image_ded034534cb82a4ca1894a292198ed39.jpg",
   "remote": "https://images.breez.ru/catalog/hitachi/shiratama/shiratama-07.png",
   "_series": "HITACHI|Shiratama inverter",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "Hitachi airHome 400 RAC-DJ, сайт производителя"
  },
  "hitachi-x-comfort-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/hitachi/x-comfort/x-comfort-03.png",
+  "outdoor": "https://www.hitachiaircon.com/storage/images/product_header_images/product_header_image_image_ded034534cb82a4ca1894a292198ed39.jpg",
   "remote": "https://images.breez.ru/catalog/hitachi/x-comfort/x-comfort-06.png",
   "_series": "HITACHI|X-Comfort inverter",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "Hitachi airHome 400 RAC-DJ, сайт производителя"
  },
  "alfacool-apus-inv.webp": {
   "indoor": "https://images.breez.ru/catalog/alfacool/apus-inv/apus-inv-01.png",
@@ -531,8 +545,391 @@
  },
  "lg-megacool.webp": {
   "indoor": "https://images.breez.ru/catalog/lg/invert-spit-system-megacool/invert-spit-system-megacool-01.png",
+  "outdoor": "https://climstore.ru/upload/resize_cache/iblock/5c2/700_700_1/bsd9q8d5t5mr3wpdh1y3d75ty0darobj.jpg",
   "remote": "https://images.breez.ru/catalog/lg/invert-spit-system-megacool/invert-spit-system-megacool-14.png",
   "_series": "LG|MEGACOOL",
-  "_note": "у Бриза нет снимка наружного блока этой серии — чужой не подставляем"
+  "_outdoor_from": "LG DUAL Inverter, снимок производителя у дилера"
+ },
+ "hisense-heavy-duct-hp-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/invert-split-kanal-heavy-eu-dc-inverter-r32/invert-split-kanal-heavy-eu-dc-inverter-r32-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/invert-split-kanal-heavy-eu-dc-inverter-r32/invert-split-kanal-heavy-eu-dc-inverter-r32-02.png",
+  "remote": "https://images.breez.ru/catalog/hisense/invert-split-kanal-heavy-eu-dc-inverter-r32/invert-split-kanal-heavy-eu-dc-inverter-r32-03.png",
+  "_series": "HISENSE|HEAVY высоконапорный канальный inverter"
+ },
+ "hisense-heavy-duct-wifi-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/split-sistem-kanal-heavy-eu-dc-inverter-r32-wi-fi/split-sistem-kanal-heavy-eu-dc-inverter-r32-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/split-sistem-kanal-heavy-eu-dc-inverter-r32-wi-fi/split-sistem-kanal-heavy-eu-dc-inverter-r32-wi-fi-03.png",
+  "remote": "https://images.breez.ru/catalog/hisense/split-sistem-kanal-heavy-eu-dc-inverter-r32-wi-fi/split-sistem-kanal-heavy-eu-dc-inverter-r32-wi-fi-05.png",
+  "_series": "HISENSE|HEAVY канальный inverter Wi-Fi"
+ },
+ "hisense-heavy-cassette-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/split-sistem-kasset-heavy-eu-dc-inverter-wi-fi/split-sistem-kasset-heavy-eu-dc-inverter-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/split-sistem-kasset-heavy-eu-dc-inverter-wi-fi/split-sistem-kasset-heavy-eu-dc-inverter-wi-fi-02.png",
+  "remote": "https://images.breez.ru/catalog/hisense/split-sistem-kasset-heavy-eu-dc-inverter-wi-fi/split-sistem-kasset-heavy-eu-dc-inverter-wi-fi-04.png",
+  "_series": "HISENSE|HEAVY кассетный inverter Wi-Fi"
+ },
+ "hisense-heavy-console-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/split-sistem-konsol-eu-dc-inverter-r32-wi-fi/split-sistem-konsol-eu-dc-inverter-r32-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/split-sistem-konsol-eu-dc-inverter-r32-wi-fi/split-sistem-konsol-eu-dc-inverter-r32-wi-fi-03.png",
+  "remote": "https://images.breez.ru/catalog/hisense/split-sistem-konsol-eu-dc-inverter-r32-wi-fi/split-sistem-konsol-eu-dc-inverter-r32-wi-fi-04.png",
+  "_series": "HISENSE|HEAVY консольный inverter Wi-Fi"
+ },
+ "hisense-heavy-floor-ceiling-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/split-sistem-pol-potolok-heavy-eu-dc-inverter-r32-wi-fi/split-sistem-pol-potolok-heavy-eu-dc-inverter-r32-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/split-sistem-pol-potolok-heavy-eu-dc-inverter-r32-wi-fi/split-sistem-pol-potolok-heavy-eu-dc-inverter-r32-wi-fi-02.png",
+  "remote": "https://images.breez.ru/catalog/hisense/split-sistem-pol-potolok-heavy-eu-dc-inverter-r32-wi-fi/split-sistem-pol-potolok-heavy-eu-dc-inverter-r32-wi-fi-05.png",
+  "_series": "HISENSE|HEAVY напольно-потолочный inverter Wi-Fi"
+ },
+ "hisense-black-crystal-super-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/black-crystal-super-dc-inverter-wi-fi/black-crystal-super-dc-inverter-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/black-crystal-super-dc-inverter-wi-fi/black-crystal-super-dc-inverter-wi-fi-04.png",
+  "remote": "https://images.breez.ru/catalog/hisense/black-crystal-super-dc-inverter-wi-fi/black-crystal-super-dc-inverter-wi-fi-05.png",
+  "_series": "HISENSE|BLACK CRYSTAL SUPER inverter"
+ },
+ "hisense-city-dc-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/invert-split-system-city-dc-inverter/invert-split-system-city-dc-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/invert-split-system-city-dc-inverter/invert-split-system-city-dc-inverter-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/invert-split-system-city-dc-inverter/invert-split-system-city-dc-inverter-12.png",
+  "_series": "HISENSE|CITY inverter"
+ },
+ "hisense-goal-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/split-system-goal-2-0-dc-inverter-wi-fi/split-system-goal-2-0-dc-inverter-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/split-system-goal-2-0-dc-inverter-wi-fi/split-system-goal-2-0-dc-inverter-wi-fi-09.png",
+  "remote": "https://images.breez.ru/catalog/hisense/split-system-goal-2-0-dc-inverter-wi-fi/split-system-goal-2-0-dc-inverter-wi-fi-08.png",
+  "_series": "HISENSE|GOAL 2.0 inverter"
+ },
+ "hisense-premium-design-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/premium-design-super-dc-inv-wi-fi/premium-design-super-dc-inv-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/premium-design-super-dc-inv-wi-fi/premium-design-super-dc-inv-wi-fi-03.png",
+  "remote": "https://images.breez.ru/catalog/hisense/premium-design-super-dc-inv-wi-fi/premium-design-super-dc-inv-wi-fi-04.png",
+  "_series": "HISENSE|Premium DESIGN inverter"
+ },
+ "hisense-silver-crystal-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/silver-crystal-super-dc-invert-wi-fi/silver-crystal-super-dc-invert-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/silver-crystal-super-dc-invert-wi-fi/silver-crystal-super-dc-invert-wi-fi-06.png",
+  "remote": "https://images.breez.ru/catalog/hisense/silver-crystal-super-dc-invert-wi-fi/silver-crystal-super-dc-invert-wi-fi-07.png",
+  "_series": "HISENSE|SILVER CRYSTAL SUPER inverter"
+ },
+ "hisense-vibe-pro-carbon-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/vibe-pro-carbon-eu-dc-inverter/vibe-pro-carbon-eu-dc-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/vibe-dc-inverter/vibe-dc-inverter-08.png",
+  "remote": "https://images.breez.ru/catalog/hisense/vibe-pro-carbon-eu-dc-inverter/vibe-pro-carbon-eu-dc-inverter-07.png",
+  "_series": "HISENSE|VIBE PRO CARBON inverter",
+  "_donor": "наружный — HISENSE VIBE inverter"
+ },
+ "hisense-vibe-pro-silver-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/vibe-pro-silver-eu-dc-inverter/vibe-pro-silver-eu-dc-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/vibe-dc-inverter/vibe-dc-inverter-08.png",
+  "remote": "https://images.breez.ru/catalog/hisense/vibe-pro-silver-eu-dc-inverter/vibe-pro-silver-eu-dc-inverter-03.png",
+  "_series": "HISENSE|VIBE PRO SILVER inverter",
+  "_donor": "наружный — HISENSE VIBE inverter"
+ },
+ "hisense-vision-pro-superior-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/vision-pro-2-0-superior-dc-inverter/vision-pro-2-0-superior-dc-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/vision-pro-2-0-superior-dc-inverter/vision-pro-2-0-superior-dc-inverter-13.png",
+  "remote": "https://images.breez.ru/catalog/hisense/vision-pro-2-0-superior-dc-inverter/vision-pro-2-0-superior-dc-inverter-12.png",
+  "_series": "HISENSE|VISION PRO 2.0 SUPERIOR inverter"
+ },
+ "hisense-zoom-wifi-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/zoom-dc-inverter-wi-fi/zoom-dc-inverter-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/zoom-dc-inverter-wi-fi/zoom-dc-inverter-wi-fi-06.png",
+  "remote": "https://images.breez.ru/catalog/hisense/zoom-dc-inverter-wi-fi/zoom-dc-inverter-wi-fi-07.png",
+  "_series": "HISENSE|ZOOM inverter"
+ },
+ "hisense-goal.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/split-system-goal-2-0-classic-a-wi-fi/split-system-goal-2-0-classic-a-wi-fi-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/split-system-goal-2-0-classic-a-wi-fi/split-system-goal-2-0-classic-a-wi-fi-09.png",
+  "remote": "https://images.breez.ru/catalog/hisense/split-system-goal-2-0-classic-a-wi-fi/split-system-goal-2-0-classic-a-wi-fi-08.png",
+  "_series": "HISENSE|GOAL 2.0 on/off"
+ },
+ "hisense-heavy2-duct.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-canal/heavy-2-0-classic-cana-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-canal/heavy-2-0-classic-cana-02.png",
+  "_series": "HISENSE|HEAVY 2.0 канальный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy2-cassette.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-casset/heavy-2-0-classic-casset-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-casset/heavy-2-0-classic-casset-03.png",
+  "_series": "HISENSE|HEAVY 2.0 кассетный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy2-column.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-kolon/heavy-2-0-classic-kolon-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-kolon/heavy-2-0-classic-kolon-02.png",
+  "_series": "HISENSE|HEAVY 2.0 колонный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy2-floor-ceiling.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-pol-potolok/heavy-2-0-classic-pol-potolok-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/heavy-2-0-classic-pol-potolok/heavy-2-0-classic-pol-potolok-02.png",
+  "_series": "HISENSE|HEAVY 2.0 напольно-потолочный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy-classic-duct.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/hi-split-sistemi-kanalnogo-tipa/hi-split-sistemi-kanalnogo-tipa-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/hi-split-sistemi-kanalnogo-tipa/hi-split-sistemi-kanalnogo-tipa-02.png",
+  "_series": "HISENSE|HEAVY CLASSIC канальный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy-classic-cassette.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/heavy-classic-2022/heavy-classic-2022-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/heavy-classic-2022/heavy-classic-2022-04.png",
+  "_series": "HISENSE|HEAVY CLASSIC кассетный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy-classic-column.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/hi-poluprom-colon-heavy-classic/hi-poluprom-colon-heavy-classic-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/hi-poluprom-colon-heavy-classic/hi-poluprom-colon-heavy-classic-02.png",
+  "_series": "HISENSE|HEAVY CLASSIC колонный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "hisense-heavy-classic-floor-ceiling.webp": {
+  "indoor": "https://images.breez.ru/catalog/hisense/hi-split-sistemi-napolno-potolochnogo-tipa/hi-split-sistemi-napolno-potolochnogo-tipa-01.png",
+  "outdoor": "https://images.breez.ru/catalog/hisense/classic-strong-vibe-a/classic-strong-vibe-a-11.png",
+  "remote": "https://images.breez.ru/catalog/hisense/hi-split-sistemi-napolno-potolochnogo-tipa/hi-split-sistemi-napolno-potolochnogo-tipa-02.png",
+  "_series": "HISENSE|HEAVY CLASSIC напольно-потолочный on/off",
+  "_donor": "наружный — HISENSE STRONG VIBE on/off (у Бриза нет снимка наружного блока HEAVY)"
+ },
+ "royalclima-eleganza-column-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/eleganza-full-dc-eu-inverter/eleganza-full-dc-eu-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/eleganza-full-dc-eu-inverter/eleganza-full-dc-eu-inverter-04.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/eleganza-full-dc-eu-inverter/eleganza-full-dc-eu-inverter-05.png",
+  "_series": "ROYAL CLIMA|ELEGANZA колонный inverter"
+ },
+ "royalclima-competenza-duct-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/inv-split-canal-competenza-2025/inv-split-canal-competenza-2025-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/inv-split-canal-competenza-2025/inv-split-canal-competenza-2025-02.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/inv-split-canal-competenza-2025/inv-split-canal-competenza-2025-03.png",
+  "_series": "ROYAL CLIMA|COMPETENZA канальный inverter 2025"
+ },
+ "royalclima-competenza-cassette-inv-2025.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/inv-split-casset-competenza-dc-inverter-2025/inv-split-casset-competenza-dc-inverter-2025-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/inv-split-casset-competenza-dc-inverter-2025/inv-split-casset-competenza-dc-inverter-2025-02.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/inv-split-casset-competenza-dc-inverter-2025/inv-split-casset-competenza-dc-inverter-2025-04.png",
+  "_series": "ROYAL CLIMA|COMPETENZA кассетный inverter 2025"
+ },
+ "royalclima-competenza-floor-ceiling-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/invert-split-competenza-pol-potolok-2025/invert-split-competenza-pol-potolok-2025-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/invert-split-competenza-pol-potolok-2025/invert-split-competenza-pol-potolok-2025-02.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/invert-split-competenza-pol-potolok-2025/invert-split-competenza-pol-potolok-2025-04.png",
+  "_series": "ROYAL CLIMA|COMPETENZA напольно-потолочный inverter 2025"
+ },
+ "royalclima-felicita-heat-pump-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/felicita-heat-pump-full-dc-eu-inverter/felicita-heat-pump-full-dc-eu-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/felicita-inverter/felicita-inverter-08.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/felicita-heat-pump-full-dc-eu-inverter/felicita-heat-pump-full-dc-eu-inverter-08.png",
+  "_series": "ROYAL CLIMA|FELICITA HEAT PUMP inverter",
+  "_donor": "наружный — ROYAL CLIMA FELICITA inverter"
+ },
+ "royalclima-optimum-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/optimum-2-0-inv/optimum-2-0-inv-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/optimum-2-0-inv/optimum-2-0-inv-11.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/optimum-2-0-inv/optimum-2-0-inv-12.png",
+  "_series": "ROYAL CLIMA|OPTIMUM 2.0 inverter"
+ },
+ "royalclima-esperto-duct-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-kanal/esperto-new-kanal-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-kanal/esperto-new-kanal-04.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-kanal-2024/esperto-kanal-2024.png",
+  "_series": "ROYAL CLIMA|ESPERTO канальный on/off 2024"
+ },
+ "royalclima-esperto-duct-2026.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-kanal-2026/esperto-kanal-2026-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-kanal-2026/esperto-kanal-2026-04.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-kanal-2026/esperto-kanal-2026-05.png",
+  "_series": "ROYAL CLIMA|ESPERTO канальный on/off 2026"
+ },
+ "royalclima-competenza-duct.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/classic-competenza-canal-2023/classic-competenza-canal-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/classic-competenza-canal-2023/classic-competenza-canal-2023-02.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/classic-competenza-canal-2023/classic-competenza-canal-2023-04.png",
+  "_series": "ROYAL CLIMA|COMPETENZA канальный on/off"
+ },
+ "royalclima-competenza-cassette.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/classic-competenza-cassete-2023/classic-competenza-cassete-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/classic-competenza-cassete-2023/classic-competenza-cassete-2023-02.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/classic-competenza-cassete-2023/classic-competenza-cassete-2023-04.png",
+  "_series": "ROYAL CLIMA|COMPETENZA кассетный on/off"
+ },
+ "royalclima-esperto-cassette-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-cassete/esperto-new-cassete-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-cassete/esperto-new-cassete-04.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-new-cassete/esperto-new-cassete-05.png",
+  "_series": "ROYAL CLIMA|ESPERTO кассетный on/off 2024"
+ },
+ "royalclima-esperto-cassette-2026.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-cassete-2026/esperto-cassete-2026-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-cassete-2026/esperto-cassete-2026-04.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-cassete-2026/esperto-cassete-2026-05.png",
+  "_series": "ROYAL CLIMA|ESPERTO кассетный on/off 2026"
+ },
+ "royalclima-esperto-column-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-kolon-2024/esperto-new-kolon-2024-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-kolon-2024/esperto-new-kolon-2024-05.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-new-kolon-2024/esperto-new-kolon-2024-07.png",
+  "_series": "ROYAL CLIMA|ESPERTO колонный on/off 2024"
+ },
+ "royalclima-esperto-column-2026.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-fs-kolon-2026/esperto-fs-kolon-2026-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-kolon-2024/esperto-new-kolon-2024-06.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-new-kolon-2024/esperto-new-kolon-2024-07.png",
+  "_series": "ROYAL CLIMA|ESPERTO колонный on/off 2026",
+  "_donor": "наружный и пульт — ROYAL CLIMA ESPERTO колонный 2024"
+ },
+ "royalclima-esperto-floor-ceiling-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-napoln-potolok/esperto-new-napoln-potolok-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-new-napoln-potolok/esperto-new-napoln-potolok-03.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-new-napoln-potolok-2024/esperto-new-napoln-potolok-04.png",
+  "_series": "ROYAL CLIMA|ESPERTO напольно-потолочный on/off 2024"
+ },
+ "royalclima-esperto-floor-ceiling-2026.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/esperto-napoln-potolok-2026/esperto-napoln-potolok-2026-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/esperto-napoln-potolok-2026/esperto-napoln-potolok-2026-03.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/esperto-napoln-potolok-2026/esperto-napoln-potolok-2026-04.png",
+  "_series": "ROYAL CLIMA|ESPERTO напольно-потолочный on/off 2026"
+ },
+ "royalclima-nobile.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/classic-split-system-nobile/classic-split-system-nobile-02.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/classic-split-system-nobile/classic-split-system-nobile-07.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/classic-split-system-nobile/classic-split-system-nobile-08.png",
+  "_series": "ROYAL CLIMA|NOBILE on/off"
+ },
+ "funai-onsen-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/onsen-full-dc-inverter-heat-pump/onsen-full-dc-inverter-heat-pump-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/onsen-full-dc-inverter-heat-pump/onsen-full-dc-inverter-heat-pump-03.png",
+  "remote": "https://images.breez.ru/catalog/funai/onsen-full-dc-inverter-heat-pump/onsen-full-dc-inverter-heat-pump-05.png",
+  "_series": "FUNAI|ONSEN inverter"
+ },
+ "funai-sensei-inv-2023.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/sensei-bit-split-inverter-2023/sensei-bit-split-inverter-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/sensei-bit-split-inverter-2023/sensei-bit-split-inverter-2023-03.png",
+  "remote": "https://images.breez.ru/catalog/funai/sensei-bit-split-inverter-2023/sensei-bit-split-inverter-2023-04.png",
+  "_series": "FUNAI|SENSEI inverter 2023"
+ },
+ "funai-shogun-inv-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/bit-split-shogun-inverter/bit-split-shogun-inverter-02.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/bit-split-shogun-inverter/bit-split-shogun-inverter-06.jpg",
+  "remote": "https://images.breez.ru/catalog/funai/bit-split-shogun-inverter/bit-split-shogun-inverter-05.png",
+  "_series": "FUNAI|SHOGUN inverter 2024"
+ },
+ "funai-dragon-duct.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/classic-canal-dragon/classic-canal-dragon-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/classic-canal-dragon/classic-canal-dragon-05.png",
+  "remote": "https://images.breez.ru/catalog/funai/classic-canal-dragon/classic-canal-dragon-03.png",
+  "_series": "FUNAI|DRAGON канальный on/off"
+ },
+ "funai-dragon-cassette.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/classic-casset-dragon/classic-casset-dragon-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/classic-casset-dragon/classic-casset-dragon-05.png",
+  "remote": "https://images.breez.ru/catalog/funai/classic-casset-dragon/classic-casset-dragon-02.png",
+  "_series": "FUNAI|DRAGON кассетный on/off"
+ },
+ "funai-dragon-floor-ceiling.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/classic-pol-potolok-dragon/classic-pol-potolok-dragon-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/classic-pol-potolok-dragon/classic-pol-potolok-dragon-05.png",
+  "remote": "https://images.breez.ru/catalog/funai/classic-pol-potolok-dragon/classic-pol-potolok-dragon-02.png",
+  "_series": "FUNAI|DRAGON напольно-потолочный on/off"
+ },
+ "funai-kadzoku-classic.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-02.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-03.png",
+  "remote": "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-04.png",
+  "_series": "FUNAI|KADZOKU on/off"
+ },
+ "expertair-progress-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/expertair/invert-split-system-progress/invert-split-system-progress-01.png",
+  "outdoor": "https://images.breez.ru/catalog/expertair/invert-split-system-progress/invert-split-system-progress-03.png",
+  "remote": "https://images.breez.ru/catalog/expertair/invert-split-system-progress/invert-split-system-progress-04.png",
+  "_series": "EXPERTAIR|PROGRESS inverter"
+ },
+ "expertair-hard-duct.webp": {
+  "indoor": "https://images.breez.ru/catalog/expertairbyzilon/classic-split-sistem-canal-hard/classic-split-sistem-canal-hard-01.png",
+  "outdoor": "https://images.breez.ru/catalog/expertairbyzilon/classic-split-sistem-canal-hard/classic-split-sistem-canal-hard-02.png",
+  "remote": "https://images.breez.ru/catalog/expertairbyzilon/classic-split-sistem-canal-hard/classic-split-sistem-canal-hard-04.png",
+  "_series": "EXPERTAIR|HARD канальный on/off"
+ },
+ "expertair-hard-floor-ceiling.webp": {
+  "indoor": "https://images.breez.ru/catalog/expertairbyzilon/classic-split-sistem-pol-potolok-hard/classic-split-sistem-pol-potolok-hard-01.png",
+  "outdoor": "https://images.breez.ru/catalog/expertairbyzilon/classic-split-sistem-pol-potolok-hard/classic-split-sistem-pol-potolok-hard-02.png",
+  "remote": "https://images.breez.ru/catalog/expertairbyzilon/classic-split-sistem-kasset-hard/classic-split-sistem-kasset-hard-04.png",
+  "_series": "EXPERTAIR|HARD напольно-потолочный on/off",
+  "_donor": "пульт — EXPERTAIR HARD кассетный"
+ },
+ "ecostar-radium-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/ecostar/invert-split-system-radium-inverter/invert-split-system-radium-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/ecostar/invert-split-system-radium-inverter/invert-split-system-radium-inverter-03.png",
+  "remote": "https://images.breez.ru/catalog/ecostar/invert-split-system-radium-inverter/invert-split-system-radium-inverter-04.png",
+  "_series": "ECOSTAR|RADIUM inverter"
+ },
+ "ecostar-radium-inv-2026.webp": {
+  "indoor": "https://images.breez.ru/catalog/ecostar/invert-split-system-radium-inverter/invert-split-system-radium-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/ecostar/invert-split-system-radium-inverter/invert-split-system-radium-inverter-03.png",
+  "remote": "https://images.breez.ru/catalog/ecostar/invert-split-system-radium-inverter/invert-split-system-radium-inverter-04.png",
+  "_series": "ECOSTAR|RADIUM inverter 2026"
+ },
+ "ecostar-radium.webp": {
+  "indoor": "https://images.breez.ru/catalog/ecostar/classic-split-system-radium/classic-split-system-radium-01.png",
+  "outdoor": "https://images.breez.ru/catalog/ecostar/classic-split-system-radium/classic-split-system-radium-03.png",
+  "remote": "https://images.breez.ru/catalog/ecostar/classic-split-system-radium/classic-split-system-radium-04.png",
+  "_series": "ECOSTAR|RADIUM on/off"
+ },
+ "ecostar-radium-2026.webp": {
+  "indoor": "https://images.breez.ru/catalog/ecostar/classic-split-system-radium/classic-split-system-radium-01.png",
+  "outdoor": "https://images.breez.ru/catalog/ecostar/classic-split-system-radium/classic-split-system-radium-03.png",
+  "remote": "https://images.breez.ru/catalog/ecostar/classic-split-system-radium/classic-split-system-radium-04.png",
+  "_series": "ECOSTAR|RADIUM on/off 2026"
+ },
+ "ultima-eclipse-inv-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/ultima-comfort/eclipse-inverter-2024/eclipse-inverter-2024-02.png",
+  "outdoor": "https://images.breez.ru/catalog/ultima-comfort/eclipse-inverter-2024/eclipse-inverter-2024-08.png",
+  "remote": "https://images.breez.ru/catalog/ultima-comfort/eclipse-inverter-2024/eclipse-inverter-2024-09.png",
+  "_series": "ULTIMA COMFORT|ECLIPSE inverter 2024"
+ },
+ "ultima-exceed-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/ultima-comfort/exceed-inverter/exceed-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/ultima-comfort/exceed-inverter/exceed-inverter-04.png",
+  "remote": "https://images.breez.ru/catalog/ultima-comfort/exceed-inverter/exceed-inverter-03.png",
+  "_series": "ULTIMA COMFORT|EXCEED inverter"
+ },
+ "xigma-extraforce.webp": {
+  "indoor": "https://images.breez.ru/catalog/xigma/classic-split-system-extraforce-2024/classic-split-system-extraforce-2024-01.png",
+  "outdoor": "https://images.breez.ru/catalog/xigma/classic-split-system-extraforce-2024/classic-split-system-extraforce-2024-04.png",
+  "remote": "https://images.breez.ru/catalog/xigma/classic-split-system-extraforce-2024/classic-split-system-extraforce-2024-05.png",
+  "_series": "XIGMA|EXTRAFORCE on/off 2024"
+ },
+ "xigma-turbocool-2024.webp": {
+  "indoor": "https://images.breez.ru/catalog/xigma/turbocool-upgrade-2023/turbocool-upgrade-2023-02.png",
+  "outdoor": "https://images.breez.ru/catalog/xigma/turbocool-upgrade-2023/turbocool-upgrade-2023-03.png",
+  "remote": "https://images.breez.ru/catalog/xigma/turbocool-upgrade-2023/turbocool-upgrade-2023-04.png",
+  "_series": "XIGMA|TURBOCOOL on/off 2024"
+ },
+ "highlife-comfort-class-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/high-life/invert-split-system-comfort-class-inverter/invert-split-system-comfort-class-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/high-life/invert-split-system-priority-class-2-0-inverter/invert-split-system-priority-class-2-0-inverter-07.png",
+  "remote": "https://images.breez.ru/catalog/high-life/invert-split-system-comfort-class-inverter/invert-split-system-comfort-class-inverter-10.png",
+  "_series": "HIGH LIFE|COMFORT CLASS inverter",
+  "_donor": "наружный — HIGH LIFE PRIORITY CLASS 2.0 inverter"
+ },
+ "highlife-priority-class-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/high-life/invert-split-system-priority-class-2-0-inverter/invert-split-system-priority-class-2-0-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/high-life/invert-split-system-priority-class-2-0-inverter/invert-split-system-priority-class-2-0-inverter-07.png",
+  "remote": "https://images.breez.ru/catalog/high-life/classic-split-system-priority-class-2-0/classic-split-system-priority-class-2-0-08.png",
+  "_series": "HIGH LIFE|PRIORITY CLASS 2.0 inverter",
+  "_donor": "пульт — HIGH LIFE PRIORITY CLASS 2.0 on/off"
+ },
+ "hitachi-duct-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/hitachi/inv-splits-kan-tipa-r32/inv-splits-kan-tipa-r32-01.png",
+  "outdoor": "https://www.hitachiaircon.com/storage/images/product_header_images/product_header_image_image_ded034534cb82a4ca1894a292198ed39.jpg",
+  "remote": "https://images.breez.ru/catalog/hitachi/inv-splits-kan-tipa-r32/inv-splits-kan-tipa-r32-03.png",
+  "_series": "HITACHI|RAD канальный inverter",
+  "_donor": "наружный — Hitachi airHome 400 RAC-DJ, сайт производителя"
  }
 }

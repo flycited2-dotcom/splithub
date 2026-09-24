@@ -2069,6 +2069,1233 @@
   "LG P18EP1": {
    "btu": "18",
    "area": 53
+  },
+  "FUNAI RAC-I-AK55HP.D02 inv": {
+   "btu": "18",
+   "area": 56
+  },
+  "FUNAI RAC-I-AN75HP.D02 inv": {
+   "btu": "24",
+   "area": 75
+  },
+  "FUNAI RAC-I-AN55HP.D02 inv": {
+   "btu": "18",
+   "area": 56
+  },
+  "FUNAI RAC-I-AN35HP.D01 inv": {
+   "btu": "12",
+   "area": 36
+  },
+  "FUNAI RAC-I-AN30HP.D01 inv": {
+   "btu": "09",
+   "area": 27
+  },
+  "FUNAI RAC-I-DA25HP.D01 inv": {
+   "btu": "07",
+   "area": 22
+  },
+  "FUNAI RAC-I-DA30HP.D01 inv": {
+   "btu": "09",
+   "area": 25
+  },
+  "FUNAI RAC-I-DA65HP.D01 inv": {
+   "btu": "24",
+   "area": 62
+  },
+  "FUNAI RAC-I-DA35HP.D01 inv": {
+   "btu": "12",
+   "area": 32
+  },
+  "FUNAI RAC-I-DA50HP.D01 inv": {
+   "btu": "18",
+   "area": 46
+  },
+  "FUNAI RAC-DA20HP.D01 on/off": {
+   "btu": "07",
+   "area": 23
+  },
+  "FUNAI RAC-DA25HP.D01 on/off": {
+   "btu": "09",
+   "area": 25
+  },
+  "FUNAI RAC-DA50HP.D01 on/off": {
+   "btu": "18",
+   "area": 51
+  },
+  "FUNAI RAC-DA35HP.D01 on/off": {
+   "btu": "12",
+   "area": 33
+  },
+  "FUNAI RACI-EM35HP.D05 inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "FUNAI RAC-I-EU25HP.D01 inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "FUNAI RAC-I-KD30HP.D02 inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "FUNAI RAC-I-KD35HP.D02 inv": {
+   "btu": "12",
+   "area": 38
+  },
+  "FUNAI RAC-I-KD55HP.D02 inv": {
+   "btu": "18",
+   "area": 54
+  },
+  "FUNAI RAC-I-KD70HP.D01 inv": {
+   "btu": "24",
+   "area": 73
+  },
+  "FUNAI RAC-I-KM55HP.D01 inv": {
+   "btu": "18",
+   "area": 55
+  },
+  "FUNAI RAC-I-SN55HP.D05 inv": {
+   "btu": "18",
+   "area": 54
+  },
+  "FUNAI RAC-I-SN30HP.D05 inv": {
+   "btu": "09",
+   "area": 27
+  },
+  "FUNAI RAC-I-SN75HP.D05 inv": {
+   "btu": "24",
+   "area": 71
+  },
+  "FUNAI RAC-I-SZ35HP.D01 inv": {
+   "btu": "12",
+   "area": 38
+  },
+  "FUNAI RAC-SN35HP.D07 on/off": {
+   "btu": "12",
+   "area": 36
+  },
+  "FUNAI RAC-SN55HP.D07 on/off": {
+   "btu": "18",
+   "area": 54
+  },
+  "FUNAI RAC-SN70HP.D07 on/off": {
+   "btu": "24",
+   "area": 72
+  },
+  "FUNAI RAC-SN20HP.D06 on/off": {
+   "btu": "09",
+   "area": 24
+  },
+  "FUNAI RAC-SN25HP.D06 on/off": {
+   "btu": "09",
+   "area": 27
+  },
+  "FUNAI RAC-SN70HP.D06 on/off": {
+   "btu": "24",
+   "area": 70
+  },
+  "FUNAI RAC-SN35HP.D06 on/off": {
+   "btu": "12",
+   "area": 35
+  },
+  "FUNAI RAC-SNN55HP.D07 on/off": {
+   "btu": "18",
+   "area": 54
+  },
+  "FUNAI RAC-SNN35HP.D07 on/off": {
+   "btu": "12",
+   "area": 36
+  },
+  "FUNAI RAC-SNN70HP.D07 on/off": {
+   "btu": "24",
+   "area": 72
+  },
+  "FUNAI RAC-SG35HP.D04 on/off": {
+   "btu": "12",
+   "area": 37
+  },
+  "FUNAI RAC-SG20HP.D04 on/off": {
+   "btu": "07",
+   "area": 23
+  },
+  "FUNAI RAC-SG25HP.D04 on/off": {
+   "btu": "09",
+   "area": 28
+  },
+  "FUNAI RAC-SG55HP.D05 on/off": {
+   "btu": "18",
+   "area": 54
+  },
+  "FUNAI RAC-SG75HP.D05 on/off": {
+   "btu": "24",
+   "area": 75
+  },
+  "ROYAL CLIMA RCI-GRC28HN inv": {
+   "btu": "09",
+   "area": 25
+  },
+  "ROYAL CLIMA RCI-GRC35HN inv": {
+   "btu": "12",
+   "area": 32
+  },
+  "ROYAL CLIMA RCI-RNC35HN inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AS-13HW4SVDTG5B on/off": {
+   "btu": "12",
+   "area": 37
+  },
+  "HISENSE AS-07HW4SYDTG035B on/off": {
+   "btu": "07",
+   "area": 21
+  },
+  "HISENSE AUD-85UX4RPH8/AUW-85U6RZ8": {
+   "btu": "60",
+   "area": 230
+  },
+  "HISENSE AUD-36UX4REH8/AUW-36U4RK7 WI-FI": {
+   "btu": "36",
+   "area": 100
+  },
+  "HISENSE AUD-60UX4REH8/AUW-60U6RW8 WI-FI": {
+   "btu": "60",
+   "area": 160
+  },
+  "HISENSE ADT-09UX4RBL8/AUW-09U4RS8 WI-FI": {
+   "btu": "09",
+   "area": 26
+  },
+  "HISENSE ADT-18UX4RCL8/AUW-18U4RS7 WI-FI": {
+   "btu": "18",
+   "area": 50
+  },
+  "HISENSE AUD-48UX4REH8/AUW-48U6RN8 WI-FI": {
+   "btu": "48",
+   "area": 135
+  },
+  "HISENSE ADT-12UX4RBL8/AUW-12U4RS8 WI-FI": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AUD-24UX4RFM8/AUW-24U4RJ7 WI-FI": {
+   "btu": "24",
+   "area": 70
+  },
+  "HISENSE ACT-12UR4RCC8/PE-QEA/LD/AUW-12U4RS8": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE ACT-18UR4RCC8/PE-QEA/LD/AUW-18U4RS7": {
+   "btu": "18",
+   "area": 50
+  },
+  "HISENSE ACT-24UR4RJC8/PE-QFA/CD/AUW-24U4RJ7": {
+   "btu": "24",
+   "area": 70
+  },
+  "HISENSE AUC-48UR4RKC8/PE-QFA/CD/AUW-48U6RN8": {
+   "btu": "48",
+   "area": 135
+  },
+  "HISENSE AUC-60UR4RKC8/PE-QFA/CD/AUW-60U6RW8": {
+   "btu": "60",
+   "area": 160
+  },
+  "HISENSE AUC-36UR4RKC8/PE-QFA/CD/AUW-36U4RK7": {
+   "btu": "36",
+   "area": 100
+  },
+  "HISENSE AKT-09UR4RK8/AUW-09U4RS8 WI-FI": {
+   "btu": "09",
+   "area": 26
+  },
+  "HISENSE AKT-12UR4RK8/AUW-12U4RS8 WI-FI": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AVT-24UR4RB8/AUW-24U4RJ7 WI-FI": {
+   "btu": "24",
+   "area": 70
+  },
+  "HISENSE AUV-36UR4RC8/AUW-36U4RK7 WI-FI": {
+   "btu": "36",
+   "area": 95
+  },
+  "HISENSE AUV-60UR4RC8/AUW-60U6RW8 WI-FI": {
+   "btu": "60",
+   "area": 160
+  },
+  "HISENSE AUV-48UR4RC8/AUW-48U6RN8 WI-FI": {
+   "btu": "48",
+   "area": 135
+  },
+  "HISENSE AS-10UW4RVETG01(B) inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "HISENSE AS-13UW4RVETG01(B) inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AS-24UW4RBTCM00 inv": {
+   "btu": "24",
+   "area": 76
+  },
+  "HISENSE AS-09UW4RYRCM05 inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HISENSE AS-07UW4RYRCM00 inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "HISENSE AS-18UW4RMSCM01 inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "HISENSE AS-07UW4RYRKJ00 inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "HISENSE AS-09UW4RYRKJ05 inv": {
+   "btu": "09",
+   "area": 27
+  },
+  "HISENSE AS-13UW4RYRKJ04 inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "HISENSE AS-18UW4RMSKJ01 inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "HISENSE AS-24UW4RBTKJ00 inv": {
+   "btu": "24",
+   "area": 76
+  },
+  "HISENSE AS-18UW4RXATG03 inv": {
+   "btu": "18",
+   "area": 50
+  },
+  "HISENSE AS-10UW4RVETG01 inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "HISENSE AS-13UW4RVETG01 inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AS-10UW4RVETG01(S) inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "HISENSE AS-13UW4RVETG01(S) inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AS-10UW4RLCHB00(B) inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HISENSE AS-13UW4RLCHD00(B) inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "HISENSE AS-10UW4RLCHD00(S) inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HISENSE AS-13UW4RLCHD00(S) inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "HISENSE AS-10UW4RXVQH01A inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HISENSE AS-18UW4RBVQH01 inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "HISENSE AS-13UW4RXVQH02 inv": {
+   "btu": "12",
+   "area": 38
+  },
+  "HISENSE AS-18UW4RMSKB01 inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "HISENSE AS-13UW4RYRKB04 inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "HISENSE AS-09UW4RYRKB05 inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HISENSE AS-07UW4RYRKB00 inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "HISENSE AS-24UW4RBTKB00 inv": {
+   "btu": "24",
+   "area": 76
+  },
+  "HISENSE AS-18HW4RMSKJ00 on/off": {
+   "btu": "18",
+   "area": 55
+  },
+  "HISENSE AS-24HW4RBSKJ00 on/off": {
+   "btu": "24",
+   "area": 70
+  },
+  "HISENSE AS-07HW4RLRKJ00A on/off": {
+   "btu": "07",
+   "area": 24
+  },
+  "HISENSE AS-09HW4RLRKJ01A on/off": {
+   "btu": "09",
+   "area": 27
+  },
+  "HISENSE AS-12HW4RLRKJ01A on/off": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AUD-24HX4RGM2/AUW-24H4RF2": {
+   "btu": "24",
+   "area": 73
+  },
+  "HISENSE AUD-18HX4RV2/AUW-18H4RS2": {
+   "btu": "18",
+   "area": 52
+  },
+  "HISENSE AUD-48HX4REM2/AUW-48H6RQ2": {
+   "btu": "48",
+   "area": 141
+  },
+  "HISENSE AUD-36HX4RFM2/AUW-36H6RK2": {
+   "btu": "36",
+   "area": 111
+  },
+  "HISENSE AUD-60HX4REM2/AUW-60H6RN2": {
+   "btu": "60",
+   "area": 162
+  },
+  "HISENSE AUC-36HR4RKC2/PE-QFA/CD/AUW-36H6RK2": {
+   "btu": "36",
+   "area": 111
+  },
+  "HISENSE AUC-48HR4RKC2/PE-QFA/CD/AUW-48H6RQ2": {
+   "btu": "48",
+   "area": 146
+  },
+  "HISENSE AUC-24HR4RJC2/PE-QFA/CD/AUW-24H4RF2": {
+   "btu": "24",
+   "area": 74
+  },
+  "HISENSE AUC-18HR4RCC2/PE-QEA/LD/AUW-18H4RS2": {
+   "btu": "18",
+   "area": 53
+  },
+  "HISENSE AUF-48ER4RM2/AUW-48H6RQ2": {
+   "btu": "48",
+   "area": 142
+  },
+  "HISENSE AUF-60ER4RM2/AUW-60H6RN2": {
+   "btu": "60",
+   "area": 162
+  },
+  "HISENSE AUF-24ER4RC2/AUW-24H4RF2": {
+   "btu": "24",
+   "area": 72
+  },
+  "HISENSE AUV-18HR4RE2/AUW-18H4RS2": {
+   "btu": "18",
+   "area": 52
+  },
+  "HISENSE AUV-36HR4RE2/AUW-36H6RK2": {
+   "btu": "36",
+   "area": 111
+  },
+  "HISENSE AUV-24HR4RE2/AUW-24H4RF2": {
+   "btu": "24",
+   "area": 74
+  },
+  "HISENSE AUV-48HR4RF2/AUW-48H6RQ2": {
+   "btu": "48",
+   "area": 141
+  },
+  "HISENSE AUV-60HR4RF2/AUW-60H6RN2": {
+   "btu": "60",
+   "area": 162
+  },
+  "HISENSE AUD-36HX4SHH1/AUW-36H6SD": {
+   "btu": "36",
+   "area": 106
+  },
+  "HISENSE AUD-48HX4SHH/AUW-48H6SE1": {
+   "btu": "48",
+   "area": 140
+  },
+  "HISENSE AUD-60HX4SHH/AUW-60H6SP1": {
+   "btu": "60",
+   "area": 160
+  },
+  "HISENSE AUD-24HX4SLH1/AUW-24H4SF": {
+   "btu": "24",
+   "area": 71
+  },
+  "HISENSE AUD-12HX4SNL/AUW-12H4SV": {
+   "btu": "12",
+   "area": 35
+  },
+  "HISENSE AUD-18HX4SNL1/AUW-18H4SS": {
+   "btu": "18",
+   "area": 50
+  },
+  "HISENSE AUC-48HR4SKA/AUC-950R/AUW-48H6SE1": {
+   "btu": "48",
+   "area": 145
+  },
+  "HISENSE AUC-24HR4SJA/AUC-950R/AUW-24H4SF": {
+   "btu": "24",
+   "area": 73
+  },
+  "HISENSE AUC-60HR4SKA/AUC-950R/AUW-60H6SP1": {
+   "btu": "60",
+   "area": 165
+  },
+  "HISENSE AUC-36HR4SKA/AUC-950R/AUW-36H6SD": {
+   "btu": "36",
+   "area": 110
+  },
+  "HISENSE AUF-60ER6SM/AUW-60H6SP1": {
+   "btu": "60",
+   "area": 160
+  },
+  "HISENSE AUF-24ER4SCPA/AUW-24H4SB": {
+   "btu": "24",
+   "area": 72
+  },
+  "HISENSE AUF-48ER6SM/AUW-48H6SE1": {
+   "btu": "48",
+   "area": 140
+  },
+  "HISENSE AUV-18HR4SA1/AUW-18H4SS": {
+   "btu": "18",
+   "area": 50
+  },
+  "HISENSE AUV-48HR4SC/AUW-48H6SE1": {
+   "btu": "48",
+   "area": 140
+  },
+  "HISENSE AUV-60HR4SC/AUW-60H6SP1": {
+   "btu": "60",
+   "area": 160
+  },
+  "HISENSE AUV-24HR4SA1/AUW-24H4SF": {
+   "btu": "24",
+   "area": 70
+  },
+  "HISENSE AUV-36HR4SB1/AUW-36H6SD": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA EZI-S 24HE/EZI-E 24HE": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA CO-D 24HNDI/CO-E 24HNDI": {
+   "btu": "24",
+   "area": 71
+  },
+  "ROYAL CLIMA CO-D 36HNDI/CO-E 36HNDI": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA CO-D 18HNDI/CO-E 18HNDI": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA CO-D 48HNDI/CO-E 48HNDI": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA CO-D 60HNDI/CO-E 60HNDI": {
+   "btu": "60",
+   "area": 170
+  },
+  "ROYAL CLIMA CO-4C 18HNDI/CO-4C/pan 8D1/CO-E 18HNDI": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA CO-4C 12HNDI/CO-4C/pan 8D1/CO-E 12HNDI": {
+   "btu": "12",
+   "area": 35
+  },
+  "ROYAL CLIMA CO-4C 24HNDI/CO-4C/pan 8D2/CO-E 24HNDI": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA CO-4C 36HNDI/CO-4C/pan 8D2/CO-E 36HNDI": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA CO-4C 60HNDI/CO-4C/pan 8D2/CO-E 60HNDI": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA CO-4C 48HNDI/CO-4C/pan 8D2/CO-E 48HNDI": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA CO-F 18HNDI/CO-E 18HNDI": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA CO-F 24HNDI/CO-E 24HNDI": {
+   "btu": "24",
+   "area": 71
+  },
+  "ROYAL CLIMA CO-F 48HNDI/CO-E 48HNDI": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA CO-F 36HNDI/CO-E 36HNDI": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA CO-F 60HNDI/CO-E 60HNDI": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA RCI-FHE40HN inv": {
+   "btu": "12"
+  },
+  "ROYAL CLIMA RCI-FHE55HN inv": {
+   "btu": "18"
+  },
+  "ROYAL CLIMA RCI-FHE75HN inv": {
+   "btu": "24"
+  },
+  "ROYAL CLIMA RCI-FHE28HN inv": {
+   "btu": "09"
+  },
+  "ROYAL CLIMA RCI-OME22HN inv": {
+   "btu": "07",
+   "area": 22
+  },
+  "ROYAL CLIMA RCI-OME28HN inv": {
+   "btu": "09",
+   "area": 27
+  },
+  "ROYAL CLIMA RCI-OME35HN inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "ROYAL CLIMA ES-D 36HWX/ES-E 36HX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA ES-D 48HWX/ES-E 48HX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-D 18HWCX/ES-E 18HCX": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA ES-D 24HWCX/ES-E 24HCX": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-D 60HWX/ES-E 60HX": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA ES-D 36HWEX/ES-E 36HEX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA ES-D 60HWEX/ES-E 60HEX": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA ES-D 18HWEX/ES-E 18HEX": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA ES-D 48HWEX/ES-E 48HEX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-D 24HWEX/ES-E 24HEX": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA CO-D 12HNXA/CO-E 12HNX": {
+   "btu": "12",
+   "area": 35
+  },
+  "ROYAL CLIMA CO-D 24HNXA/CO-E 24HNXA": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA CO-D 36HNXA/CO-E 36HNX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA CO-D 60HNXA/CO-E 60HNXA": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA CO-D 48HNXA/CO-E 48HNXA": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA CO-D 18HNXA/CO-E 18HNX": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA CO-4C 36HNXA/CO-4C/pan 8D2/CO-E 36HNX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA CO-4C 48HNXA/CO-4C/pan 8D2/CO-E 48HNXA": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA CO-4C 60HNXA/CO-4C/pan 8D2/CO-E 60HNXA": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA CO-4C 12HNX/CO-4C/pan 8D1/CO-E 12HNX": {
+   "btu": "12",
+   "area": 35
+  },
+  "ROYAL CLIMA CO-4C 18HNX/CO-4C/pan 8D1/CO-E 18HNX": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA CO-4C 24HNXA/CO-4C/pan 8D2/CO-E 24HNXA": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-C 36HRX/ES – C pan/2X/ES-E 36HX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA ES-C 48HRX/ES – C pan/2X/ES-E 48HX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-C 18HRCX/ES – C pan/1X/ES-E 18HCX": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA ES-C 24HRCX/ES – C pan/2X/ES-E 24HCX": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-C 12HRCX/ES – C pan/1X/ES-E 12HCX": {
+   "btu": "12",
+   "area": 35
+  },
+  "ROYAL CLIMA ES-C 60HRX/ES – C pan/2X/ES-E 60HX": {
+   "btu": "60",
+   "area": 159
+  },
+  "ROYAL CLIMA ES-C 60HREX/ES-E 60HEX/ES-C pan/2X": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA ES-C 24HREX/ES-E 24HEX/ES-C pan/2X": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-C 18HREX/ES-E 18HEX/ES-C pan/3X": {
+   "btu": "18",
+   "area": 53
+  },
+  "ROYAL CLIMA ES-C 36HREX/ES-E 36HEX/ES-C pan/2X": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA ES-C 12HREX/ES-E 12HEX/ES-C pan/3X": {
+   "btu": "12",
+   "area": 35
+  },
+  "ROYAL CLIMA ES-C 48HREX/ES-E 48HEX/ES-C pan/2X": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-S 48HRCX/ES-E 48HX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-S 60HRCX/ES-E 60HX": {
+   "btu": "60",
+   "area": 176
+  },
+  "ROYAL CLIMA ES-S 48HRCX/ES-E 48HSCX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-S 60HRCX/ES-E 60HSCX": {
+   "btu": "60",
+   "area": 176
+  },
+  "ROYAL CLIMA ES-S 24HRCX/ES-E 24HSCX": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-F 18HRCX/ES-E 18HCX": {
+   "btu": "18",
+   "area": 56
+  },
+  "ROYAL CLIMA ES-F 24HRCX/ES-E 24HCX": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-F 60HRX/ES-E 60HX": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA ES-F 36HRX/ES-E 36HX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA ES-F 48HRX/ES-E 48HX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-F 24HREX/ES-E 24HEX": {
+   "btu": "24",
+   "area": 70
+  },
+  "ROYAL CLIMA ES-F 36HREX/ES-E 36HEX": {
+   "btu": "36",
+   "area": 106
+  },
+  "ROYAL CLIMA ES-F 48HREX/ES-E 48HEX": {
+   "btu": "48",
+   "area": 141
+  },
+  "ROYAL CLIMA ES-F 60HREX/ES-E 60HEX": {
+   "btu": "60",
+   "area": 161
+  },
+  "ROYAL CLIMA RC-NB55HN on/off": {
+   "btu": "18",
+   "area": 51
+  },
+  "ROYAL CLIMA RC-NB70HN on/off": {
+   "btu": "24",
+   "area": 68
+  },
+  "ROYAL CLIMA RC-NB22HN on/off": {
+   "btu": "07",
+   "area": 21
+  },
+  "ROYAL CLIMA RC-NB35HN on/off": {
+   "btu": "12",
+   "area": 33
+  },
+  "ROYAL CLIMA RC-NB28HN on/off": {
+   "btu": "09",
+   "area": 25
+  },
+  "FUNAI RAC-I-ON70HP.D01 inv": {
+   "btu": "24",
+   "area": 70
+  },
+  "FUNAI RAC-I-ON30HP.D01 inv": {
+   "btu": "09",
+   "area": 27
+  },
+  "FUNAI RAC-I-ON35HP.D01 inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "FUNAI RAC-I-ON55HP.D01 inv": {
+   "btu": "18",
+   "area": 53
+  },
+  "FUNAI RAC-I-SN75HP.D04 inv": {
+   "btu": "24",
+   "area": 76
+  },
+  "FUNAI RAC-I-SN55HP.D04 inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "FUNAI RAC-I-SN25HP.D04 inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "FUNAI RAC-I-SN35HP.D04 inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "FUNAI RAC-I-SN30HP.D04 inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "FUNAI RAC-I-SG25HP.D02 inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "FUNAI RAC-I-SG35HP.D02 inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "FUNAI RAC-I-SG30HP.D02 inv": {
+   "btu": "09",
+   "area": 30
+  },
+  "FUNAI RAC-I-SG75HP.D02 inv": {
+   "btu": "24",
+   "area": 73
+  },
+  "FUNAI RAC-I-SG25HP.D03 inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "FUNAI RAC-I-SG30HP.D03 inv": {
+   "btu": "09",
+   "area": 30
+  },
+  "FUNAI RAC-I-SG55HP.D03 inv": {
+   "btu": "18",
+   "area": 54
+  },
+  "FUNAI LAC-DR165HP.D01/S/LAC-DR165HP.01/U": {
+   "area": 161
+  },
+  "FUNAI LAC-DR140HP.D01/S/LAC-DR140HP.01/U": {
+   "area": 141
+  },
+  "FUNAI LAC-DR55HP.D01/S/LAC-DR55HP.01/U": {
+   "btu": "18",
+   "area": 53
+  },
+  "FUNAI LAC-DR105HP.D01/S/LAC-DR105HP.01/U": {
+   "area": 106
+  },
+  "FUNAI LAC-DR70HP.D01/S/LAC-DR70HP.01/U": {
+   "btu": "24",
+   "area": 71
+  },
+  "FUNAI LAC-DR35HP.C01/S/Pan DR-4LA/LAC-DR35HP.01/U": {
+   "btu": "12",
+   "area": 35
+  },
+  "FUNAI LAC-DR105HP.C01/S/Pan DR-4LY/LAC-DR105HP.01/U": {
+   "area": 106
+  },
+  "FUNAI LAC-DR165HP.C01/S/Pan DR-4LY/LAC-DR165HP.01/U": {
+   "area": 161
+  },
+  "FUNAI LAC-DR70HP.C01/S/Pan DR-4LY/LAC-DR70HP.01/U": {
+   "btu": "24",
+   "area": 71
+  },
+  "FUNAI LAC-DR140HP.C01/S/Pan DR-4LY/LAC-DR140HP.01/U": {
+   "area": 141
+  },
+  "FUNAI LAC-DR55HP.C01/S/Pan DR-4LA/LAC-DR55HP.01/U": {
+   "btu": "18",
+   "area": 53
+  },
+  "FUNAI LAC-DR140HP.F01/S/LAC-DR140HP.01/U": {
+   "area": 141
+  },
+  "FUNAI LAC-DR105HP.F01/S/LAC-DR105HP.01/U": {
+   "area": 106
+  },
+  "FUNAI LAC-DR165HP.F01/S/LAC-DR165HP.01/U": {
+   "area": 161
+  },
+  "FUNAI LAC-DR55HP.F01/S/LAC-DR55HP.01/U": {
+   "btu": "18",
+   "area": 53
+  },
+  "FUNAI LAC-DR70HP.F01/S/LAC-DR70HP.01/U": {
+   "btu": "24",
+   "area": 71
+  },
+  "FUNAI RAC-KD35HP.D01 on/off": {
+   "btu": "12",
+   "area": 37
+  },
+  "FUNAI RAC-KD25HP.D01 on/off": {
+   "btu": "09",
+   "area": 28
+  },
+  "FUNAI RAC-KD55HP.D01 on/off": {
+   "btu": "18",
+   "area": 55
+  },
+  "FUNAI RAC-KD75HP.D01 on/off": {
+   "btu": "24",
+   "area": 73
+  },
+  "FUNAI RAC-KD20HP.D01 on/off": {
+   "btu": "07",
+   "area": 22
+  },
+  "EXPERTAIR ZAC-I/PG24NPZ inv": {
+   "btu": "24",
+   "area": 71
+  },
+  "EXPERTAIR ZAC-I/PG07NPZ inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "EXPERTAIR ZAC-I/PG18NPZ inv": {
+   "btu": "18",
+   "area": 55
+  },
+  "EXPERTAIR ZAC-I/PG12NPZ inv": {
+   "btu": "12",
+   "area": 36
+  },
+  "EXPERTAIR ZAC-I/PG09NPZ inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "EXPERTAIR ZAC-HD48XDUC-IU/ZAC-HD48XC-OU": {
+   "btu": "48",
+   "area": 140
+  },
+  "EXPERTAIR ZAC-HD12XDUC-IU/ZAC-HD12XC-OU": {
+   "btu": "12",
+   "area": 38
+  },
+  "EXPERTAIR ZAC-HD60XDUC-IU/ZAC-HD60XC-OU": {
+   "btu": "60",
+   "area": 161
+  },
+  "EXPERTAIR ZAC-HD24XDUC-IU/ZAC-HD24XC-OU": {
+   "btu": "24",
+   "area": 70
+  },
+  "EXPERTAIR ZAC-HD18XDUC-IU/ZAC-HD18XC-OU": {
+   "btu": "18",
+   "area": 52
+  },
+  "EXPERTAIR ZAC-HD36XDUC-IU/ZAC-HD36XC-OU": {
+   "btu": "36",
+   "area": 106
+  },
+  "EXPERTAIR ZAC-HD36XCFC-IU/ZAC-HD36XC-OU": {
+   "btu": "36",
+   "area": 106
+  },
+  "EXPERTAIR ZAC-HD24XCFC-IU/ZAC-HD24XC-OU": {
+   "btu": "24",
+   "area": 70
+  },
+  "EXPERTAIR ZAC-HD18XCFC-IU/ZAC-HD18XC-OU": {
+   "btu": "18",
+   "area": 52
+  },
+  "EXPERTAIR ZAC-HD60XCFC-IU/ZAC-HD60XC-OU": {
+   "btu": "60",
+   "area": 161
+  },
+  "EXPERTAIR ZAC-HD48XCFC-IU/ZAC-HD48XC-OU": {
+   "btu": "48",
+   "area": 140
+  },
+  "ECOSTAR KVS-IRAD09CH inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "ECOSTAR KVS-IRAD12CH inv": {
+   "btu": "12",
+   "area": 34
+  },
+  "ECOSTAR KVS-IRAD07CH inv": {
+   "btu": "07",
+   "area": 21
+  },
+  "ECOSTAR KVS-IRAM07CH inv": {
+   "btu": "07",
+   "area": 22
+  },
+  "ECOSTAR KVS-IRAM12CH inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "ECOSTAR KVS-IRAM09CH inv": {
+   "btu": "09",
+   "area": 27
+  },
+  "ECOSTAR KVS-RAD12CH on/off": {
+   "btu": "12",
+   "area": 35
+  },
+  "ECOSTAR KVS-RAD07CH on/off": {
+   "btu": "07",
+   "area": 21
+  },
+  "ECOSTAR KVS-RAD18CH on/off": {
+   "btu": "18",
+   "area": 50
+  },
+  "ECOSTAR KVS-RAD24CH on/off": {
+   "btu": "24",
+   "area": 68
+  },
+  "ECOSTAR KVS-RAD09CH on/off": {
+   "btu": "09",
+   "area": 27
+  },
+  "ECOSTAR KVS-RAM09CH on/off": {
+   "btu": "09",
+   "area": 27
+  },
+  "ECOSTAR KVS-RAM24CH on/off": {
+   "btu": "24",
+   "area": 71
+  },
+  "ECOSTAR KVS-RAM07CH on/off": {
+   "btu": "07",
+   "area": 22
+  },
+  "ECOSTAR KVS-RAM12CH on/off": {
+   "btu": "12",
+   "area": 35
+  },
+  "ECOSTAR KVS-RAM18CH on/off": {
+   "btu": "18",
+   "area": 51
+  },
+  "ULTIMA COMFORT ECS-I07PN inv": {
+   "btu": "07",
+   "area": 21
+  },
+  "ULTIMA COMFORT ECS-I18PN inv": {
+   "btu": "18",
+   "area": 53
+  },
+  "ULTIMA COMFORT ECS-I12PN inv": {
+   "btu": "12",
+   "area": 34
+  },
+  "ULTIMA COMFORT ECS-I24PN inv": {
+   "btu": "24",
+   "area": 69
+  },
+  "ULTIMA COMFORT ECS-I09PN inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "ULTIMA COMFORT EXD-I24PN inv": {
+   "btu": "24",
+   "area": 70
+  },
+  "ULTIMA COMFORT EXD-I12PN inv": {
+   "btu": "12",
+   "area": 35
+  },
+  "ULTIMA COMFORT EXD-I18PN inv": {
+   "btu": "18",
+   "area": 53
+  },
+  "ULTIMA COMFORT EXD-I09PN inv": {
+   "btu": "09",
+   "area": 26
+  },
+  "ULTIMA COMFORT EXD-I07PN inv": {
+   "btu": "07",
+   "area": 22
+  },
+  "XIGMA XG-EFD21RHA on/off": {
+   "btu": "07",
+   "area": 22
+  },
+  "XIGMA XG-EFD27RHA on/off": {
+   "btu": "09",
+   "area": 28
+  },
+  "XIGMA XG-EFD70RHA on/off": {
+   "btu": "24",
+   "area": 72
+  },
+  "XIGMA XG-EFD50RHA on/off": {
+   "btu": "18",
+   "area": 54
+  },
+  "XIGMA XG-EFD35RHA on/off": {
+   "btu": "12",
+   "area": 36
+  },
+  "XIGMA XG-TXC70RHA on/off": {
+   "btu": "24",
+   "area": 68
+  },
+  "XIGMA XG-TXC35RHA on/off": {
+   "btu": "12",
+   "area": 35
+  },
+  "XIGMA XG-TXC27RHA on/off": {
+   "btu": "09",
+   "area": 27
+  },
+  "XIGMA XG-TXC21RHA on/off": {
+   "btu": "07",
+   "area": 21
+  },
+  "XIGMA XG-TXC50RHA on/off": {
+   "btu": "18",
+   "area": 50
+  },
+  "HIGH LIFE ACHL-18CC-I-CHDV02S inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "HIGH LIFE ACHL-24CC-I-CHDV02S inv": {
+   "btu": "24",
+   "area": 76
+  },
+  "HIGH LIFE ACHL-09CC-I-CHDV02S inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HIGH LIFE ACHL-07CC-I-CHDV02S inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "HIGH LIFE ACHL-12CC-I-CHDV02S inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "HIGH LIFE ACHL-12PC-I-CHDV03S inv": {
+   "btu": "12",
+   "area": 37
+  },
+  "HIGH LIFE ACHL-07PC-I-CHDV03S inv": {
+   "btu": "07",
+   "area": 23
+  },
+  "HIGH LIFE ACHL-09PC-I-CHDV03S inv": {
+   "btu": "09",
+   "area": 28
+  },
+  "HIGH LIFE ACHL-18PC-I-CHDV03S inv": {
+   "btu": "18",
+   "area": 57
+  },
+  "HIGH LIFE ACHL-24PC-I-CHDV03S inv": {
+   "btu": "24",
+   "area": 76
+  },
+  "HITACHI RAD-70PPD/RAC-70NPD": {
+   "btu": "24",
+   "area": 70
   }
  },
  "MIDEA|EASY on/off": {
@@ -3864,6 +5091,1189 @@
   "freon": "R410A",
   "_источники": [
    "база SplitHome (Бриз), товары: НС-1606451, НС-1606452, НС-1606453, НС-1606454, НС-1606455"
+  ]
+ },
+ "HISENSE|HEAVY высоконапорный канальный inverter": {
+  "descTemplate": "Канальный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · Инвертор · Wi-Fi встроенный · A+ · -20°C",
+  "benefits": [
+   "Инверторная технология",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Сезонная энергоэффективность A+",
+   "Обогрев при наружной температуре до -20 °C",
+   "Трасса до 100 м",
+   "Гарантия 36 мес."
+  ],
+  "compressor": "GMCC",
+  "freon": "",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1710110"
+  ]
+ },
+ "HISENSE|HEAVY канальный inverter Wi-Fi": {
+  "descTemplate": "Канальный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · Инвертор · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1710591, НС-1710592, НС-1710594, НС-1710596, НС-1710597, НС-1710598"
+  ]
+ },
+ "HISENSE|HEAVY кассетный inverter Wi-Fi": {
+  "descTemplate": "Кассетный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Кассетный · Инвертор · Wi-Fi встроенный · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1710582, НС-1710583, НС-1710585, НС-1710587, НС-1710589, НС-1710590"
+  ]
+ },
+ "HISENSE|HEAVY консольный inverter Wi-Fi": {
+  "descTemplate": "Консольный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Консольный · Инвертор · Wi-Fi встроенный · Ионизатор · A++ · -20°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Консольный тип — невысокий напольный блок, монтаж у стены или под окном",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Ионизатор воздуха",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -20 °C",
+   "Трасса до 35 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1710602, НС-1710603"
+  ]
+ },
+ "HISENSE|HEAVY напольно-потолочный inverter Wi-Fi": {
+  "descTemplate": "Напольно-потолочный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Напольно-потолочный · Инвертор · Wi-Fi встроенный · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1710605, НС-1710624, НС-1710625, НС-1710626"
+  ]
+ },
+ "HISENSE|BLACK CRYSTAL SUPER inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · A++ · -17°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Фильтры тонкой очистки: фотокаталитический, Silver Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -17 °C",
+   "Уровень шума внутреннего блока — от 23 дБ(А)",
+   "Трасса до 20 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1694123, НС-1694125"
+  ]
+ },
+ "HISENSE|CITY inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 31 дБ(А)",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1688268, НС-1688269, НС-1688271, НС-1688272"
+  ]
+ },
+ "HISENSE|GOAL 2.0 inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Фильтры тонкой очистки: LTC, угольный",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 31 дБ(А)",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1760717, НС-1760718, НС-1760720, НС-1760726, НС-1760753"
+  ]
+ },
+ "HISENSE|Premium DESIGN inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · A++ · -17°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Фильтры тонкой очистки: фотокаталитический, Silver Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -17 °C",
+   "Уровень шума внутреннего блока — от 29 дБ(А)",
+   "Трасса до 20 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1692504, НС-1692506, НС-1692510"
+  ]
+ },
+ "HISENSE|SILVER CRYSTAL SUPER inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · A++ · -17°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Фильтры тонкой очистки: фотокаталитический, Silver Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -17 °C",
+   "Уровень шума внутреннего блока — от 23 дБ(А)",
+   "Трасса до 20 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1694111, НС-1694112"
+  ]
+ },
+ "HISENSE|VIBE PRO CARBON inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · Ионизатор · A++ · -20°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Ионизатор воздуха",
+   "Фильтры тонкой очистки: Silver Ion, угольный",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -20 °C",
+   "Уровень шума внутреннего блока — от 21,5 дБ(А)",
+   "Трасса до 20 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1768379, НС-1768382"
+  ]
+ },
+ "HISENSE|VIBE PRO SILVER inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · Ионизатор · A++ · -20°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Ионизатор воздуха",
+   "Фильтры тонкой очистки: Silver Ion, угольный",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -20 °C",
+   "Уровень шума внутреннего блока — от 21,5 дБ(А)",
+   "Трасса до 20 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1760786, НС-1760788"
+  ]
+ },
+ "HISENSE|VISION PRO 2.0 SUPERIOR inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · Ионизатор · -22°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Ионизатор воздуха",
+   "Фильтры тонкой очистки: Silver Ion, с витамином C, катехиновый, HEPA",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -22 °C",
+   "Уровень шума внутреннего блока — от 23 дБ(А)",
+   "Трасса до 25 м",
+   "Гарантия 36+24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1761739, НС-1761741, НС-1761742"
+  ]
+ },
+ "HISENSE|ZOOM inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi встроенный · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Фильтры тонкой очистки: фотокаталитический, Silver Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 31 дБ(А)",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1692515, НС-1692524, НС-1692526, НС-1692527, НС-1692528"
+  ]
+ },
+ "HISENSE|GOAL 2.0 on/off": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · On/Off · Wi-Fi встроенный · -10°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Фильтры тонкой очистки: LTC, угольный",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -10 °C",
+   "Уровень шума внутреннего блока — от 33,5 дБ(А)",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1760630, НС-1760631, НС-1760632, НС-1760633, НС-1760634"
+  ]
+ },
+ "HISENSE|HEAVY 2.0 канальный on/off": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · On/Off · -10°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1766420, НС-1766421, НС-1766422, НС-1766423, НС-1766424"
+  ]
+ },
+ "HISENSE|HEAVY 2.0 кассетный on/off": {
+  "descTemplate": "Кассетный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Кассетный · On/Off · -10°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1766427, НС-1766428, НС-1766429, НС-1766430"
+  ]
+ },
+ "HISENSE|HEAVY 2.0 колонный on/off": {
+  "descTemplate": "Колонный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Колонный · On/Off · -10°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Колонный тип — ставится на пол, для залов и больших помещений",
+   "Компрессор GMCC",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1766433, НС-1766434, НС-1766435"
+  ]
+ },
+ "HISENSE|HEAVY 2.0 напольно-потолочный on/off": {
+  "descTemplate": "Напольно-потолочный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Напольно-потолочный · On/Off · -10°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор GMCC",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1766436, НС-1766437, НС-1766438, НС-1766439, НС-1766440"
+  ]
+ },
+ "HISENSE|HEAVY CLASSIC канальный on/off": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор HIGHLY · Канальный · On/Off · -10°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор HIGHLY",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "HIGHLY",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1187863, НС-1187865, НС-1187867, НС-1187868, НС-1187869, НС-1187870"
+  ]
+ },
+ "HISENSE|HEAVY CLASSIC кассетный on/off": {
+  "descTemplate": "Кассетный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор HIGHLY · Кассетный · On/Off · -10°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор HIGHLY",
+   "Встроенная дренажная помпа",
+   "Фильтры тонкой очистки: фотокаталитический, Silver Ion",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "HIGHLY",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1413682, НС-1413686, НС-1413687, НС-1413689"
+  ]
+ },
+ "HISENSE|HEAVY CLASSIC колонный on/off": {
+  "descTemplate": "Колонный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор HIGHLY · Колонный · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Колонный тип — ставится на пол, для залов и больших помещений",
+   "Компрессор HIGHLY",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "HIGHLY",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1187876, НС-1187877, НС-1349686"
+  ]
+ },
+ "HISENSE|HEAVY CLASSIC напольно-потолочный on/off": {
+  "descTemplate": "Напольно-потолочный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор HIGHLY · Напольно-потолочный · On/Off · -10°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор HIGHLY",
+   "Обогрев при наружной температуре до -10 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "HIGHLY",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1187871, НС-1187872, НС-1187873, НС-1187874, НС-1187875"
+  ]
+ },
+ "ROYAL CLIMA|ELEGANZA колонный inverter": {
+  "descTemplate": "Колонный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор SANYO · Колонный · Инвертор · Wi-Fi встроенный · A++ · -20°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Колонный тип — ставится на пол, для залов и больших помещений",
+   "Компрессор SANYO",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -20 °C",
+   "Трасса до 25 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "SANYO",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1771345"
+  ]
+ },
+ "ROYAL CLIMA|COMPETENZA канальный inverter 2025": {
+  "descTemplate": "Канальный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · Инвертор · Wi-Fi (опция) · -25°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -25 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1686853, НС-1686854, НС-1686855, НС-1686857, НС-1686858"
+  ]
+ },
+ "ROYAL CLIMA|COMPETENZA кассетный inverter 2025": {
+  "descTemplate": "Кассетный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Кассетный · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1686859, НС-1686860, НС-1686861, НС-1686862, НС-1686863, НС-1686864"
+  ]
+ },
+ "ROYAL CLIMA|COMPETENZA напольно-потолочный inverter 2025": {
+  "descTemplate": "Напольно-потолочный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Напольно-потолочный · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1686866, НС-1686867, НС-1686868, НС-1686869, НС-1686871"
+  ]
+ },
+ "ROYAL CLIMA|FELICITA HEAT PUMP inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Инвертор",
+  "benefits": [
+   "Инверторная технология"
+  ],
+  "compressor": "",
+  "freon": "",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1799746, НС-1799747, НС-1799748, НС-1799749"
+  ]
+ },
+ "ROYAL CLIMA|OPTIMUM 2.0 inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор RECHI · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор RECHI",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 24 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "RECHI",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1764914, НС-1764915, НС-1764916"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO канальный on/off 2024": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · On/Off · Wi-Fi (опция) · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1432625, НС-1432626, НС-1432627, НС-1603949, НС-1603951"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO канальный on/off 2026": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · On/Off · Wi-Fi встроенный · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1761237, НС-1761239, НС-1761242, НС-1761243, НС-1761244"
+  ]
+ },
+ "ROYAL CLIMA|COMPETENZA канальный on/off": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GREE LANDA · Канальный · On/Off · Wi-Fi (опция) · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GREE LANDA",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GREE LANDA",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1498284, НС-1498287, НС-1498289, НС-1498291, НС-1498292, НС-1626571"
+  ]
+ },
+ "ROYAL CLIMA|COMPETENZA кассетный on/off": {
+  "descTemplate": "Кассетный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GREE LANDA · Кассетный · On/Off · Wi-Fi (опция) · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GREE LANDA",
+   "Встроенная дренажная помпа",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GREE LANDA",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1432672, НС-1432674, НС-1498257, НС-1498278, НС-1498279, НС-1498280"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO кассетный on/off 2024": {
+  "descTemplate": "Кассетный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Кассетный · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1432612, НС-1432616, НС-1432618, НС-1603945, НС-1603946, НС-1603947"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO кассетный on/off 2026": {
+  "descTemplate": "Кассетный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Кассетный · On/Off · Wi-Fi (опция) · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GMCC",
+   "Встроенная дренажная помпа",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1761249, НС-1761250, НС-1761259, НС-1761261, НС-1761262, НС-1761264"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO колонный on/off 2024": {
+  "descTemplate": "Колонный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор Panasonic · Колонный · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Колонный тип — ставится на пол, для залов и больших помещений",
+   "Компрессор Panasonic",
+   "Обогрев при наружной температуре до -7 °C",
+   "Трасса до 50 м",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "Panasonic",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1604002, НС-1604004"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO колонный on/off 2026": {
+  "descTemplate": "Колонный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор Panasonic · Колонный · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Колонный тип — ставится на пол, для залов и больших помещений",
+   "Компрессор Panasonic",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "Panasonic",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1603997, НС-1761308, НС-1761309"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO напольно-потолочный on/off 2024": {
+  "descTemplate": "Напольно-потолочный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Напольно-потолочный · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор GMCC",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1432631, НС-1432632, НС-1432633, НС-1603962, НС-1603964"
+  ]
+ },
+ "ROYAL CLIMA|ESPERTO напольно-потолочный on/off 2026": {
+  "descTemplate": "Напольно-потолочный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Напольно-потолочный · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор GMCC",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Обогрев при наружной температуре до -7 °C",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1761303, НС-1761304, НС-1761305, НС-1761307"
+  ]
+ },
+ "ROYAL CLIMA|NOBILE on/off": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор QINGAN · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор QINGAN",
+   "Фильтры тонкой очистки: Active Carbon, катехиновый, Silver Ion, антибактериальный",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -7 °C",
+   "Уровень шума внутреннего блока — от 32 дБ(А)",
+   "Гарантия 36 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "QINGAN",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1557128, НС-1557129, НС-1557130, НС-1557132, НС-1557133"
+  ]
+ },
+ "FUNAI|ONSEN inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GREE · Инвертор · Wi-Fi встроенный · -30°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GREE",
+   "Тепловой насос",
+   "Встроенный Wi-Fi — управление со смартфона",
+   "Плазменная очистка воздуха",
+   "Фильтры тонкой очистки: SMART Ion, катехиновый, хитиновый, акаробактериальный, анти-формальдегидный, с витамином C",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -30 °C",
+   "Уровень шума внутреннего блока — от 27 дБ(А)",
+   "Гарантия 36+24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GREE",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1648594, НС-1648595, НС-1648597, НС-1648598"
+  ]
+ },
+ "FUNAI|SENSEI inverter 2023": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Фильтры тонкой очистки: SMART Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 31 дБ(А)",
+   "Гарантия 36+24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1491331, НС-1491345, НС-1491346, НС-1491347, НС-1491348"
+  ]
+ },
+ "FUNAI|SHOGUN inverter 2024": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC-Toshiba · Инвертор · Wi-Fi (опция) · УФ-лампа · A++ · -25°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC-Toshiba",
+   "Управление по Wi-Fi (опция)",
+   "Ультрафиолетовое обеззараживание воздуха",
+   "Фильтры тонкой очистки: SMART Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -25 °C",
+   "Уровень шума внутреннего блока — от 23 дБ(А)",
+   "Трасса до 20 м",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC-Toshiba",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1599239, НС-1599240, НС-1599241, НС-1599243, НС-1648033, НС-1648034"
+  ]
+ },
+ "FUNAI|DRAGON канальный on/off": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Канальный · On/Off · Wi-Fi (опция) · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36+24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1494342, НС-1494343, НС-1494345, НС-1494346, НС-1494349"
+  ]
+ },
+ "FUNAI|DRAGON кассетный on/off": {
+  "descTemplate": "Кассетный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GREE LANDA · Кассетный · On/Off · Wi-Fi (опция) · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Кассетный тип — встраивается в подвесной потолок",
+   "Компрессор GREE LANDA",
+   "Встроенная дренажная помпа",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36+24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GREE LANDA",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1494357, НС-1494358, НС-1494360, НС-1494361, НС-1494362, НС-1494364"
+  ]
+ },
+ "FUNAI|DRAGON напольно-потолочный on/off": {
+  "descTemplate": "Напольно-потолочный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Напольно-потолочный · On/Off · Wi-Fi (опция) · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 36+24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1494365, НС-1494367, НС-1494368, НС-1494371, НС-1494372"
+  ]
+ },
+ "FUNAI|KADZOKU on/off": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · On/Off · Wi-Fi (опция) · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Фильтры тонкой очистки: SMART Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -7 °C",
+   "Уровень шума внутреннего блока — от 30 дБ(А)",
+   "Гарантия 36+24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GMCC",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1492457, НС-1492560, НС-1492569, НС-1492571, НС-1492572"
+  ]
+ },
+ "EXPERTAIR|PROGRESS inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор RECHI · Инвертор · A++ · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор RECHI",
+   "Фильтры тонкой очистки: Active Carbon, Silver Ion",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 29 дБ(А)",
+   "Трасса до 25 м",
+   "Гарантия 24+12 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "RECHI",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1692468, НС-1692469, НС-1692470, НС-1692473, НС-1692475"
+  ]
+ },
+ "EXPERTAIR|HARD канальный on/off": {
+  "descTemplate": "Канальный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор HIGHLY · Канальный · On/Off · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор HIGHLY",
+   "Встроенная дренажная помпа",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "HIGHLY",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1614156, НС-1614157, НС-1614158, НС-1614159, НС-1614160, НС-1614161"
+  ]
+ },
+ "EXPERTAIR|HARD напольно-потолочный on/off": {
+  "descTemplate": "Напольно-потолочный On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор HIGHLY · Напольно-потолочный · On/Off · -15°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Напольно-потолочный тип — монтаж на пол или под потолок",
+   "Компрессор HIGHLY",
+   "Обогрев при наружной температуре до -15 °C",
+   "Гарантия 24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "HIGHLY",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1614254, НС-1614256, НС-1614259, НС-1614261, НС-1614263"
+  ]
+ },
+ "ECOSTAR|RADIUM inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 26 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1596356, НС-1596357, НС-1596359"
+  ]
+ },
+ "ECOSTAR|RADIUM inverter 2026": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор RECHI · Инвертор · Wi-Fi ready · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор RECHI",
+   "Готовность к Wi-Fi (Wi-Fi ready)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 24 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "RECHI",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1761092, НС-1761093, НС-1761094"
+  ]
+ },
+ "ECOSTAR|RADIUM on/off": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · On/Off · Wi-Fi (опция) · -7°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -7 °C",
+   "Уровень шума внутреннего блока — от 33 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1597379, НС-1597380, НС-1597381, НС-1597383, НС-1597385"
+  ]
+ },
+ "ECOSTAR|RADIUM on/off 2026": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · On/Off · Wi-Fi ready · -7°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор GMCC",
+   "Готовность к Wi-Fi (Wi-Fi ready)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -7 °C",
+   "Уровень шума внутреннего блока — от 33 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1761086, НС-1761088, НС-1761089, НС-1761090, НС-1761091"
+  ]
+ },
+ "ULTIMA COMFORT|ECLIPSE inverter 2024": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 29 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1596417, НС-1596419, НС-1596421, НС-1597605, НС-1597607"
+  ]
+ },
+ "ULTIMA COMFORT|EXCEED inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 29 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1692607, НС-1692608, НС-1692609, НС-1692610, НС-1692611"
+  ]
+ },
+ "XIGMA|EXTRAFORCE on/off 2024": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GREE · On/Off · -7°C · R410A",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор GREE",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -7 °C",
+   "Уровень шума внутреннего блока — от 26 дБ(А)",
+   "Гарантия 24 мес.",
+   "Хладагент R410A"
+  ],
+  "compressor": "GREE",
+  "freon": "R410A",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1660433, НС-1660434, НС-1660435, НС-1660436, НС-1660437"
+  ]
+ },
+ "XIGMA|TURBOCOOL on/off 2024": {
+  "descTemplate": "On/Off {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · On/Off · Wi-Fi (опция) · -7°C · R32",
+  "benefits": [
+   "Классическая сплит-система On/Off",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -7 °C",
+   "Уровень шума внутреннего блока — от 33 дБ(А)",
+   "Трасса до 15 м",
+   "Гарантия 24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1597417, НС-1597418, НС-1597420, НС-1597421, НС-1597422"
+  ]
+ },
+ "HIGH LIFE|COMFORT CLASS inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 31 дБ(А)",
+   "Гарантия 36+24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1599552, НС-1599553, НС-1599555, НС-1599557, НС-1599559"
+  ]
+ },
+ "HIGH LIFE|PRIORITY CLASS 2.0 inverter": {
+  "descTemplate": "Инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор GMCC · Инвертор · Wi-Fi (опция) · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Компрессор GMCC",
+   "Управление по Wi-Fi (опция)",
+   "Жалюзи 3D: горизонтальные и вертикальные с пульта",
+   "Класс энергоэффективности A",
+   "Обогрев при наружной температуре до -15 °C",
+   "Уровень шума внутреннего блока — от 31 дБ(А)",
+   "Гарантия 36+24 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "GMCC",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1690996, НС-1690997, НС-1690999, НС-1691000, НС-1691002"
+  ]
+ },
+ "HITACHI|RAD канальный inverter": {
+  "descTemplate": "Канальный инвертор {btu} BTU · до {area} м²",
+  "cardBenef": "Компрессор Hitachi · Канальный · Инвертор · A++ · -15°C · R32",
+  "benefits": [
+   "Инверторная технология",
+   "Канальный тип — блок скрыт за потолком, воздух идёт по воздуховодам",
+   "Компрессор Hitachi",
+   "Встроенная дренажная помпа",
+   "Сезонная энергоэффективность A++",
+   "Обогрев при наружной температуре до -15 °C",
+   "Трасса до 30 м",
+   "Гарантия 36 мес.",
+   "Хладагент R32"
+  ],
+  "compressor": "Hitachi",
+  "freon": "R32",
+  "_источники": [
+   "база SplitHome (Бриз), товары: НС-1376273, НС-1376278, НС-1376280, НС-1376283, НС-1376284"
   ]
  }
 }

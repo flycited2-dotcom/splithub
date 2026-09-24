@@ -17,6 +17,11 @@ _SPLIT = re.compile(r"[/|+.]")
 _KEEP = re.compile("[^A-Z0-9А-Я/|+.]+")
 
 
+def latin(text: str) -> str:
+    """Кириллические буквы-двойники → латиница: «RCI-GRС28HN» (С русская) → «RCI-GRC28HN»."""
+    return text.translate(_HOMOGLYPHS)
+
+
 def normalize(text: str) -> str:
     """Модель → сравнимый ключ: заглавные, без пробелов/дефисов и слов-шума."""
     s = text.upper().replace(chr(92), "/").translate(_HOMOGLYPHS)
@@ -66,18 +71,26 @@ def build_text_index(offers, text_of):
     return [(normalize(text_of(offer)), offer, text_of(offer)) for offer in offers]
 
 
-def _whole_code(key: str, raw: str) -> bool:
-    """Код стоит в названии целиком, а не началом более длинного кода.
+_KIT = re.compile(r"\(\s*комплект\s*\)", re.I)
 
-    «…NEO Premium AS-10HW4SYDTG5 (комплект)» — да, «…BLACK CRYSTAL AS-10HW4SYDTG5B» — нет:
+
+def _code_fit(key: str, raw: str) -> int:
+    """Насколько точно код стоит в названии: 0 — названием и заканчивается, 1 — стоит
+    отдельным словом, 2 — просто входит в более длинный код.
+
+    «…NEO Premium AS-10HW4SYDTG5 (комплект)» — 0, «…BLACK CRYSTAL AS-10HW4SYDTG5B» — 2:
     нормализованный код входит в оба названия, но второе — другой товар (чёрный).
+    «…AUD-48UX4REH8/AUW-48U6RN8 WI-FI» для кода без WI-FI — 1: это Wi-Fi-версия.
     """
-    text = raw.upper().replace(chr(92), "/").translate(_HOMOGLYPHS)
+    bare = _KIT.sub("", raw)
+    if normalize(bare).endswith(key):
+        return 0
+    text = bare.upper().replace(chr(92), "/").translate(_HOMOGLYPHS)
     pattern = r"[\s\-_/.()]*".join(re.escape(char) for char in key)
-    return re.search(r"(?<![A-Z0-9])" + pattern + r"(?![A-Z0-9])", text) is not None
+    return 1 if re.search(r"(?<![A-Z0-9])" + pattern + r"(?![A-Z0-9])", text) else 2
 
 
-def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5):
+def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5, prefer=None):
     """Найти оффер, в названии которого встречается код нашей модели.
 
     Нужно для поставщиков с описательными названиями: у нас «ELYSIUM ELB-I07PN inv»,
@@ -94,12 +107,15 @@ def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5):
             if key == text:
                 return offer
     for key in ordered:
-        found = [(offer, raw) for text, offer, raw in text_index if key in text]
+        found = [(_code_fit(key, raw), offer) for text, offer, raw in text_index if key in text]
         if found:
             # Код входит и в чужой, более длинный код того же ряда — берём название,
-            # где он стоит целиком; иначе NEO Premium получал цену BLACK CRYSTAL.
-            whole = [offer for offer, raw in found if _whole_code(key, raw)]
-            return whole[0] if whole else found[0][0]
+            # где он стоит точнее всего; иначе NEO Premium получал цену BLACK CRYSTAL.
+            best = min(fit for fit, _ in found)
+            tied = [offer for fit, offer in found if fit == best]
+            # Один и тот же код в двух строках поставщика (Hisense HEAVY: серии «R32»
+            # и «Wi-Fi») — решает prefer, например лучшее наличие.
+            return min(tied, key=prefer) if prefer else tied[0]
     return None
 
 

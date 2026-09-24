@@ -99,7 +99,9 @@ def _offer_in(sources, name, product):
     index, _, _ = sources[name]
     if name == "oasis":
         # Названия описательные («…серии ELYSIUM Inverter ELB-I07PN») — ищем наш код в них.
-        return matching.lookup_within(index, product["model"], product["brand"])
+        # Код бывает в двух строках (та же модель в двух сериях Бриза) — берём ту, что на складе.
+        return matching.lookup_within(index, product["model"], product["brand"],
+                                      prefer=sources_oasis.breez_in_stock_first)
     if name == "techno":
         # Коды бывают и длиннее наших («RK-07SCDG/E»), и короче («ICE20») — ищем в обе стороны.
         offer = matching.lookup_either(index, product["model"], product["brand"])
@@ -154,7 +156,11 @@ def find_offer(sources, product):
             continue
         source = price_source(name, product, offer)
         price = pricing.compute_price(cost, source)
-        rank = (STOCK_RANK.get(module.stock_of(offer)[0], NO_STOCK_RANK), price)
+        # Модуль может знать об остатке больше, чем говорит подпись на витрине
+        # (Бриз: «Под заказ 7 дней», но товар лежит на складе в Москве).
+        rank_of = getattr(module, "stock_rank", None)
+        level = rank_of(offer) if rank_of else STOCK_RANK.get(module.stock_of(offer)[0], NO_STOCK_RANK)
+        rank = (level, price)
         if best is None or rank < best[0]:
             best = (rank, source, module, offer)
     if best is not None:

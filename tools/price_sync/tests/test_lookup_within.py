@@ -60,6 +60,27 @@ HISENSE_OFFERS = [
 HISENSE_INDEX = matching.build_text_index(HISENSE_OFFERS, lambda offer: offer["title"])
 
 
+def test_obychnaya_versiya_ne_beryot_cenu_wifi():
+    # Wi-Fi-версия стоит в выгрузке раньше; код обычной входит в неё целым словом
+    offers = [{"title": "Инверторная сплит-система канального типа серии HEAVY EU DC INVERTER Wi-Fi AUD-48UX4REH8/AUW-48U6RN8 WI-FI (комплект)"},
+              {"title": "Инверторная сплит-система канального типа серии HEAVY EU DC INVERTER R32 AUD-48UX4REH8/AUW-48U6RN8 (комплект)"}]
+    index = matching.build_text_index(offers, lambda offer: offer["title"])
+    found = matching.lookup_within(index, "HISENSE AUD-48UX4REH8/AUW-48U6RN8", "HISENSE")
+    assert "R32" in found["title"]
+    found = matching.lookup_within(index, "HISENSE AUD-48UX4REH8/AUW-48U6RN8 WI-FI", "HISENSE")
+    assert "WI-FI (" in found["title"]
+
+
+def test_odin_kod_v_dvuh_strokah_beryotsya_ta_chto_na_sklade():
+    # у Бриза кассета Hisense HEAVY лежит в серии «R32» (0 шт.) и в серии «Wi-Fi» (14 шт.)
+    offers = [{"title": "Инверторная сплит-система кассетного типа серии HEAVY EU DC INVERTER R32 ACT-12UR4RCC8/PE-QEA/LD/AUW-12U4RS8 (комплект)", "quantity": 0},
+              {"title": "Инверторная сплит-система кассетного типа серии HEAVY EU DC INVERTER Wi-Fi ACT-12UR4RCC8/PE-QEA/LD/AUW-12U4RS8", "quantity": 14}]
+    index = matching.build_text_index(offers, lambda offer: offer["title"])
+    found = matching.lookup_within(index, "HISENSE ACT-12UR4RCC8/PE-QEA/LD/AUW-12U4RS8", "HISENSE",
+                                   prefer=lambda offer: 0 if offer["quantity"] > 0 else 4)
+    assert "Wi-Fi" in found["title"]
+
+
 def test_kod_celikom_a_ne_nachalo_chuzhogo():
     found = matching.lookup_within(HISENSE_INDEX, "HISENSE AS-10HW4SYDTG5 on/off", "HISENSE")
     assert "NEO Premium" in found["title"]

@@ -115,10 +115,40 @@ def cost_of(offer: dict) -> float:
     return offer["price_wholesale"] or offer["price_base"]
 
 
+def _is_breez(offer: dict) -> bool:
+    return any(marker in (offer.get("supplier") or "").lower() for marker in BREEZ_MARKERS)
+
+
 def stock_of(offer: dict) -> tuple[str, str]:
-    """Крым есть — в наличии; есть на других складах — 3–5 дней; нет — под заказ."""
+    """Крым есть — в наличии; есть на других складах — 3–5 дней; нет — под заказ.
+
+    У Бриза склады вне Крыма (Москва, Ростов) — «Под заказ 7 дней»: так велел
+    владелец 24.09.2026, выкладывая эти модели.
+    """
     if offer.get("warehouse") == CRIMEA and offer["quantity"] > 0:
         return "in_stock", "В наличии"
-    if offer["quantity"] > 0:
+    if offer["quantity"] > 0 and not _is_breez(offer):
         return "days_3_5", "3–5 дней"
     return "order_7", "Под заказ 7 дней"
+
+
+def stock_rank(offer: dict) -> int:
+    """Уровень наличия для выбора поставщика (sync.find_offer), а не подпись на витрине.
+
+    Товар Бриза на складе в Москве подписан «Под заказ 7 дней», но он реально есть —
+    такой остаток по-прежнему сильнее «нет» и «под заказ» у других поставщиков.
+    """
+    if offer.get("warehouse") == CRIMEA and offer["quantity"] > 0:
+        return 0
+    return 2 if offer["quantity"] > 0 else 4
+
+
+def breez_in_stock_first(offer: dict) -> int:
+    """Выбор среди строк с одним и тем же кодом (matching.lookup_within, prefer).
+
+    У Бриза одна модель бывает в двух сериях (Hisense HEAVY: «R32» без остатка и
+    «Wi-Fi» на складе) — берём ту, что на складе. Строки других поставщиков порядок
+    не меняют: у JAC в базе так лежат MDV с Wi-Fi и без, а их наличие и цены
+    владелец велел не трогать.
+    """
+    return stock_rank(offer) if _is_breez(offer) else 0

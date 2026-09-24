@@ -151,41 +151,48 @@ def classify(parts: list[Image.Image]) -> dict[str, Image.Image]:
 
 def compose_parts(indoor: Image.Image, outdoor: Image.Image | None,
                   remote: Image.Image | None) -> Image.Image:
-    if outdoor is None:
-        return compose_without_outdoor(indoor, remote)
+    """Внутренний блок, пульт и наружный блок — все три обязательны: это общий стиль
+    витрины (владелец 24.09.2026). Нет своего снимка — в photo_sources.json ставится
+    кадр того же бренда и типа (поле _outdoor_from / _donor), без него не собираем."""
+    if outdoor is None or remote is None:
+        raise ValueError("нужны все три кадра: внутренний блок, пульт и наружный блок")
+    if indoor.width / indoor.height < 0.7:
+        return compose_column(indoor, outdoor, remote)
     canvas = background()
     top = fit(indoor, 840, 300)
     tx, ty = (SIZE - top.width) // 2, 70
     shadow(canvas, top, tx, ty, 90)
     canvas.alpha_composite(top, (tx, ty))
     floor = 930
-    if outdoor is not None:
-        out = fit(outdoor, 600, 470)
-        ox, oy = SIZE - 70 - out.width, floor - out.height
-        shadow(canvas, out, ox, oy)
-        canvas.alpha_composite(out, (ox, oy))
-    if remote is not None:
-        rem = fit(remote, 150, 400)
-        rx, ry = 110, floor - rem.height
-        shadow(canvas, rem, rx, ry)
-        canvas.alpha_composite(rem, (rx, ry))
+    out = fit(outdoor, 600, 470)
+    ox, oy = SIZE - 70 - out.width, floor - out.height
+    shadow(canvas, out, ox, oy)
+    canvas.alpha_composite(out, (ox, oy))
+    rem = fit(remote, 150, 400)
+    rx, ry = 110, floor - rem.height
+    shadow(canvas, rem, rx, ry)
+    canvas.alpha_composite(rem, (rx, ry))
     return canvas
 
 
-def compose_without_outdoor(indoor: Image.Image, remote: Image.Image | None) -> Image.Image:
-    """У части серий Бриз не даёт снимка наружного блока. Чужой блок не подставляем
-    (на карточке должна быть именно эта модель), а пустой правый угол смотрится как
-    ошибка — поэтому внутренний блок крупнее и по центру, пульт под ним."""
+def compose_column(indoor: Image.Image, outdoor: Image.Image, remote: Image.Image) -> Image.Image:
+    """Колонный блок высокий и узкий: сверху он превратился бы в спичку, поэтому
+    колонна стоит слева во весь рост, наружный блок справа, пульт между ними."""
     canvas = background()
-    top = fit(indoor, 900, 340)
-    tx, ty = (SIZE - top.width) // 2, 150
-    shadow(canvas, top, tx, ty, 90)
-    canvas.alpha_composite(top, (tx, ty))
-    if remote is not None:
-        rem = fit(remote, 150, 400)
-        rx, ry = (SIZE - rem.width) // 2, 930 - rem.height
-        shadow(canvas, rem, rx, ry)
-        canvas.alpha_composite(rem, (rx, ry))
+    floor = 930
+    column = fit(indoor, 230, 860)
+    cx, cy = 110, floor - column.height
+    shadow(canvas, column, cx, cy)
+    canvas.alpha_composite(column, (cx, cy))
+    out = fit(outdoor, 470, 440)
+    ox, oy = SIZE - 70 - out.width, floor - out.height
+    shadow(canvas, out, ox, oy)
+    canvas.alpha_composite(out, (ox, oy))
+    # пульт — в промежуток между колонной и наружным блоком, не наезжая на них
+    rem = fit(remote, min(110, max(40, ox - cx - column.width - 40)), 320)
+    rx, ry = (cx + column.width + ox - rem.width) // 2, floor - rem.height
+    shadow(canvas, rem, rx, ry)
+    canvas.alpha_composite(rem, (rx, ry))
     return canvas
 
 
