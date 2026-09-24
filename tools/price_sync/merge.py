@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+from tools.price_sync.new_cards import load_series_map, rename_registry_series
 from tools.price_sync.sync import DEFAULT_OUT, parse_products_js, render_products_js
 
 #: Поля карточки каталога — ровно те, что читают витрина и валидатор заявок.
@@ -99,6 +100,7 @@ def missing_photos(catalog: list[dict], base: list[dict], assets: Path) -> list[
 
 def build(out_dir: Path, assets: Path):
     catalog = parse_products_js((out_dir / "products.js").read_text(encoding="utf-8"))
+    renamed = rename_registry_series(catalog, load_series_map())
     new_cards = load_new_cards(out_dir / "new_cards_draft.json")
     # Фото «есть», если оно уже висит на боевой карточке или лежит в assets репозитория
     # (оттуда его заливают на сайт вместе с каталогом).
@@ -117,7 +119,7 @@ def build(out_dir: Path, assets: Path):
         json.dumps(merged, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return {"problems": [], "merged": merged, "skipped": skipped, "written": True,
             "target": target, "photos": missing_photos(merged, catalog, assets),
-            "was": len(catalog), "added": len(merged) - len(catalog)}
+            "was": len(catalog), "added": len(merged) - len(catalog), "renamed": renamed}
 
 
 def main(argv=None) -> int:
@@ -138,6 +140,7 @@ def main(argv=None) -> int:
         "Каталог собран: %d позиций (было %d, добавлено %d)" % (
             len(result["merged"]), result["was"], result["added"]),
         "Отложено: %d" % len(result["skipped"]),
+        "Серия переименована под витрину у карточек: %d" % result["renamed"],
         "Нет файлов фотографий: %d" % len(result["photos"]),
         "Файлы: " + str(result["target"]),
     ]

@@ -93,10 +93,13 @@ def load_content(path: Path | None = None) -> tuple[dict, dict]:
     return by_series, by_model
 
 
-def enrich(card: dict, by_series: dict, by_model: dict) -> dict:
-    """Дописать в карточку описание и преимущества. Нет данных — поля остаются пустыми."""
+def enrich(card: dict, by_series: dict, by_model: dict, series_key: str | None = None) -> dict:
+    """Дописать в карточку описание и преимущества. Нет данных — поля остаются пустыми.
+
+    series_key — ключ наполнения, когда название серии на витрине от него отличается.
+    """
     filled = dict(card)
-    content = dict(by_series.get(card["brand"] + "|" + card["series"], {}))
+    content = dict(by_series.get(series_key or card["brand"] + "|" + card["series"], {}))
     content.update(by_model.get(card["model"], {}))
     if not content:
         return filled
@@ -244,7 +247,7 @@ def load_series_map(path: Path = SERIES_FILE) -> list[dict]:
 
 
 def _title(text: str) -> str:
-    """Название серии для сравнения: у трио двойные пробелы и «On\Off» через обратный слэш."""
+    """Название серии для сравнения: у трио двойные пробелы и «On\\Off» через обратный слэш."""
     return re.sub(r"\s+", " ", (text or "").replace(chr(92), "/")).strip().lower()
 
 
@@ -261,15 +264,34 @@ def trio_code(model: str) -> str:
     return text.split("/")[0].strip()
 
 
+_REFRIGERANT = re.compile(r"\(R\d+A?\)", re.I)
+
+
 def breez_code(title: str, series: str) -> str:
     """Код модели из названия Бриза: всё, что после названия серии, без «(комплект)».
 
     Регистр у Бриза гуляет («INVERTER» в названии, «Inverter» в серии) — ищем без него.
+    В названии товара серия бывает короче («PROCOOL B07TS» при серии «PROCOOL DUAL
+    Inverter») — тогда отбрасываем слова серии с конца, пока не найдём. Пометка
+    хладагента («(R32)») — не код. Слова перед кодом, который сам начинается с букв,
+    тоже не код («GLORIA UPGRADE RC-GL22HN» → «RC-GL22HN»); а «CO-D 36HNBI» — код
+    целиком: за «CO-D» идёт хвост, начинающийся с цифр.
     """
     short = series.split("серии", 1)[-1].strip() if "серии" in series else series.strip()
-    position = title.lower().find(short.lower())
-    tail = title[position + len(short):] if position >= 0 else title
-    return re.sub(r"\(комплект\)", "", tail, flags=re.I).strip()
+    words, tail = short.split(), title
+    while words:
+        needle = " ".join(words).lower()
+        position = title.lower().find(needle)
+        if position >= 0:
+            tail = title[position + len(needle):]
+            break
+        words.pop()
+    tokens = [token for token in re.sub(r"\(комплект\)", "", tail, flags=re.I).split()
+              if not _REFRIGERANT.fullmatch(token)]
+    first = next((i for i, token in enumerate(tokens) if re.search(r"\d", token)), None)
+    if first and re.match(r"[A-Za-z]", tokens[first]):
+        tokens = tokens[first:]
+    return re.sub(r"\s*/\s*", "/", " ".join(tokens))
 
 
 def size_of(code: str, kind: str) -> str:
@@ -327,16 +349,50 @@ def catalog_codes(catalog: list[dict]) -> list[str]:
     return [_bare(product["model"], product.get("brand", "")) for product in catalog]
 
 
-def already_listed(codes: list[str], code: str, min_length: int = 5) -> bool:
+def already_listed(codes: list[str], code: str, min_length: int = 5, min_tail: int = 3) -> bool:
     """Модель уже на витрине — совпадением или вхождением кода в любую сторону.
 
     На сайте «DAICHI SIB25» (короткий код Техносистемса), у трио «SIB25AVQS1R» — один товар.
+    Но хвост в одну-две буквы — это уже другой товар того же ряда: у Hisense
+    «AS-10HW4SYDTG5B» (чёрный BLACK CRYSTAL) и «AS-10HW4SYDTG5» (белый NEO Premium).
     """
     mine = matching.normalize(code)
     if len(mine) < min_length:
         return False
-    return any(len(other) >= min_length and (other == mine or other in mine or mine in other)
-               for other in codes)
+    return any(len(other) >= min_length and (
+        other == mine or ((other in mine or mine in other) and abs(len(other) - len(mine)) >= min_tail))
+        for other in codes)
+
+
+#: Витрина сама дописывает к названию серии «Inverter» или «On/Off» по группе
+#: (index.html, шапка серии), поэтому в названии эти слова лишние — иначе на сайте
+#: «AKOYA inverter Inverter». У полупрома витрина ничего не дописывает.
+_TYPE_WORD = re.compile(r"(?i)\s*\b(?:inverter|on/off)\b\s*")
+
+
+def display_series(entry: dict) -> str:
+    """Название серии для витрины: «KADZOKU on/off 2025» → «KADZOKU 2025»."""
+    name = entry["series"]
+    if entry.get("group") not in ("inv", "onoff"):
+        return name
+    name = re.sub(r"\(\s+", "(", re.sub(r"\s+\)", ")", _TYPE_WORD.sub(" ", name)))
+    return re.sub(r"\s+", " ", name).strip() or entry["series"]
+
+
+def rename_registry_series(catalog: list[dict], registry: list[dict]) -> int:
+    """Уже выложенные карточки серий реестра — под витринное название серии.
+
+    Иначе новинка той же серии («AKOYA») встала бы отдельным блоком рядом со старыми
+    карточками («AKOYA inverter»). Повторный вызов ничего не меняет.
+    """
+    names = {(entry["brand"], entry["series"]): display_series(entry) for entry in registry}
+    changed = 0
+    for product in catalog:
+        new = names.get((product.get("brand"), product.get("series")))
+        if new and new != product["series"]:
+            product["series"] = new
+            changed += 1
+    return changed
 
 
 def supplier_card(entry: dict, code: str, catalog: list[dict], identifier: int) -> dict:
@@ -348,7 +404,7 @@ def supplier_card(entry: dict, code: str, catalog: list[dict], identifier: int) 
         "sku": slug(brand) + "-" + slug(code),
         "brandCode": brand_code_for(brand, catalog),
         "brand": brand,
-        "series": entry["series"],
+        "series": display_series(entry),
         "model": " ".join(part for part in (brand, code, entry.get("suffix", "")) if part),
         "group": entry["group"],
         "type": entry.get("type", "split"),
@@ -382,7 +438,8 @@ def build_supplier_cards(sources: dict, catalog: list[dict], registry: list[dict
     for entry, code, _row in supplier_offers(sources["trio"][2], sources["oasis"][2], registry):
         if not code or already_listed(codes, code):
             continue
-        card = enrich(supplier_card(entry, code, catalog, identifier), by_series, by_model)
+        card = enrich(supplier_card(entry, code, catalog, identifier), by_series, by_model,
+                      entry["brand"] + "|" + entry["series"])
         source, module, offer = sync.find_offer(sources, card)
         if offer is not None:
             card["price"] = pricing.compute_price(module.cost_of(offer), source)

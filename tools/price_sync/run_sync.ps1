@@ -56,6 +56,17 @@ if (-not $SkipOasis) {
     } catch {
         Write-Log ("Выгрузка SplitHome не удалась, беру прошлую: " + $_.Exception.Message)
     }
+    # Опт Бриза (FUNAI, Royal Clima, Hisense, Ultima, XIGMA…) есть только в его API —
+    # без этого шага цены этих брендов застывали на дате последнего ручного запроса
+    # (так и было: с 11.09 по 24.09 опт Бриза не обновлялся).
+    Write-Log "Запрашиваю опт-цены Бриза..."
+    try {
+        & $engine -NoProfile -ExecutionPolicy Bypass -File (Join-Path $syncRoot "export_breez.ps1") 2>&1 |
+            Tee-Object -Variable breezOut | Out-Null
+        Write-Log ($breezOut | Select-Object -Last 1 | Out-String).Trim()
+    } catch {
+        Write-Log ("Опт-цены Бриза не обновились, беру прошлые: " + $_.Exception.Message)
+    }
 }
 
 function Invoke-Step([string]$title, [string]$module, [int]$attempts = 2) {

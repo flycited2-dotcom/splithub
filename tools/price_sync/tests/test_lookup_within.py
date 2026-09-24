@@ -50,3 +50,18 @@ def test_lg_tochka_v_artikule_ne_meshaet():
 def test_lg_korotkiy_kod_posle_tochki():
     found = matching.lookup_within(LG_INDEX, "LG B07TS.NSJ", "LG")
     assert "PROCOOL" in found["title"]
+
+
+HISENSE_OFFERS = [
+    # чёрный BLACK CRYSTAL стоит в выгрузке раньше и его код длиннее на одну букву
+    {"title": "Бытовая сплит-система серии BLACK CRYSTAL Classic A AS-10HW4SYDTG5B (комплект)"},
+    {"title": "Классическая сплит-система серии NEO Premium Classic A Wi-Fi AS-10HW4SYDTG5 (комплект)"},
+]
+HISENSE_INDEX = matching.build_text_index(HISENSE_OFFERS, lambda offer: offer["title"])
+
+
+def test_kod_celikom_a_ne_nachalo_chuzhogo():
+    found = matching.lookup_within(HISENSE_INDEX, "HISENSE AS-10HW4SYDTG5 on/off", "HISENSE")
+    assert "NEO Premium" in found["title"]
+    found = matching.lookup_within(HISENSE_INDEX, "HISENSE AS-10HW4SYDTG5B on/off", "HISENSE")
+    assert "BLACK CRYSTAL" in found["title"]

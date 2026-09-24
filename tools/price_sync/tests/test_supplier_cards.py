@@ -45,6 +45,25 @@ def test_kod_modeli_iz_nazvaniya_briza():
     ) == "CO-F 36HNBI/CO-E 36HNBI"
 
 
+def test_kod_kogda_nazvanie_serii_v_tovare_drugoe():
+    # в товаре серия короче, чем в справочнике серий
+    assert new_cards.breez_code(
+        "Инверторная сплит-система серии PROCOOL B07TS (комплект)",
+        "Инверторные сплит-системы серии PROCOOL DUAL Inverter") == "B07TS"
+    # лишнее слово перед кодом и пометка хладагента — не код
+    assert new_cards.breez_code(
+        "Классическая сплит-система серии GLORIA UPGRADE RC-GL22HN (комплект)",
+        "Классические сплит-системы серии GLORIA") == "RC-GL22HN"
+    assert new_cards.breez_code(
+        "Инверторная сплит-система серии X-COMFORT (R32) RAK-18REF/RAC-18WEF (комплект)",
+        "Инверторные сплит-системы серии X-Comfort") == "RAK-18REF/RAC-18WEF"
+    # а «CO-D» — часть кода канального блока, её не отрезаем
+    assert new_cards.breez_code(
+        "Инверторная сплит-система канального типа серии COMPETENZA DC EU Inverter 2023 CO-D 36HNBI /CO-E 36HNBI (комплект)",
+        "Инверторные сплит-системы канального типа серии COMPETENZA DC EU Inverter 2023"
+    ) == "CO-D 36HNBI/CO-E 36HNBI"
+
+
 def test_tiporazmer_po_kodu():
     assert new_cards.size_of("MSES1-07HRN8G1", "btu") == "07"
     assert new_cards.size_of("FU-07HSS010/N6", "btu") == "07"
@@ -82,6 +101,40 @@ def test_uzhe_est_na_sayte_korotkim_kodom():
     assert new_cards.already_listed(index, "RAC-I-DA25HP.D01")
     assert not new_cards.already_listed(index, "SIB50AVQS1R")
     assert not new_cards.already_listed(index, "RAC-I-DA35HP.D01")
+
+
+def test_hvost_v_odnu_bukvu_eto_drugoy_tovar():
+    # «B» в конце — чёрный BLACK CRYSTAL, без неё — белый NEO Premium: разные товары
+    index = new_cards.catalog_codes([{"brand": "HISENSE", "model": "HISENSE AS-10HW4SYDTG5B on/off"}])
+    assert not new_cards.already_listed(index, "AS-10HW4SYDTG5")
+    assert new_cards.already_listed(index, "AS-10HW4SYDTG5B")
+
+
+def test_nazvanie_serii_bez_slov_kotorye_dopishet_vitrina():
+    # витрина сама пишет «Inverter»/«On/Off» после названия серии инвертора и on/off
+    assert new_cards.display_series(KADZOKU) == "KADZOKU 2025"
+    assert new_cards.display_series({"series": "KADZOKU on/off 2025", "group": "onoff"}) == "KADZOKU 2025"
+    assert new_cards.display_series({"series": "SIBERIA (-25°C inverter)", "group": "inv"}) == "SIBERIA (-25°C)"
+    assert new_cards.display_series({"series": "MEGACOOL", "group": "inv"}) == "MEGACOOL"
+    # у полупрома витрина ничего не дописывает — название как есть
+    assert new_cards.display_series({"series": "COMPETENZA on/off", "group": "pac_onoff"}) == "COMPETENZA on/off"
+
+
+def test_vylozhennye_kartochki_pereimenovyvayutsya_odin_raz():
+    catalog = [{"brand": "FUNAI", "series": "KADZOKU inverter 2025", "model": "FUNAI RAC-I-KD25HP.D03 inv"},
+               {"brand": "DENKO", "series": "TCL on/off", "model": "DENKO DU-07"}]
+    assert new_cards.rename_registry_series(catalog, [KADZOKU]) == 1
+    assert catalog[0]["series"] == "KADZOKU 2025"
+    assert catalog[1]["series"] == "TCL on/off"          # не из реестра — не трогаем
+    assert new_cards.rename_registry_series(catalog, [KADZOKU]) == 0
+
+
+def test_novinka_beryot_napolnenie_po_klyuchu_reestra():
+    content = {"FUNAI|KADZOKU inverter 2025": {"cardBenef": "Инвертор", "descTemplate": "Инвертор {btu} BTU"}}
+    card = new_cards.supplier_card(KADZOKU, "RAC-I-KD25HP.D03", [], 1)
+    assert card["series"] == "KADZOKU 2025"
+    filled = new_cards.enrich(card, content, {}, "FUNAI|KADZOKU inverter 2025")
+    assert filled["cardBenef"] == "Инвертор" and filled["descShort"] == "Инвертор 09 BTU"
 
 
 def test_kartochka_iz_reestra():

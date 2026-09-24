@@ -62,8 +62,19 @@ def lookup(index, model: str, brand: str = ""):
 
 
 def build_text_index(offers, text_of):
-    """Список (нормализованный текст, оффер) для поиска вхождением."""
-    return [(normalize(text_of(offer)), offer) for offer in offers]
+    """Список (нормализованный текст, оффер, исходный текст) для поиска вхождением."""
+    return [(normalize(text_of(offer)), offer, text_of(offer)) for offer in offers]
+
+
+def _whole_code(key: str, raw: str) -> bool:
+    """Код стоит в названии целиком, а не началом более длинного кода.
+
+    «…NEO Premium AS-10HW4SYDTG5 (комплект)» — да, «…BLACK CRYSTAL AS-10HW4SYDTG5B» — нет:
+    нормализованный код входит в оба названия, но второе — другой товар (чёрный).
+    """
+    text = raw.upper().replace(chr(92), "/").translate(_HOMOGLYPHS)
+    pattern = r"[\s\-_/.()]*".join(re.escape(char) for char in key)
+    return re.search(r"(?<![A-Z0-9])" + pattern + r"(?![A-Z0-9])", text) is not None
 
 
 def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5):
@@ -79,13 +90,16 @@ def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5):
     # блок), и совпадает с «MULT18» (внутренний). Без этого прохода внутреннему
     # блоку доставалась цена наружного — втрое дороже.
     for key in ordered:
-        for text, offer in text_index:
+        for text, offer, _ in text_index:
             if key == text:
                 return offer
     for key in ordered:
-        for text, offer in text_index:
-            if key in text:
-                return offer
+        found = [(offer, raw) for text, offer, raw in text_index if key in text]
+        if found:
+            # Код входит и в чужой, более длинный код того же ряда — берём название,
+            # где он стоит целиком; иначе NEO Premium получал цену BLACK CRYSTAL.
+            whole = [offer for offer, raw in found if _whole_code(key, raw)]
+            return whole[0] if whole else found[0][0]
     return None
 
 
@@ -100,7 +114,7 @@ def lookup_contained_in(text_index, model: str, brand: str = "", min_length: int
     if prefix and mine.startswith(prefix):
         mine = mine[len(prefix):]
     best = None
-    for text, offer in text_index:
+    for text, offer, _ in text_index:
         if len(text) >= min_length and text in mine:
             if best is None or len(text) > len(best[0]):
                 best = (text, offer)

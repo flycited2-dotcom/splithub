@@ -17,10 +17,16 @@ $target = Join-Path $outDir "breez_base.json"
 $remote = 'H=$(sed -n "s/^BREEZ_AUTH_HEADER=//p" /opt/oasis/.env); U=$(sed -n "s/^BREEZ_BASE_URL=//p" /opt/oasis/.env); curl -sS --max-time 120 -H "Authorization: $H" -H "Accept: application/json" "${U%/}/leftoversnew/"'
 
 Write-Output "Запрашиваю опт-цены Бриза через sprintbox-itp..."
-ssh sprintbox-itp $remote 2>$null | Set-Content -Path $target -Encoding UTF8
+# Пишем во временный файл: ответ с ошибкой не должен затереть вчерашние цены —
+# иначе у всех товаров Бриза пропадёт опт и сверка упадёт на разборе JSON.
+$part = "$target.part"
+ssh sprintbox-itp $remote 2>$null | Set-Content -Path $part -Encoding UTF8
 
-if (-not (Test-Path $target) -or (Get-Item $target).Length -lt 100) {
-    throw "Ответ Бриза пустой. Проверь BREEZ_AUTH_HEADER в /opt/oasis/.env на сервере."
+$head = if (Test-Path $part) { "$(Get-Content -Path $part -TotalCount 1)".TrimStart([char]0xFEFF, ' ') } else { "" }
+if (-not (Test-Path $part) -or (Get-Item $part).Length -lt 100000 -or -not $head.StartsWith("{")) {
+    Remove-Item -Path $part -ErrorAction SilentlyContinue
+    throw "Ответ Бриза пустой или не JSON, прошлые цены оставлены. Проверь BREEZ_AUTH_HEADER в /opt/oasis/.env на сервере."
 }
+Move-Item -Path $part -Destination $target -Force
 
 Write-Output ("Готово: " + [math]::Round((Get-Item $target).Length / 1KB) + " КБ -> $target")
