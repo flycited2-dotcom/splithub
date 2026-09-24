@@ -18,7 +18,7 @@ import re
 import sys
 from pathlib import Path
 
-from tools.price_sync import matching, pricing, sources_techno
+from tools.price_sync import matching, pricing, sources_techno, sync
 from tools.price_sync.sync import DEFAULT_OUT, load_catalog
 
 #: Завод-изготовитель указан в прайсе в скобках: «TCL on/off», «ASTRID (Midea)».
@@ -222,6 +222,177 @@ def build(offers: list[dict], catalog: list[dict]) -> list[dict]:
     return cards
 
 
+# ── Новинки из прайсов трио и Бриза по реестру серий ───────────────────────────
+
+SERIES_FILE = Path(__file__).resolve().parent / "series_map.json"
+
+#: Склад Бриза, который для СплитХаба означает «в наличии».
+CRIMEA = "Симферополь"
+
+#: Типоразмер в киловаттах×10 (DAICHI DA20, FUNAI KD55) → BTU витрины.
+KW_TO_BTU = {"20": "07", "22": "07", "25": "09", "26": "09", "28": "09", "30": "09",
+             "35": "12", "40": "12", "45": "18", "50": "18", "53": "18", "55": "18",
+             "60": "24", "65": "24", "70": "24", "75": "24"}
+_BTU_CODE = re.compile(r"(?<![\d.])(07|09|12|18|24|28|30|36|48|60)(?!\d)")
+_KW_CODE = re.compile(r"(?<=[A-Z])(\d{2})(?=[A-Z])")
+
+
+def load_series_map(path: Path = SERIES_FILE) -> list[dict]:
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8")).get("series", [])
+
+
+def _title(text: str) -> str:
+    """Название серии для сравнения: у трио двойные пробелы и «On\Off» через обратный слэш."""
+    return re.sub(r"\s+", " ", (text or "").replace(chr(92), "/")).strip().lower()
+
+
+def trio_code(model: str) -> str:
+    """Код внутреннего блока из строки трио.
+
+    «MSES1S-07FRN8G1/MOES1-07FRN8G1» → «MSES1S-07FRN8G1». У Roland «/N6» — часть кода,
+    а блоки разделены хвостами «-IN»/«-OUT»: «FU-07HSS010/N6-IN FU-…» → «FU-07HSS010/N6».
+    """
+    text = re.sub(r"\s*/\s*", "/", model.strip())
+    indoor = re.match(r"(.+?)-IN\b", text)
+    if indoor:
+        return indoor.group(1)
+    return text.split("/")[0].strip()
+
+
+def breez_code(title: str, series: str) -> str:
+    """Код модели из названия Бриза: всё, что после названия серии, без «(комплект)».
+
+    Регистр у Бриза гуляет («INVERTER» в названии, «Inverter» в серии) — ищем без него.
+    """
+    short = series.split("серии", 1)[-1].strip() if "серии" in series else series.strip()
+    position = title.lower().find(short.lower())
+    tail = title[position + len(short):] if position >= 0 else title
+    return re.sub(r"\(комплект\)", "", tail, flags=re.I).strip()
+
+
+def size_of(code: str, kind: str) -> str:
+    """Типоразмер по коду: BTU (MSES1-07) или киловатты×10 (DA20, ICE60 = 6 кВт)."""
+    upper = code.upper()
+    if kind == "kw":
+        found = _KW_CODE.search(upper)
+        return KW_TO_BTU.get(found.group(1), "") if found else ""
+    found = _BTU_CODE.search(upper)
+    return found.group(1) if found else ""
+
+
+def supplier_offers(trio_rows: list[dict], oasis_rows: list[dict], registry: list[dict]):
+    """(серия реестра, код модели, строка прайса) — всё, что есть в наличии.
+
+    Трио — только «есть». Бриз — только остаток на складе в Симферополе.
+    """
+    for entry in registry:
+        match = _title(entry["match"])
+        if entry["supplier"] == "trio":
+            for row in trio_rows:
+                if row.get("availability") != "есть":
+                    continue
+                if entry.get("section") and row.get("section") != entry["section"]:
+                    continue
+                if not _title(row.get("series")).startswith(match):
+                    continue
+                if entry.get("code") == "pair":
+                    code = re.sub(r"\s*/\s*", "/", row["model"].strip())
+                else:
+                    code = trio_code(row["model"])
+                yield entry, code, row
+        elif entry["supplier"] == "breez":
+            for row in oasis_rows:
+                if (row.get("supplier") or "").lower() not in ("breeze", "breez", "бриз"):
+                    continue
+                if row.get("warehouse") != CRIMEA or row.get("quantity", 0) <= 0:
+                    continue
+                wanted = entry.get("brand_at_supplier")
+                if wanted and (row.get("brand") or "").lower() != wanted.lower():
+                    continue
+                if _title(row.get("series")) != match:
+                    continue
+                yield entry, breez_code(row["title"], row["series"]), row
+
+
+def _bare(model: str, brand: str) -> str:
+    code = matching.normalize(model)
+    prefix = matching.normalize(brand)
+    return code[len(prefix):] if prefix and code.startswith(prefix) else code
+
+
+def catalog_codes(catalog: list[dict]) -> list[str]:
+    """Коды моделей каталога без бренда — для поиска дублей."""
+    return [_bare(product["model"], product.get("brand", "")) for product in catalog]
+
+
+def already_listed(codes: list[str], code: str, min_length: int = 5) -> bool:
+    """Модель уже на витрине — совпадением или вхождением кода в любую сторону.
+
+    На сайте «DAICHI SIB25» (короткий код Техносистемса), у трио «SIB25AVQS1R» — один товар.
+    """
+    mine = matching.normalize(code)
+    if len(mine) < min_length:
+        return False
+    return any(len(other) >= min_length and (other == mine or other in mine or mine in other)
+               for other in codes)
+
+
+def supplier_card(entry: dict, code: str, catalog: list[dict], identifier: int) -> dict:
+    """Заготовка карточки по серии реестра. Цена и наличие — потом, через find_offer."""
+    brand = entry["brand"]
+    btu = size_of(code, entry.get("size", "btu"))
+    return {
+        "id": str(identifier),
+        "sku": slug(brand) + "-" + slug(code),
+        "brandCode": brand_code_for(brand, catalog),
+        "brand": brand,
+        "series": entry["series"],
+        "model": " ".join(part for part in (brand, code, entry.get("suffix", "")) if part),
+        "group": entry["group"],
+        "type": entry.get("type", "split"),
+        "factory": entry.get("factory", ""),
+        "color": entry.get("color", "white"),
+        "btu": btu,
+        "area": AREA_BY_BTU.get(btu, 0),
+        "price": 0,
+        "stock": "order_7",
+        "stockLabel": "Под заказ от 7 дней",
+        "descShort": "",
+        "cardBenef": "",
+        "benefits": [],
+        "compressor": "",
+        "freon": "",
+        "photo": entry["photo"],
+    }
+
+
+def build_supplier_cards(sources: dict, catalog: list[dict], registry: list[dict],
+                         start_id: int) -> list[dict]:
+    """Карточки для моделей из реестра серий, которых нет на витрине.
+
+    Цена и наличие считаются тем же find_offer, что и у всего каталога: сначала
+    реальный остаток, потом самая низкая цена среди поставщиков.
+    """
+    by_series, by_model = load_content()
+    codes = catalog_codes(catalog)
+    identifier = start_id
+    cards = []
+    for entry, code, _row in supplier_offers(sources["trio"][2], sources["oasis"][2], registry):
+        if not code or already_listed(codes, code):
+            continue
+        card = enrich(supplier_card(entry, code, catalog, identifier), by_series, by_model)
+        source, module, offer = sync.find_offer(sources, card)
+        if offer is not None:
+            card["price"] = pricing.compute_price(module.cost_of(offer), source)
+            card["stock"], card["stockLabel"] = module.stock_of(offer)
+        codes.append(_bare(card["model"], card["brand"]))
+        cards.append(card)
+        identifier += 1
+    return cards
+
+
 def write_review_csv(path: Path, cards: list[dict]) -> None:
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.writer(handle, delimiter=";")
@@ -242,6 +413,9 @@ def main(argv=None) -> int:
 
     catalog = load_catalog(args.catalog)
     cards = build(sources_techno.load(), catalog)
+    # Новинки трио и Бриза по реестру серий (series_map.json).
+    cards += build_supplier_cards(sync.build_sources(), catalog + cards, load_series_map(),
+                                  next_id(catalog + cards))
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "new_cards_draft.json").write_text(

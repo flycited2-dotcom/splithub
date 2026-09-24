@@ -74,3 +74,18 @@ def test_novoe_foto_popadaet_v_spisok_na_syomku(tmp_path):
     base = [card(id="100", sku="old-1", photo="eurohoff-callisto.webp")]
     merged = base + [card(id="200", sku="new-1", photo="denko-tcl-on-off.webp")]
     assert merge.missing_photos(merged, base, tmp_path) == ["denko-tcl-on-off.webp"]
+
+
+def test_bez_napolneniya_otkladyvaetsya():
+    # Карточка без описания на сайт не идёт: пустая карточка хуже, чем никакой.
+    merged, skipped = merge.merge(EXISTING, [card(id="200", sku="new-1", cardBenef="")])
+    assert len(merged) == 1 and skipped[0]["reason"] == "нет наполнения"
+
+
+def test_bez_foto_otkladyvaetsya_kogda_izvesten_spisok_foto():
+    merged, skipped = merge.merge(EXISTING, [card(id="200", sku="new-1", photo="novoe.webp")],
+                                  photos={"est.webp"})
+    assert len(merged) == 1 and skipped[0]["reason"] == "нет фото"
+    merged, skipped = merge.merge(EXISTING, [card(id="200", sku="new-1", photo="est.webp")],
+                                  photos={"est.webp"})
+    assert len(merged) == 2 and not skipped

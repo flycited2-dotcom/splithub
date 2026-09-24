@@ -27,11 +27,13 @@ def load_new_cards(path: Path) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
 
 
-def merge(catalog: list[dict], new_cards: list[dict]) -> tuple[list[dict], list[dict]]:
+def merge(catalog: list[dict], new_cards: list[dict],
+          photos: set[str] | None = None) -> tuple[list[dict], list[dict]]:
     """Добавить новые карточки к каталогу. Возвращает (итог, отложенные).
 
-    Откладываем позиции без цены («уточняйте» в прайсе) и всё, что столкнулось по
-    id или sku с уже существующим товаром.
+    Откладываем позиции без цены («уточняйте» в прайсе), без наполнения, без фото
+    (если передан список имеющихся фото) и всё, что столкнулось по id или sku с уже
+    существующим товаром.
     """
     taken_ids = {product["id"] for product in catalog}
     taken_skus = {product["sku"] for product in catalog}
@@ -39,6 +41,12 @@ def merge(catalog: list[dict], new_cards: list[dict]) -> tuple[list[dict], list[
     for card in new_cards:
         if not card.get("price"):
             skipped.append({"card": card, "reason": "нет цены в прайсе"})
+            continue
+        if not card.get("cardBenef"):
+            skipped.append({"card": card, "reason": "нет наполнения"})
+            continue
+        if photos is not None and card.get("photo") not in photos:
+            skipped.append({"card": card, "reason": "нет фото"})
             continue
         if card["id"] in taken_ids:
             skipped.append({"card": card, "reason": "id уже занят"})
@@ -92,7 +100,12 @@ def missing_photos(catalog: list[dict], base: list[dict], assets: Path) -> list[
 def build(out_dir: Path, assets: Path):
     catalog = parse_products_js((out_dir / "products.js").read_text(encoding="utf-8"))
     new_cards = load_new_cards(out_dir / "new_cards_draft.json")
-    merged, skipped = merge(catalog, new_cards)
+    # Фото «есть», если оно уже висит на боевой карточке или лежит в assets репозитория
+    # (оттуда его заливают на сайт вместе с каталогом).
+    photos = {product.get("photo") for product in catalog}
+    if assets.exists():
+        photos |= {path.name for path in assets.iterdir()}
+    merged, skipped = merge(catalog, new_cards, photos)
     problems = validate(merged)
     if problems:
         return {"problems": problems, "merged": merged, "skipped": skipped, "written": False}

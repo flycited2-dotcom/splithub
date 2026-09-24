@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Прайс поставщика трио.рус (Bitrix, server-rendered, без авторизации).
 
-Страницы отдаются обычным GET. В таблице `table.main-container-table`: модель +
-наличие (`span.product_available|product_no|product_zakaz|product_wait`) и цена
-(`div.price`; при акции — `div.old_price` + `div.price_promotion`).
+Страницы отдаются обычным GET. Перед каждой таблицей — `div.title-section` (серия) и
+`div.image-section` (фото серии). В таблице `table.main-container-table`: модель +
+наличие (`span.product_available|product_no|product_zakaz|product_expected|product_msk`)
+и цена (`div.price`; при акции — `div.old_price` + `div.price_promotion`).
 """
 from __future__ import annotations
 
@@ -66,14 +67,20 @@ def _money(text: str):
 
 
 def _series_of(table):
-    node = table
-    for _ in range(6):
-        node = node.find_previous(["h1", "h2", "h3", "h4"])
-        if node is None:
-            return ""
-        if node.get_text(strip=True):
-            return node.get_text(" ", strip=True)
-    return ""
+    """Название серии — блок `div.title-section` над таблицей («Сплит-системы Midea
+    PRIMARY On/off»). Заголовков h1–h4 у трио нет, раньше серия была всегда пустой."""
+    title = table.find_previous("div", class_="title-section")
+    return title.get_text(" ", strip=True) if title is not None else ""
+
+
+def _image_of(table):
+    """Фото серии — `div.image-section img` над таблицей, полным адресом."""
+    block = table.find_previous("div", class_="image-section")
+    image = block.find("img") if block is not None else None
+    src = image.get("src") if image is not None else ""
+    if src and src.startswith("/"):
+        src = BASE_URL + src
+    return src or ""
 
 
 def parse(html: str, page: str, section) -> list[dict]:
@@ -81,6 +88,7 @@ def parse(html: str, page: str, section) -> list[dict]:
     rows = []
     for table in soup.select("table.main-container-table"):
         series = _series_of(table)
+        image = _image_of(table)
         for tr in table.select("tr.line_tr, tr.line_tr_price"):
             cells = tr.find_all("td", recursive=False)
             if len(cells) < 2:
@@ -103,7 +111,7 @@ def parse(html: str, page: str, section) -> list[dict]:
                 continue
             rows.append({
                 "source": "trio", "page": page, "section": section, "series": series,
-                "model": model, "availability": availability,
+                "image": image, "model": model, "availability": availability,
                 "dealer": dealer, "promo": promo_price,
             })
     return rows

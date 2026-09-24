@@ -96,3 +96,23 @@ def test_bez_ostatka_u_vseh_pobezhdaet_deshevle():
     source, _, _ = sync.find_offer(
         build(31650, 30000, techno_avail="под заказ", trio_avail="нет"), PRODUCT)
     assert source == "trio"
+
+
+def techno_row_series(model, price, series):
+    row = techno_row(model, price)
+    row["series"] = series
+    return row
+
+
+def test_korotkiy_kod_invertora_ne_cepliaetsya_k_onoff():
+    # У Техносистемса «ICE20» — инвертор ICE20AVQS1R-2 (серия «ICE (-15°C inverter)»).
+    # Новая on/off DAICHI ICE20AVQ1-1 содержит тот же «ICE20», но это другой товар.
+    rows = [techno_row_series("ICE20", 25900, "ICE (-15°C inverter)")]
+    sources = {
+        "techno": (matching.build_text_index(rows, sources_techno.model_of), sources_techno, rows),
+        "trio": ({}, sources_trio, []), "jac": ({}, None, []), "oasis": ([], None, []),
+    }
+    onoff = {"model": "DAICHI ICE20AVQ1-1 on/off", "brand": "DAICHI", "group": "onoff"}
+    assert sync.find_offer(sources, onoff) == (None, None, None)
+    inverter = {"model": "DAICHI ICE20AVQS1R-2", "brand": "DAICHI", "group": "inv"}
+    assert sync.find_offer(sources, inverter)[0] == "techno"

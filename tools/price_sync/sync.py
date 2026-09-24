@@ -102,8 +102,28 @@ def _offer_in(sources, name, product):
         return matching.lookup_within(index, product["model"], product["brand"])
     if name == "techno":
         # Коды бывают и длиннее наших («RK-07SCDG/E»), и короче («ICE20») — ищем в обе стороны.
-        return matching.lookup_either(index, product["model"], product["brand"])
+        offer = matching.lookup_either(index, product["model"], product["brand"])
+        return offer if offer is not None and same_kind(offer.get("series", ""), product) else None
     return matching.lookup(index, product["model"], product["brand"])
+
+
+def same_kind(series: str, product: dict) -> bool:
+    """Инвертор не подменяет on/off и наоборот.
+
+    Короткий код Техносистемса «ICE20» — это инвертор ICE20AVQS1R-2, но он входит и
+    в код on/off-модели ICE20AVQ1-1. Серия прайса («ICE (-15°C inverter)») говорит,
+    что это за товар; группа карточки — что продаём мы. Полупром (pac_*) не проверяем:
+    по группе там не понять, инвертор это или нет.
+    """
+    text = series.lower()
+    offer_inverter = "inverter" in text or "инвертор" in text
+    offer_onoff = "on/off" in text or "on-off" in text or "onoff" in text
+    group = product.get("group")
+    if group == "onoff" and offer_inverter:
+        return False
+    if group == "inv" and offer_onoff:
+        return False
+    return True
 
 
 #: Реальный остаток у поставщика: чем быстрее привезём, тем выше. Всё, чего нет на

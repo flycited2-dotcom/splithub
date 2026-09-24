@@ -1,0 +1,190 @@
+{
+ "_comment": "Фото серий из оригиналов производителя (база SplitHome). set — готовый комплект на белом фоне, parts — отдельные PNG блоков и пульта.",
+ "midea-easy.webp": {
+  "set": "https://daichi.business/upload/iblock/010/1t5h833x5k1a2kf2gzqax54tyli4q1zw/2c6b6lt6hl0b41z60c5ntafxbtgqu1e0.jpg",
+  "_series": "MIDEA|EASY on/off"
+ },
+ "midea-easy-inv.webp": {
+  "set": "https://daichi.business/upload/iblock/5c1/gyplwfj52o92rk00i8nggxb29nt7rvvb/x5iwbjzbpx1zj48rwva225f2zixzq34w.jpg",
+  "_series": "MIDEA|EASY inverter"
+ },
+ "midea-heatforce.webp": {
+  "set": "https://daichi.business/upload/iblock/e16/q7sfo5ztvp2z2iahv5qmwhf45aiputri/tngmccw9mmhpex3v0dbql2z2kf961isk.jpg",
+  "_series": "MIDEA|HeatForce inverter"
+ },
+ "daichi-air.webp": {
+  "indoor": "https://daichi.business/upload/iblock/db8/nfrqvjlm7vniuti0zuec4eqfi4xgf57f/7e19kwkp4ghtrpq2nqzruufjuc8pz6lc.jpg",
+  "outdoor": "https://daichi.business/upload/iblock/00d/pv1ihpwpa2m2n4a0wkciy5ntqual114q/so0i9u3n46e645gvu9z4lfhlulaht8jt.jpg",
+  "remote": "https://daichi.business/upload/iblock/759/1x1lmaburio1si2to2eoatkqoi6oyr1q/02fqcd5djcjt2p8591o4m0vkolayjhpp.jpg",
+  "_series": "DAICHI|AIR on/off"
+ },
+ "daichi-everest.webp": {
+  "set": "https://daichi.business/upload/iblock/7d7/skqd0h0d7z6cmjcwscnfv2wvwspka7ph/iaez7212att43l21tzrwk8t0oa80f8f5.jpg",
+  "_series": "DAICHI|EVEREST on/off"
+ },
+ "daichi-ice.webp": {
+  "set": "https://daichi.business/upload/iblock/16e/9fxzfdng8h13k169imba1ixdu5dqdly9/ehf3fuc8ko80vmrjh5k8cc0jo0bbpocd.jpg",
+  "_series": "DAICHI|ICE on/off"
+ },
+ "daichi-alpine.webp": {
+  "set": "https://daichi.business/upload/iblock/ba1/je58vjydx2xrp1e24fncoq166qa8zujs/jzbktpo2k7k7kgnm92m7qcfnd6dnuo2v.jpg",
+  "_series": "DAICHI|ALPINE inverter"
+ },
+ "roland-favorite.webp": {
+  "indoor": "https://images.breez.ru/catalog/rln/classic-favorite-2-2023/classic-favorite-2-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/rln/classic-favorite-2-2023/classic-favorite-2-2023-05.jpg",
+  "remote": "https://images.breez.ru/catalog/rln/classic-favorite-2-2024/classic-favorite-2-2024-01.png",
+  "_series": "ROLAND|FAVORITE II on/off"
+ },
+ "roland-favorite-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/rln/invert-favorite-2-2023/invert-favorite-2-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/rln/invert-favorite-2-2023/invert-favorite-2-2023-05.jpg",
+  "remote": "https://images.breez.ru/catalog/rln/invert-favorite-2-2024/invert-favorite-2-2024-01.png",
+  "_series": "ROLAND|FAVORITE II inverter"
+ },
+ "royalclima-competenza.webp": {
+  "indoor": "https://images.breez.ru/catalog/royal-clima/classic-competenza-pol-potolok-2023/classic-competenza-pol-potolok-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/royal-clima/classic-competenza-pol-potolok-2023/classic-competenza-pol-potolok-2023-02.png",
+  "remote": "https://images.breez.ru/catalog/royal-clima/classic-competenza-pol-potolok-2023/classic-competenza-pol-potolok-2023-04.png",
+  "_series": "ROYAL CLIMA|COMPETENZA on/off"
+ },
+ "funai-akoya-inv.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/akoya-inverter/akoya-inverter-01.png",
+   "https://images.breez.ru/catalog/funai/akoya-inverter/akoya-inverter-02.png",
+   "https://images.breez.ru/catalog/funai/akoya-inverter/akoya-inverter-03.png",
+   "https://images.breez.ru/catalog/funai/akoya-inverter/akoya-inverter-04.png"
+  ],
+  "_series": "FUNAI|AKOYA inverter"
+ },
+ "funai-akoya-nero-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/akoya-nero-inverter/akoya-nero-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/akoya-nero-inverter/akoya-nero-inverter-14.png",
+  "remote": "https://images.breez.ru/catalog/funai/akoya-nero-inverter/akoya-nero-inverter-15.png",
+  "_series": "FUNAI|AKOYA NERO inverter"
+ },
+ "funai-daijin.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/klassicheskaya-split-sistema-daijin/klassicheskaya-split-sistema-daijin-01.png",
+   "https://images.breez.ru/catalog/funai/klassicheskaya-split-sistema-daijin/klassicheskaya-split-sistema-daijin-02.png",
+   "https://images.breez.ru/catalog/funai/klassicheskaya-split-sistema-daijin/klassicheskaya-split-sistema-daijin-03.png",
+   "https://images.breez.ru/catalog/funai/klassicheskaya-split-sistema-daijin/klassicheskaya-split-sistema-daijin-04.png"
+  ],
+  "_series": "FUNAI|DAIJIN on/off"
+ },
+ "funai-emperor-inv.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/emperor-smart-eye-inv/emperor-smart-eye-inv-01.png",
+   "https://images.breez.ru/catalog/funai/emperor-smart-eye-inv/emperor-smart-eye-inv-02.png",
+   "https://images.breez.ru/catalog/funai/emperor-smart-eye-inv/emperor-smart-eye-inv-03.png",
+   "https://images.breez.ru/catalog/funai/emperor-smart-eye-inv/emperor-smart-eye-inv-04.png",
+   "https://images.breez.ru/catalog/funai/emperor-smart-eye-inv/emperor-smart-eye-inv-05.png"
+  ],
+  "_series": "FUNAI|EMPEROR SMART EYE inverter"
+ },
+ "funai-emperor-up-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/emperor-up-smart-eye-full-dc-inv/emperor-up-smart-eye-full-dc-inv-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/emperor-up-smart-eye-full-dc-inv/emperor-up-smart-eye-full-dc-inv-04.png",
+  "remote": "https://images.breez.ru/catalog/funai/emperor-up-smart-eye-full-dc-inv/emperor-up-smart-eye-full-dc-inv-05.png",
+  "_series": "FUNAI|EMPEROR UP SMART EYE inverter"
+ },
+ "funai-kadzoku-inv-2024.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-01.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-02.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-03.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-04.png"
+  ],
+  "_series": "FUNAI|KADZOKU inverter 2024"
+ },
+ "funai-kadzoku-inv.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-01.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-02.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-03.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku-inverter/bit-split-kadzoku-inverter-04.png"
+  ],
+  "_series": "FUNAI|KADZOKU inverter 2025"
+ },
+ "funai-kagami-inv.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/kagami-inverter/kagami-inverter-01.png",
+   "https://images.breez.ru/catalog/funai/kagami-inverter/kagami-inverter-02.png",
+   "https://images.breez.ru/catalog/funai/kagami-inverter/kagami-inverter-03.png",
+   "https://images.breez.ru/catalog/funai/kagami-inverter/kagami-inverter-04.png",
+   "https://images.breez.ru/catalog/funai/kagami-inverter/kagami-inverter-05.png"
+  ],
+  "_series": "FUNAI|KAGAMI inverter"
+ },
+ "funai-sensei-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/sensei-2-0-inv/sensei-2-0-inv-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/sensei-2-0-inv/sensei-2-0-inv-07.png",
+  "remote": "https://images.breez.ru/catalog/funai/sensei-2-0-inv/sensei-2-0-inv-06.png",
+  "_series": "FUNAI|SENSEI 2.0 inverter"
+ },
+ "funai-shogun-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/bit-split-shogun-inverter/bit-split-shogun-inverter-02.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/bit-split-shogun-inverter/bit-split-shogun-inverter-06.jpg",
+  "remote": "https://images.breez.ru/catalog/funai/bit-split-shogun-inverter/bit-split-shogun-inverter-05.png",
+  "_series": "FUNAI|SHOGUN inverter 2025"
+ },
+ "funai-soyokaze-inv.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/soyokaze-inverter/soyokaze-inverter-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/soyokaze-inverter/soyokaze-inverter-08.png",
+  "remote": "https://images.breez.ru/catalog/funai/soyokaze-inverter/soyokaze-inverter-09.png",
+  "_series": "FUNAI|SOYOKAZE inverter"
+ },
+ "funai-kadzoku.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-01.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-02.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-03.png",
+   "https://images.breez.ru/catalog/funai/bit-split-kadzoku/bit-split-kadzoku-04.png"
+  ],
+  "_series": "FUNAI|KADZOKU on/off 2025"
+ },
+ "funai-kagami.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/classic-bit-split-kagami/classic-bit-split-kagami-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/classic-bit-split-kagami/classic-bit-split-kagami-14.png",
+  "remote": "https://images.breez.ru/catalog/funai/classic-bit-split-kagami/classic-bit-split-kagami-15.png",
+  "_series": "FUNAI|KAGAMI on/off"
+ },
+ "funai-sensei.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/sensei-2-0/sensei-2-0-06.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/sensei-2-0/sensei-2-0-11.png",
+  "remote": "https://images.breez.ru/catalog/funai/sensei-2-0/sensei-2-0-10.png",
+  "_series": "FUNAI|SENSEI 2.0 on/off"
+ },
+ "funai-sensei-2025.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/sensei-classic-2023/sensei-classic-2023-01.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/sensei-classic-2023/sensei-classic-2023-03.png",
+  "remote": "https://images.breez.ru/catalog/funai/sensei-classic-2023/sensei-classic-2023-04.png",
+  "_series": "FUNAI|SENSEI on/off 2025"
+ },
+ "funai-sensei-nero.webp": {
+  "indoor": "https://images.breez.ru/catalog/funai/sensei-nero-2-0/sensei-nero-2-0-06.png",
+  "outdoor": "https://images.breez.ru/catalog/funai/sensei-nero-2-0/sensei-nero-2-0-11.png",
+  "remote": "https://images.breez.ru/catalog/funai/sensei-nero-2-0/sensei-nero-2-0-10.png",
+  "_series": "FUNAI|SENSEI NERO 2.0 on/off"
+ },
+ "funai-shogun-2025.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-01.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-02.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-03.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-04.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-05.png"
+  ],
+  "_series": "FUNAI|SHOGUN on/off 2025"
+ },
+ "funai-shogun.webp": {
+  "parts": [
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-01.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-02.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-03.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-04.png",
+   "https://images.breez.ru/catalog/funai/bit-split-shogun/bit-split-shogun-05.png"
+  ],
+  "_series": "FUNAI|SHOGUN on/off 2026"
+ }
+}
