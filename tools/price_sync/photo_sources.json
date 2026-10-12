@@ -1,5 +1,5 @@
 {
- "_comment": "Фото серий из оригиналов производителя (база SplitHome / Бриз). set — готовый комплект на белом фоне, parts — отдельные PNG блоков и пульта (раскладка угадывается по пропорциям), indoor/outdoor/remote — кадры выбраны руками по обзорным листам. На каждой карточке все три — внутренний блок, пульт и наружный (стиль витрины, владелец 24.09.2026): если у серии нет своего снимка, стоит кадр того же бренда и типа, откуда он — в _outdoor_from / _donor.",
+ "_comment": "Фото серий из оригиналов производителя (база SplitHome / Бриз). set — готовый комплект на белом фоне, parts — отдельные PNG блоков и пульта (раскладка угадывается по пропорциям), indoor/outdoor/remote — кадры выбраны руками по обзорным листам. На каждой карточке все три — внутренний блок, пульт и наружный (стиль витрины, владелец 24.09.2026): если у серии нет своего снимка, стоит кадр того же бренда и типа, откуда он — в _outdoor_from / _donor. denko-changhong-inverter.webp — копия denko-tcl-inverter.webp (своего снимка QW-07 нет), не пересобирать.",
  "midea-easy.webp": {
   "set": "https://daichi.business/upload/iblock/010/1t5h833x5k1a2kf2gzqax54tyli4q1zw/2c6b6lt6hl0b41z60c5ntafxbtgqu1e0.jpg",
   "_series": "MIDEA|EASY on/off"
@@ -1118,5 +1118,11 @@
   "set": "https://splithub.ru/assets/img/products/dantex-advance-inverter-tcl.webp",
   "_series": "DANTEX|ADVANCE on/off (TCL)",
   "_donor": "ADVANCE inverter (TCL): тот же корпус внутреннего и наружного блока, что у on/off (сверено с фото RK-07SAT на 21vek.by)"
+ },
+ "daichi-siberia-25-c-inverter.webp": {
+  "indoor": "https://daichi.business/upload/iblock/30c/uma2e7avkubbce989fzjp6qn6kqf0yqc/s55j72hhtdl63txi8fm0mnyg11v1xawi.jpg",
+  "remote": "https://daichi.business/upload/iblock/b3b/361fd2ss2no40jdop45x058dfkdoogz1/ogph76in2vnj9y1mpfn5izf2bh97ebx5.jpg",
+  "outdoor": "https://daichi.business/upload/iblock/0b8/eatlsqzq1zxzk4zbekhinhz3osqveaou/x7tryxmrcl3glywp0so7i1ihndn95o5y.jpg",
+  "_series": "DAICHI|SIBERIA (-25°C inverter)"
  }
 }
