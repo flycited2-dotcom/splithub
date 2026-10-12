@@ -45,6 +45,30 @@ def test_med_drugaya_dlina_ne_matchitsya():
     assert consumables.match(card("Медная труба 1/4 · бухта 50 м", "Средняя стенка"), COPPER) is None
 
 
+def copper_row(model, dealer, series, availability="есть"):
+    row = trio_row(49, model, dealer)
+    row.update({"series": series, "availability": availability})
+    return row
+
+
+GOST_14 = card("Медная труба 1/4 · бухта 15 м", "Толстая (ГОСТ) · бухта 15 м")
+
+
+def test_med_nalichie_vazhnee_ceny():
+    # «наличие важнее цены»: дешёвая толстая ОАЭ кончилась — берём ту, что есть
+    rows = [copper_row("1/4 (6,35мм.), 0,76мм, 15м", 2750.0, "труба медная ТОЛСТАЯ стенка. ОАЭ", "нет"),
+            copper_row("1/4 (6,35мм.), 0,76мм, 15м", 3050.0, "труба медная ТОЛСТАЯ стенка РОССИЯ")]
+    assert consumables.match(GOST_14, rows)["dealer"] == 3050.0
+
+
+def test_med_klass_stenki_po_serii_trio():
+    # толстой 3/4 у трио нет — средняя 0,81 мм не должна уйти под видом ГОСТа
+    rows = [copper_row("3/4 (19,05мм.), 0,81мм, 15м", 11000.0, "труба медная  СРЕДНЯЯ стенка УЗБЕКИСТАН")]
+    assert consumables.match(card("Медная труба 3/4 · бухта 15 м", "Толстая (ГОСТ) · бухта 15 м"), rows) is None
+    assert consumables.match(card("Медная труба 3/4 · бухта 15 м", "Средняя стенка · бухта 15 м"),
+                             rows)["dealer"] == 11000.0
+
+
 BRACKETS = [
     trio_row(48, "Кронштейны 400x420, S=1,50мм", 240.0, promo=1.0),
     trio_row(48, "Кронштейны 500x600, S=2,5мм", 870.0),

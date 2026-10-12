@@ -30,5 +30,13 @@ def test_novaya_model_uznaetsya_v_prayse_trio():
 def test_fayl_revisiy_sootvetstvuet_trio():
     revisions = sync.load_revisions()
     for old, new in revisions.items():
-        assert old != new and new.startswith("MIDEA MSFE1S-")
-    assert len(revisions) == 4
+        # новая ревизия — та же марка; null — карточка снята (её заменила другая)
+        assert new is None or (old != new and new.split()[0] == old.split()[0])
+    assert revisions["MIDEA MSFE-12N8D6-I inv"] == "MIDEA MSFE1S-12FRN8G1-I inv"
+
+
+def test_revisiya_null_snimaet_kartochku():
+    catalog = [{"model": "MIDEA MSAG3-12N8C2S-I inv"}, {"model": "MIDEA MSAG2-12N8C2S-I inv"}, {"model": "X"}]
+    sync.apply_revisions(catalog, {"MIDEA MSAG3-12N8C2S-I inv": None,
+                                   "MIDEA MSAG2-12N8C2S-I inv": "MIDEA MSAG2-12N8C2U-I inv"})
+    assert [p["model"] for p in catalog] == ["MIDEA MSAG2-12N8C2U-I inv", "X"]

@@ -12,13 +12,18 @@ from __future__ import annotations
 
 import os
 import sys
+import time
+from datetime import datetime
 from pathlib import Path
 
 import requests
 
+#: На сервере сверки — .env бота остатков там же (см. server/run_sync.sh).
 BOT_ENV = Path(os.getenv(
     "SPLITHUB_TG_ENV",
     r"C:\Users\TLT-1\Documents\GitHub\Site_ostatki_api_teleram\.env"))
+ATTEMPTS = 5
+PAUSE = 10
 
 
 def _read_env(path: Path) -> dict[str, str]:
@@ -34,6 +39,12 @@ def _read_env(path: Path) -> dict[str, str]:
     return values
 
 
+def quiet_hours(now: datetime | None = None) -> bool:
+    """Ночь (23:00–08:00): прогон идёт в 04:00, и итог не должен будить владельца."""
+    hour = (now or datetime.now()).hour
+    return hour >= 23 or hour < 8
+
+
 def send(text: str) -> bool:
     """Отправить сообщение. True — ушло, False — нет (причина уже выведена)."""
     env = _read_env(BOT_ENV)
@@ -43,17 +54,22 @@ def send(text: str) -> bool:
     if not token or not chat:
         print("telegram: нет токена или chat_id в " + str(BOT_ENV))
         return False
-    for attempt in range(3):
+    data = {"chat_id": chat, "text": text, "disable_web_page_preview": "true"}
+    if quiet_hours():
+        data["disable_notification"] = "true"   # придёт без звука, прочитает утром
+    # С сервера api.telegram.org отвечает не с первого раза: бот остатков там же
+    # регулярно ловит пару таймаутов подряд, а потом отправляет.
+    for attempt in range(ATTEMPTS):
         try:
             response = requests.post(api + "/bot" + token + "/sendMessage",
-                                     data={"chat_id": chat, "text": text,
-                                           "disable_web_page_preview": "true"},
-                                     timeout=30)
+                                     data=data, timeout=30)
             if response.ok:
                 return True
             print("telegram: ответ %s" % response.status_code)
         except Exception as error:
             print("telegram: попытка %d не удалась: %s" % (attempt + 1, type(error).__name__))
+        if attempt < ATTEMPTS - 1:
+            time.sleep(PAUSE)
     return False
 
 

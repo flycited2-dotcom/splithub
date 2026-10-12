@@ -123,11 +123,27 @@ def test_briz_vne_kryma_pod_zakaz_7_dney_no_silnee_net_u_trio():
     assert module.stock_of(offer) == ("order_7", "Под заказ 7 дней")
 
 
-def test_sklady_vne_kryma_u_drugih_postavshchikov_po_prezhnemu_3_5_dney():
+def test_vne_kryma_u_lyubogo_postavshchika_pod_zakaz_7_dney():
+    # владелец 11.10.2026: в наличии — только Крым, «3–5 дней» больше нет
     row = breez_row("x", "Москва", 3, 1000.0)
     row["supplier"] = "rusklimat"
-    assert sources_oasis.stock_of(row) == ("days_3_5", "3–5 дней")
+    assert sources_oasis.stock_of(row) == ("order_7", "Под заказ 7 дней")
+    assert sources_oasis.stock_rank(row) == 2
     assert sources_oasis.stock_of(breez_row("x", "Симферополь", 2, 1000.0)) == ("in_stock", "В наличии")
+
+
+def test_kod_bez_slova_serii_nahoditsya():
+    # на сайте «ECLIPSE ECP-I18PN inv», у Бриза между серией и кодом год: «… 2026 ECP-I18PN»
+    title = "Инверторная сплит-система серии ECLIPSE Inverter 2026 ECP-I18PN (комплект)"
+    rows = [breez_row(title, "ФРЦ Бриз Шерризон-Норд WMS", 9, 39200.0)]
+    sources = {
+        "techno": ([], sources_techno, []), "trio": ({}, sources_trio, []), "jac": ({}, None, []),
+        "oasis": (matching.build_text_index(rows, sources_oasis.model_of), sources_oasis, rows),
+    }
+    product = {"model": "ECLIPSE ECP-I18PN inv", "brand": "ULTIMA COMFORT", "group": "inv"}
+    source, module, offer = sync.find_offer(sources, product)
+    assert source == "oasis" and module.stock_of(offer) == ("order_7", "Под заказ 7 дней")
+    assert sync.model_code("MHI SRK63ZTL-W inv 6.3") == "SRK63ZTL-W"
 
 
 def techno_row_series(model, price, series):
@@ -148,3 +164,31 @@ def test_korotkiy_kod_invertora_ne_cepliaetsya_k_onoff():
     assert sync.find_offer(sources, onoff) == (None, None, None)
     inverter = {"model": "DAICHI ICE20AVQS1R-2", "brand": "DAICHI", "group": "inv"}
     assert sync.find_offer(sources, inverter)[0] == "techno"
+
+
+def test_akciya_pri_padenii_ceny_i_snyatie_plashki():
+    from tools.price_sync import publish
+    live = [{"id": "1", "model": "X", "price": 40000, "stock": "in_stock"}]
+    built = [{"id": "1", "model": "X", "price": 26000, "stock": "in_stock"}]
+    final, report = publish.guard(live, built)
+    assert final[0]["price"] == 26000 and final[0]["badge"] == "sale" and final[0]["price_regular"] == 40000
+    assert report["sales"] and not report["held"]
+    # цена вернулась — плашка снимается сама
+    final2, report2 = publish.guard(final, [dict(final[0], price=39000)])
+    assert final2[0]["price"] == 39000 and "badge" not in final2[0] and report2["sales_over"] == ["X"]
+    # рост больше 25% без акции по-прежнему ждёт проверки
+    final3, report3 = publish.guard(live, [dict(built[0], price=60000)])
+    assert final3[0]["price"] == 40000 and report3["held"]
+
+
+def test_technosistems_onoff_i_invertor_odnogo_razmera():
+    # «DU-07» и «DU-07 inv» нормализуются в один ключ — брать надо строку своего типа
+    rows = [techno_row_series("DU-07 inv", 20000, "TCL inverter"), techno_row_series("DU-07", 14200, "TCL on/off")]
+    sources = {
+        "techno": (matching.build_text_index(rows, sources_techno.model_of), sources_techno, rows),
+        "trio": ({}, sources_trio, []), "jac": ({}, None, []), "oasis": ([], None, []),
+    }
+    onoff = {"model": "DENKO DU-07", "brand": "DENKO", "group": "onoff"}
+    inv = {"model": "DENKO DU-07 inv", "brand": "DENKO", "group": "inv"}
+    assert sync.find_offer(sources, onoff)[2]["model"] == "DU-07"
+    assert sync.find_offer(sources, inv)[2]["model"] == "DU-07 inv"

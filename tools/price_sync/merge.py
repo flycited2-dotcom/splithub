@@ -14,7 +14,11 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
+import requests
+
+from tools.price_sync import consumables
 from tools.price_sync.new_cards import load_series_map, rename_registry_series
 from tools.price_sync.sync import DEFAULT_OUT, parse_products_js, render_products_js
 
@@ -98,15 +102,41 @@ def missing_photos(catalog: list[dict], base: list[dict], assets: Path) -> list[
                    and not (assets / product["photo"]).exists()})
 
 
-def build(out_dir: Path, assets: Path):
+def site_photos(names: set[str], base_url: str) -> set[str]:
+    """Какие из снимков уже лежат на сайте.
+
+    На сервере сверки папки assets нет, и проверять нужно ровно то, что увидит
+    покупатель: нет файла на splithub.ru — карточку не публикуем (битое фото хуже,
+    чем карточка на день позже). Сайт не ответил — тоже считаем, что снимка нет.
+    """
+    found = set()
+    for name in names:
+        try:
+            response = requests.head(base_url.rstrip("/") + "/" + quote(name),
+                                     timeout=20, allow_redirects=True)
+        except requests.RequestException:
+            continue
+        if response.status_code == 200:
+            found.add(name)
+    return found
+
+
+def build(out_dir: Path, assets: Path | str, registry: dict | None = None):
     catalog = parse_products_js((out_dir / "products.js").read_text(encoding="utf-8"))
     renamed = rename_registry_series(catalog, load_series_map())
+    # Текст выложенных расходников трио — из их реестра (rashod_map.json).
+    rashod_text = consumables.apply_cards(catalog, registry)
     new_cards = load_new_cards(out_dir / "new_cards_draft.json")
     # Фото «есть», если оно уже висит на боевой карточке или лежит в assets репозитория
-    # (оттуда его заливают на сайт вместе с каталогом).
+    # (оттуда его заливают на сайт вместе с каталогом). На сервере вместо папки —
+    # адрес папки снимков на сайте.
     photos = {product.get("photo") for product in catalog}
-    if assets.exists():
-        photos |= {path.name for path in assets.iterdir()}
+    on_site = str(assets).startswith(("http://", "https://"))
+    wanted = {card.get("photo") for card in new_cards if card.get("photo")} - photos
+    if on_site:
+        photos |= site_photos(wanted, str(assets))
+    elif Path(assets).exists():
+        photos |= {path.name for path in Path(assets).iterdir()}
     merged, skipped = merge(catalog, new_cards, photos)
     problems = validate(merged)
     if problems:
@@ -117,9 +147,11 @@ def build(out_dir: Path, assets: Path):
     (target / "products.js").write_text(render_products_js(merged), encoding="utf-8")
     (target / "products.json").write_text(
         json.dumps(merged, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    missing = sorted(wanted - photos) if on_site else missing_photos(merged, catalog, Path(assets))
     return {"problems": [], "merged": merged, "skipped": skipped, "written": True,
-            "target": target, "photos": missing_photos(merged, catalog, assets),
-            "was": len(catalog), "added": len(merged) - len(catalog), "renamed": renamed}
+            "target": target, "photos": missing,
+            "was": len(catalog), "added": len(merged) - len(catalog), "renamed": renamed,
+            "rashod_text": rashod_text}
 
 
 def main(argv=None) -> int:
@@ -141,6 +173,7 @@ def main(argv=None) -> int:
             len(result["merged"]), result["was"], result["added"]),
         "Отложено: %d" % len(result["skipped"]),
         "Серия переименована под витрину у карточек: %d" % result["renamed"],
+        "Текст расходников обновлён из реестра у карточек: %d" % result["rashod_text"],
         "Нет файлов фотографий: %d" % len(result["photos"]),
         "Файлы: " + str(result["target"]),
     ]

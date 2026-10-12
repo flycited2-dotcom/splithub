@@ -7,12 +7,14 @@ API у поставщика нет: остатки и «Вашу цену» со
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
-DEFAULT_STOCK_JSON = Path(
-    r"C:\Users\TLT-1\Documents\GitHub\osatakti_mdv_b2b\data\jac_stock_latest.json"
-)
+#: На сервере сверки путь другой — его задаёт SPLITHUB_JAC_JSON (см. server/run_sync.sh).
+DEFAULT_STOCK_JSON = Path(os.getenv(
+    "SPLITHUB_JAC_JSON",
+    r"C:\Users\TLT-1\Documents\GitHub\osatakti_mdv_b2b\data\jac_stock_latest.json"))
 
 _DIGITS = re.compile(r"\d+")
 
@@ -34,6 +36,10 @@ def _crimea_qty(offer: dict) -> int:
 
 def load(path: Path | str | None = None) -> list[dict]:
     source = Path(path or DEFAULT_STOCK_JSON)
+    if not source.exists():
+        # Срез ещё не доехал с компьютера — позиции JAC просто остаются как были
+        # (в отчёте сверки видно «JAC 0»), остальные поставщики считаются дальше.
+        return []
     rows = json.loads(source.read_text(encoding="utf-8"))
     for row in rows:
         row["source"] = "jac"
@@ -49,9 +55,15 @@ def cost_of(offer: dict) -> float:
 
 
 def stock_of(offer: dict) -> tuple[str, str]:
-    """Крым → в наличии; склад Москвы (ОП АЯК-Крым) → 3–5 дней; иначе под заказ."""
+    """Крым → в наличии; иначе, в том числе склад Москвы, — под заказ 7 дней
+    (владелец 11.10.2026: «3–5 дней» не бывает)."""
     if _crimea_qty(offer) > 0:
         return "in_stock", "В наличии"
-    if float(offer.get("stock_qty") or 0) > 0:
-        return "days_3_5", "3–5 дней"
     return "order_7", "Под заказ 7 дней"
+
+
+def stock_rank(offer: dict) -> int:
+    """Для выбора поставщика: склад Москвы — реальный остаток, сильнее «нет» у других."""
+    if _crimea_qty(offer) > 0:
+        return 0
+    return 2 if float(offer.get("stock_qty") or 0) > 0 else 4

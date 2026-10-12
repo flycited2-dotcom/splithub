@@ -7,21 +7,44 @@
 
 const PRICE_SITE = 'https://splithub.ru';
 
-/* ── Маппинг расходников → смысловые группы ── */
-const RASHOD_GROUP_MAP = {
-  'Фреон':      ['R134a','R22','R32','R410a'],
-  'Дренаж':     ['OTMO','Ballu','Ruvinil','Дренаж гибкий'],
-  'Лента':      ['AVIORA','K-Flex','(Скотч)Клейкая лента упаковочная 48мм*40мкм 100м ALG'],
-  'Кабель':     ['АРСЕНАЛ'],
-  'Крепёж':     ['Болт 8-25','Болт 8-30','Болт 8-35','Гайка М8','Гайка М8-пресшайба',
-                 'Глухарь','Дюбель','Дюбель 6х40','шайба м8','шайба м8 увеличенная'],
-  'Кронштейны': ['Кронштейны'],
-  'Изоляция':   ['ТермаЭКО'],
-};
+/* ── Расходники → смысловые группы по brandCode (те же виды, что в подфильтрах витрины).
+      Раньше группа бралась по имени бренда, и новые позиции поставщиков уходили в «Прочее». ── */
+const _PRICE_RASHOD_GROUPS = [
+  ['Дренаж',               'dmetplst drenazhg'],
+  ['Дренажные насосы',     'dnasos zimkit'],
+  ['Кронштейны',           'kron'],
+  ['Подставки и козырьки', 'podst'],
+  ['Фреон',                'freon'],
+  ['Фитинги для меди',     'fiting'],
+  ['Припой и газ',         'pripoy'],
+  ['Ленты и изолента',     'tpl'],
+  ['Теплоизоляция',        'tfx'],
+  ['Кабель',               'provod'],
+  ['Крепёж',               'glh kpo blt gka shba db'],
+];
+const _PRICE_RASHOD_ORDER = _PRICE_RASHOD_GROUPS.map(g => g[0]).concat('Прочее');
 
-const _RASHOD_BRAND_GRP = {};
-for (const [grp, brands] of Object.entries(RASHOD_GROUP_MAP)) {
-  for (const b of brands) _RASHOD_BRAND_GRP[b] = grp;
+const _RASHOD_CODE_GRP = {};
+for (const [grp, codes] of _PRICE_RASHOD_GROUPS) {
+  for (const code of codes.split(' ')) _RASHOD_CODE_GRP[code] = grp;
+}
+
+/* ── Порядок наличия — как на витрине: склад, дальше по сроку поставки, «нет» в конце ── */
+const _PRICE_STOCK_ORDER = ['in_stock', 'days_1_2', 'days_3_5', 'days_7', 'order_7', 'wait'];
+
+function _priceStockRank(p) {
+  if (p.stock === 'out') return _PRICE_STOCK_ORDER.length + 1;
+  const i = _PRICE_STOCK_ORDER.indexOf(p.stock);
+  return i < 0 ? _PRICE_STOCK_ORDER.length : i;   // незнакомый статус — перед «нет»
+}
+
+/* Товары прайса: только видимые на витрине; в каждой серии сначала то, что в наличии */
+function _priceItems() {
+  return PRODUCTS
+    .filter(p => !(p._active === 0 || p.active === 0 || p.active === '0'))
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => _priceStockRank(a.p) - _priceStockRank(b.p) || a.i - b.i)
+    .map(x => x.p);
 }
 
 /* ── Группировка товаров ── */
@@ -30,11 +53,11 @@ function _groupProducts() {
   const rashod = {};
   const truba  = [];
 
-  PRODUCTS.forEach(p => {
+  _priceItems().forEach(p => {
     if (p.group === 'truba') {
       truba.push(p);
     } else if (p.group === 'rashod') {
-      const grp = _RASHOD_BRAND_GRP[p.brand] || 'Прочее';
+      const grp = _RASHOD_CODE_GRP[p.brandCode] || 'Прочее';
       if (!rashod[grp]) rashod[grp] = [];
       rashod[grp].push(p);
     } else {
@@ -285,7 +308,7 @@ function _buildPdfDocDef(date, photos) {
 
   function addProduct(p, alt) {
     const bg  = alt ? C_ALT : C_WHITE;
-    const sc  = p.stock === 'in_stock' ? C_OK : (p.stock || '').startsWith('days') ? C_WARN : C_NO;
+    const sc  = p.stock === 'in_stock' ? C_OK : p.stock === 'out' ? C_NO : C_WARN;
     const fmt = new Intl.NumberFormat('ru-RU').format(p.price) + ' ₽';
     const base = { fillColor: bg, margin: [3, 3, 3, 3] };
     body.push([
@@ -319,7 +342,7 @@ function _buildPdfDocDef(date, photos) {
   }
 
   /* Расходники */
-  const grpOrder = ['Фреон', 'Дренаж', 'Лента', 'Кабель', 'Крепёж', 'Кронштейны', 'Изоляция', 'Прочее'];
+  const grpOrder = _PRICE_RASHOD_ORDER;
   if (grpOrder.some(g => rashod[g] && rashod[g].length)) {
     addBrand('Расходники');
     grpOrder.forEach(grp => {
@@ -337,7 +360,7 @@ function _buildPdfDocDef(date, photos) {
     images,
     content: [
       { text: 'Прайс-лист СплитХаб', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 4] },
-      { text: `Оптовые кондиционеры · Симферополь · ${date} · Товаров: ${PRODUCTS.length}`,
+      { text: `Оптовые кондиционеры · Симферополь · ${date} · Товаров: ${_priceItems().length}`,
         fontSize: 9, color: '#888888', alignment: 'center', margin: [0, 0, 0, 14] },
       {
         table: { headerRows: 1, dontBreakRows: true, widths: WIDTHS, body },
@@ -415,7 +438,7 @@ async function downloadPriceExcel() {
 
     ws.mergeCells('A2:G2');
     Object.assign(ws.getCell('A2'), {
-      value:     `Оптовые кондиционеры · Симферополь · ${date} · Товаров: ${PRODUCTS.length}`,
+      value:     `Оптовые кондиционеры · Симферополь · ${date} · Товаров: ${_priceItems().length}`,
       font:      { name:'Arial', size:10, color:{argb:'FF888888'} },
       alignment: { horizontal:'center', vertical:'middle' },
     });
@@ -471,7 +494,7 @@ async function downloadPriceExcel() {
     }
 
     function addItemRow(p, num, isAlt) {
-      const sc      = p.stock === 'in_stock' ? 'ok' : (p.stock||'').startsWith('days') ? 'warn' : 'no';
+      const sc      = p.stock === 'in_stock' ? 'ok' : p.stock === 'out' ? 'no' : 'warn';
       const scColor = sc==='ok' ? C_OK : sc==='warn' ? C_WARN : C_NO;
       const bg      = isAlt ? C_ALT : C_WHITE;
 
@@ -526,7 +549,7 @@ async function downloadPriceExcel() {
       truba.forEach((p, i) => addItemRow(p, rowNum++, i%2===1));
     }
 
-    const grpOrder = ['Фреон','Дренаж','Лента','Кабель','Крепёж','Кронштейны','Изоляция','Прочее'];
+    const grpOrder = _PRICE_RASHOD_ORDER;
     if (grpOrder.some(g => rashod[g] && rashod[g].length)) {
       addBrandRow('Расходники');
       grpOrder.forEach(grpName => {

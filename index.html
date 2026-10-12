@@ -154,6 +154,21 @@ body::before{content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
 .series-badge-ico{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
 .sub-block{margin-bottom:12px;}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+/* Ступени наличия: сначала то, что на складе, дальше по сроку поставки.
+   Цвета плашки берутся из .sb-* — тех же, что у значка наличия на карточке. */
+.stock-tier{display:flex;align-items:center;gap:10px;margin:4px 0 12px;}
+.st-pill{display:inline-flex;align-items:center;gap:6px;font-size:0.74rem;font-weight:800;padding:5px 13px;border-radius:20px;border-width:1px;border-style:solid;line-height:1.3;}
+.st-n{font-weight:600;opacity:0.75;white-space:nowrap;}
+.st-line{flex:1;min-width:12px;height:1px;background:var(--blo);}
+.pgrid + .stock-tier{margin-top:18px;}
+/* Подфильтры: виды расходников, типы полупрома, мощность */
+.subf{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.subf:empty{display:none;}
+.subf-chip{display:inline-flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;font-size:0.74rem;font-weight:600;color:var(--text);padding:6px 11px;border-radius:999px;border:1px solid var(--blo);background:rgba(255,255,255,0.75);cursor:pointer;transition:border-color 0.18s,background 0.18s;}
+.subf-chip span{font-size:0.68rem;font-weight:500;color:var(--text3);}
+.subf-chip:hover{border-color:rgba(245,158,11,0.45);}
+.subf-chip.active{background:rgba(245,158,11,0.15);border-color:var(--amber);color:var(--amber-d);font-weight:700;}
+.subf-chip.active span{color:var(--amber-d);}
 
 /* PRODUCT CARD */
 .pcard{
@@ -1069,6 +1084,8 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .ppol-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .3s ease}
 .ppol-btn:hover .ppol-img{transform:scale(1.05)}
 .ppol-lbl{font-size:0.76rem;font-weight:700;color:var(--text);line-height:1.3;padding:8px 6px 10px;width:100%}
+.ppol-all{width:100%;margin-bottom:6px;padding:11px 10px;border:1px solid var(--amber);background:rgba(245,158,11,.12);color:var(--amber-d);font-size:0.8rem;font-weight:700;cursor:pointer;border-radius:12px;font-family:'Inter',sans-serif;transition:background .15s}
+.ppol-all:hover{background:rgba(245,158,11,.2)}
 .ppol-close{width:100%;padding:10px;border:none;background:none;color:var(--text3);font-size:0.8rem;cursor:pointer;border-radius:10px;font-family:'Inter',sans-serif;transition:color .15s}
 .ppol-close:hover{color:var(--text)}
 </style>
@@ -1147,13 +1164,15 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     <button class="g qbtn qbtn-filter" data-filter="on2436" onclick="goFilter('on2436')">&#127744; On/Off 24&ndash;36</button>
     <button class="g qbtn qbtn-filter" data-filter="truba" onclick="goFilter('truba')">&#128295; Медная труба</button>
     <button class="g qbtn qbtn-filter" data-filter="rashod" onclick="goFilter('rashod')">&#9728; Расходники</button>
+    <button class="g qbtn qbtn-filter" data-filter="r_drain" onclick="goFilter('r_drain')">&#128167; Дренаж</button>
+    <button class="g qbtn qbtn-filter" data-filter="r_kron" onclick="goFilter('r_kron')">&#128297; Кронштейны</button>
     <button class="g qbtn qbtn-filter" data-filter="poluprom" onclick="openPolupromModal()">&#127981; Полупром</button>
     <button class="g qbtn qbtn-filter qbtn-black" data-filter="multi" onclick="goFilter('multi')">&#10054; Чёрные сплиты</button>
   </div>
   <div class="cat-tiles rv" style="transition-delay:0.1s">
-    <a class="g ctile ctile-photo" href="#inv" onclick="go('inv')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-inv.jpg" alt="Инверторные"><div class="ctile-ov"><div class="ctile-lbl">&#10052; Инверторные</div></div></a>
-    <a class="g ctile ctile-photo" href="#onoff" onclick="go('onoff')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-onoff.jpg" alt="On/Off"><div class="ctile-ov"><div class="ctile-lbl">&#127744; On/Off</div></div></a>
-    <a class="g ctile ctile-photo" href="#truba" onclick="go('truba')"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-truba.jpg" alt="Медная труба"><div class="ctile-ov"><div class="ctile-lbl">&#128295; Медная труба</div></div></a>
+    <a class="g ctile ctile-photo" href="#catalog" onclick="goFilter('inv');return false;"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-inv.jpg" alt="Инверторные"><div class="ctile-ov"><div class="ctile-lbl">&#10052; Инверторные</div></div></a>
+    <a class="g ctile ctile-photo" href="#catalog" onclick="goFilter('onoff');return false;"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-onoff.jpg" alt="On/Off"><div class="ctile-ov"><div class="ctile-lbl">&#127744; On/Off</div></div></a>
+    <a class="g ctile ctile-photo" href="#catalog" onclick="goFilter('truba');return false;"><img loading="lazy" class="ctile-bg" src="assets/img/extracted/cat-truba.jpg" alt="Медная труба"><div class="ctile-ov"><div class="ctile-lbl">&#128295; Медная труба</div></div></a>
     <div class="g ctile ctile-photo" onclick="openPolupromModal()" style="cursor:pointer">
       <img loading="lazy" class="ctile-bg" src="assets/img/ppol/poluprom.webp" alt="Полупром">
       <div class="ctile-ov"><div class="ctile-lbl">&#127981; Полупром</div></div>
@@ -1164,9 +1183,12 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 <!-- CATALOG -->
 <section id="catalog" style="position:relative;z-index:1;padding:0 16px 100px;">
   <div id="filter-bar" style="display:none;padding:10px 0 0;max-width:960px;margin:0 auto;">
-    <div class="g" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.78rem;font-weight:600;color:var(--amber);">
-      <span id="filter-label"></span>
-      <button onclick="goFilter(null)" style="background:none;border:none;color:var(--amber-d);font-size:.75rem;cursor:pointer;font-weight:600;text-decoration:underline;">&#10005; Сбросить</button>
+    <div class="g" style="padding:10px 14px;font-size:.78rem;font-weight:600;color:var(--amber);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <span id="filter-label"></span>
+        <button onclick="goFilter(null)" style="background:none;border:none;color:var(--amber-d);font-size:.75rem;cursor:pointer;font-weight:600;text-decoration:underline;white-space:nowrap;">&#10005; Сбросить</button>
+      </div>
+      <div class="subf" id="filter-sub"></div>
     </div>
   </div>
   <div id="catalog-content" style="max-width:960px;margin:0 auto;"></div>
@@ -1438,35 +1460,145 @@ function getStockInline(p) {
   return '<div class="pd-stock-inline ' + cls + '">' + lbl + '</div>';
 }
 
+// ── Порядок по наличию ────────────────────────────────
+// В любом разделе и фильтре сначала то, что лежит на складе, дальше по сроку
+// поставки. Поставщик роли не играет — только статус наличия карточки.
+var STOCK_TIERS = [
+  {key:'in_stock', cls:'sb-in',   label:'&#10003; В наличии на складе'},
+  {key:'days_1_2', cls:'sb-12',   label:'Под заказ &middot; 1&ndash;2 дня'},
+  {key:'days_3_5', cls:'sb-35',   label:'Под заказ &middot; 3&ndash;5 дней'},
+  {key:'days_7',   cls:'sb-35',   label:'Под заказ &middot; 7 дней'},
+  {key:'order_7',  cls:'sb-7',    label:'Под заказ &middot; от 7 дней'},
+  {key:'wait',     cls:'sb-wait', label:'Ожидается'},
+  {key:'other',    cls:'sb-7',    label:'Уточняйте наличие'},
+  {key:'out',      cls:'sb-out',  label:'Нет в наличии'}
+];
+var STOCK_TIER_IDX = {};
+STOCK_TIERS.forEach(function(t, i){ STOCK_TIER_IDX[t.key] = i; });
+
+function stockTier(p) {
+  var i = STOCK_TIER_IDX[p.stock];
+  return i === undefined ? STOCK_TIER_IDX.other : i;
+}
+
+// Раскладывает товары по ступеням наличия; внутри ступени порядок каталога сохраняется.
+function splitByStock(list) {
+  var tiers = STOCK_TIERS.map(function(){ return []; });
+  list.forEach(function(p){ tiers[stockTier(p)].push(p); });
+  return tiers;
+}
+
+function positionsText(n) {
+  var m10 = n % 10, m100 = n % 100;
+  var word = (m10 === 1 && m100 !== 11) ? 'позиция'
+    : (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) ? 'позиции' : 'позиций';
+  return n + ' ' + word;
+}
+
+function stockTierHead(tierIdx, n) {
+  var t = STOCK_TIERS[tierIdx];
+  return '<div class="stock-tier"><span class="st-pill '+t.cls+'">'+t.label
+    + '<span class="st-n">&middot; '+positionsText(n)+'</span></span><span class="st-line"></span></div>';
+}
+
 // ── Filters ───────────────────────────────────────────
 var currentFilter = null;
+
+// Мощность — числом из поля btu («07», «09», «28»…): кнопка ловит любой типоразмер
+// своего диапазона, а не только перечисленные строки (раньше 28-е выпадали).
+function btuIn(p, lo, hi) {
+  var n = parseInt(p.btu, 10);
+  return n >= lo && n <= hi;
+}
+
+function isPac(p) {
+  return p.group==='poluprom' || p.group==='pac_inv' || p.group==='pac_onoff';
+}
+
+// Тип полупрома: у части карточек type общий («split»), а тип есть только в серии.
+function pacKind(p, type, re) {
+  return isPac(p) && (p.type === type || re.test(p.series || ''));
+}
+
+// Расходники по видам. Вид берём по brandCode, а для незнакомого кода — по названию,
+// чтобы новая позиция поставщика не выпала из фильтра. Список виден покупателю
+// как подфильтры раздела «Расходники» в этом же порядке.
+var RASHOD_CATS = [
+  {key:'r_drain',  label:'Дренаж',               codes:'dmetplst drenazhg',       re:/дренаж|металлопласт|гофр|капилляр/i},
+  {key:'r_pump',   label:'Дренажные насосы',     codes:'dnasos zimkit',           re:/насос|зимний комплект|антисифон/i},
+  {key:'r_kron',   label:'Кронштейны',           codes:'kron',                    re:/кронштейн/i},
+  {key:'r_podst',  label:'Подставки и козырьки', codes:'podst',                   re:/подставк|опор[аы]|козыр/i},
+  {key:'r_freon',  label:'Фреон',                codes:'freon',                   re:/фреон|хладагент/i},
+  {key:'r_fit',    label:'Фитинги для меди',     codes:'fiting',                  re:/фитинг|рефнет|муфт|латун/i},
+  {key:'r_solder', label:'Припой и газ',         codes:'pripoy',                  re:/припой|mapp/i},
+  {key:'r_tape',   label:'Ленты и изолента',     codes:'tpl',                     re:/лент|изолент|скотч/i},
+  {key:'r_insul',  label:'Теплоизоляция',        codes:'tfx',                     re:/терма|теплоизол|k-?flex/i},
+  {key:'r_cable',  label:'Кабель',               codes:'provod',                  re:/кабел|провод|пвс/i},
+  {key:'r_krep',   label:'Крепёж',               codes:'glh kpo blt gka shba db', re:/болт|гайк|шайб|дюбел|глухар|анкер|саморез/i},
+  {key:'r_other',  label:'Прочее',               codes:'',                        re:null}
+];
+// По названию насосы проверяем раньше дренажа («Дренажные насосы»), фитинги — раньше
+// крепежа («Гайка латунная»).
+var RASHOD_GUESS = ['r_pump','r_drain','r_kron','r_podst','r_freon','r_fit','r_solder','r_tape','r_insul','r_cable','r_krep'];
+var RASHOD_BY_CODE = {}, RASHOD_BY_KEY = {};
+RASHOD_CATS.forEach(function(c){
+  RASHOD_BY_KEY[c.key] = c;
+  c.codes.split(' ').forEach(function(code){ if(code) RASHOD_BY_CODE[code] = c.key; });
+});
+
+function rashodCat(p) {
+  if (p.group !== 'rashod') return null;
+  if (RASHOD_BY_CODE[p.brandCode]) return RASHOD_BY_CODE[p.brandCode];
+  var text = [p.brand, p.series, p.model].join(' ');
+  for (var i = 0; i < RASHOD_GUESS.length; i++) {
+    if (RASHOD_BY_KEY[RASHOD_GUESS[i]].re.test(text)) return RASHOD_GUESS[i];
+  }
+  return 'r_other';
+}
+
+// family — набор подфильтров, который показывается над выдачей (chip — надпись на нём).
 var FILTER_MAP = {
-  'inv79':  {label:'Инвертор 7–9 BTU',  test:function(p){ return p.group==='inv'&&(p.btu==='07'||p.btu==='09'); }},
-  'inv12':  {label:'Инвертор 12 BTU',   test:function(p){ return p.group==='inv'&&p.btu==='12'; }},
-  'inv18':  {label:'Инвертор 18 BTU',   test:function(p){ return p.group==='inv'&&p.btu==='18'; }},
-  'inv2436':{label:'Инвертор 24–36 BTU',test:function(p){ return p.group==='inv'&&(p.btu==='24'||p.btu==='30'||p.btu==='36'); }},
-  'on79':   {label:'On/Off 7–9 BTU',    test:function(p){ return p.group==='onoff'&&(p.btu==='07'||p.btu==='09'); }},
-  'on12':   {label:'On/Off 12 BTU',     test:function(p){ return p.group==='onoff'&&p.btu==='12'; }},
-  'on18':   {label:'On/Off 18 BTU',     test:function(p){ return p.group==='onoff'&&p.btu==='18'; }},
-  'on2436': {label:'On/Off 24–36 BTU',  test:function(p){ return p.group==='onoff'&&(p.btu==='24'||p.btu==='28'||p.btu==='30'||p.btu==='36'); }},
+  'inv':    {label:'Инверторные', family:'inv', chip:'Все инверторные', test:function(p){ return p.group==='inv'; }},
+  'inv79':  {label:'Инвертор 7–9 BTU',   family:'inv', chip:'7–9',   test:function(p){ return p.group==='inv'&&btuIn(p, 1, 10); }},
+  'inv12':  {label:'Инвертор 12 BTU',    family:'inv', chip:'12',    test:function(p){ return p.group==='inv'&&btuIn(p, 11, 14); }},
+  'inv18':  {label:'Инвертор 18 BTU',    family:'inv', chip:'18',    test:function(p){ return p.group==='inv'&&btuIn(p, 15, 21); }},
+  'inv2436':{label:'Инвертор 24–36 BTU', family:'inv', chip:'24–36', test:function(p){ return p.group==='inv'&&btuIn(p, 22, 99); }},
+  'onoff':  {label:'On/Off', family:'onoff', chip:'Все On/Off', test:function(p){ return p.group==='onoff'; }},
+  'on79':   {label:'On/Off 7–9 BTU',     family:'onoff', chip:'7–9',   test:function(p){ return p.group==='onoff'&&btuIn(p, 1, 10); }},
+  'on12':   {label:'On/Off 12 BTU',      family:'onoff', chip:'12',    test:function(p){ return p.group==='onoff'&&btuIn(p, 11, 14); }},
+  'on18':   {label:'On/Off 18 BTU',      family:'onoff', chip:'18',    test:function(p){ return p.group==='onoff'&&btuIn(p, 15, 21); }},
+  'on2436': {label:'On/Off 24–36 BTU',   family:'onoff', chip:'24–36', test:function(p){ return p.group==='onoff'&&btuIn(p, 22, 99); }},
   'truba':  {label:'Медная труба',       test:function(p){ return p.group==='truba'; }},
-  'rashod': {label:'Расходники',         test:function(p){ return p.group==='rashod'; }},
-  'poluprom':{label:'Полупром',          test:function(p){ return p.group==='poluprom'||p.group==='pac_inv'||p.group==='pac_onoff'; }},
-  'pac_kasseta':{label:'Полупром — Кассетные', test:function(p){
-    if(p.group!=='pac_inv'&&p.group!=='pac_onoff') return false;
-    return p.type==='cassette' || /кассет|cassette/i.test(p.series||'');
-  }},
-  'pac_kanalny':{label:'Полупром — Канальные', test:function(p){
-    if(p.group!=='pac_inv'&&p.group!=='pac_onoff') return false;
-    return p.type==='duct' || /канальн|duct/i.test(p.series||'');
-  }},
-  'pac_napolno':{label:'Полупром — Напольно-потолочные', test:function(p){
-    if(p.group!=='pac_inv'&&p.group!=='pac_onoff') return false;
-    return p.type==='floor-ceiling' || /напольно-потолочн|floor.?ceiling/i.test(p.series||'');
-  }},
-  'pac_multi':{label:'Мультисплит-системы', test:function(p){ return p.group==='multi' || p.type==='mult'; }},
+  'rashod': {label:'Расходники', family:'rashod', chip:'Все расходники', test:function(p){ return p.group==='rashod'; }},
+  'poluprom':{label:'Полупром', family:'poluprom', chip:'Весь полупром', test:isPac},
+  'pac_kasseta':{label:'Полупром — Кассетные', family:'poluprom', chip:'Кассетные',
+    test:function(p){ return pacKind(p, 'cassette', /кассет|cassette/i); }},
+  'pac_kanalny':{label:'Полупром — Канальные', family:'poluprom', chip:'Канальные',
+    test:function(p){ return pacKind(p, 'duct', /канальн|duct/i); }},
+  'pac_napolno':{label:'Полупром — Напольно-потолочные', family:'poluprom', chip:'Напольно-потолочные',
+    test:function(p){ return pacKind(p, 'floor-ceiling', /напольно-потолочн|floor.?ceiling/i); }},
+  'pac_column': {label:'Полупром — Колонные', family:'poluprom', chip:'Колонные',
+    test:function(p){ return pacKind(p, 'column', /колонн|column/i); }},
+  'pac_console':{label:'Полупром — Консольные', family:'poluprom', chip:'Консольные',
+    test:function(p){ return pacKind(p, 'console', /консольн|console/i); }},
+  // Мультисплиты у поставщиков лежат в полупроме с type «split» — узнаём их по серии.
+  'pac_multi':{label:'Мультисплит-системы', family:'poluprom', chip:'Мультисплит',
+    test:function(p){ return p.group==='multi' || p.type==='mult' || pacKind(p, 'mult', /мульти|multi/i); }},
   'multi':  {label:'Чёрные сплиты',     test:function(p){ return p.group==='multi'||p.group==='black'||p.color==='black'; }}
 };
+RASHOD_CATS.forEach(function(c){
+  FILTER_MAP[c.key] = {label:'Расходники — '+c.label, family:'rashod', chip:c.label,
+    test:function(p){ return rashodCat(p) === c.key; }};
+});
+
+var FILTER_FAMILIES = {
+  inv:      ['inv','inv79','inv12','inv18','inv2436'],
+  onoff:    ['onoff','on79','on12','on18','on2436'],
+  rashod:   ['rashod'].concat(RASHOD_CATS.map(function(c){ return c.key; })),
+  poluprom: ['poluprom','pac_kasseta','pac_kanalny','pac_napolno','pac_column','pac_console','pac_multi']
+};
+// Кнопка на главной, которую подсвечиваем, если выбран подфильтр без своей кнопки.
+var FAMILY_BUTTON = {rashod:'rashod', poluprom:'poluprom'};
 
 var GROUP_ORDER  = ['inv','onoff','pac_inv','pac_onoff','truba','poluprom','rashod','multi'];
 var GROUP_LABELS = {inv:'ИНВЕРТОРНЫЕ',onoff:'ON/OFF',pac_inv:'ПОЛУПРОМ ИНВЕРТОР',pac_onoff:'ПОЛУПРОМ ON/OFF',truba:'МЕДНАЯ ТРУБА',poluprom:'ПОЛУПРОМ',rashod:'РАСХОДНИКИ',multi:'ЧЁРНЫЕ СПЛИТЫ'};
@@ -1514,104 +1646,134 @@ function cardHtml(p, delay, withBrand) {
 function renderAll() {
   var content = document.getElementById('catalog-content');
   var list = PRODUCTS.filter(productVisible);
-  if(currentFilter) list = list.filter(FILTER_MAP[currentFilter].test);
+  if(currentFilter) {
+    list = list.filter(FILTER_MAP[currentFilter].test);
+    renderFilterBar(list);
+  }
   if(!list.length) {
     content.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text3)">Нет товаров в этой категории</div>';
     return;
   }
-  // Режим фильтра: одна сплошная плотная сетка всех подходящих товаров,
-  // в порядке массива PRODUCTS, без шапок брендов и плашек серий.
-  if (currentFilter) {
-    var fhtml = '<div class="pgrid">';
-    list.forEach(function(p, i){ fhtml += cardHtml(p, i, true); });
-    fhtml += '</div>';
-    content.innerHTML = fhtml;
-    observe();
-    return;
-  }
-  // Build: group → brand → series → items
-  var tree = {};
-  // BrandCode groups to merge into unified blocks
-  var DRAIN_BC   = {dmetplst:1, drenazhg:1};
-  var KREPEJ_BC  = {glh:1, kpo:1, blt:1, gka:1, shba:1, db:1};
-
-  list.forEach(function(p) {
-    var g   = p.group;
-    var bc  = p.brandCode;
-    var bname = p.brand;
-    if (DRAIN_BC[bc])  { bname = 'Дренаж'; }
-    else if (KREPEJ_BC[bc]) { bname = 'Крепеж (болты, гайки)'; }
-    // Блок бренда — ОДИН на раздел. Ключом был brandCode, а он у нас заведён по
-    // сериям (БИРЮСА: brcls/brfor/brleg/brsaf), из-за чего один бренд рисовался
-    // пятью одинаковыми блоками подряд. Группируем по имени бренда.
-    if(!tree[g]) tree[g] = {};
-    if(!tree[g][bname]) tree[g][bname] = {brand:bname, factories:{}, series:{}};
-    if(p.factory) tree[g][bname].factories[p.factory] = 1;
-    var s = p.series;
-    if(!tree[g][bname].series[s]) tree[g][bname].series[s] = {cardBenef:p.cardBenef, items:[]};
-    tree[g][bname].series[s].items.push(p);
-  });
-
   var html = '';
-  var order = GROUP_ORDER.concat(Object.keys(tree).filter(function(g){ return GROUP_ORDER.indexOf(g)<0; }));
-  order.forEach(function(gid) {
-    var brands = tree[gid]; if(!brands || !Object.keys(brands).length) return;
-    html += '<div id="'+gid+'">';
-    if(!currentFilter) {
-      html += '<div class="section-divider"><span>'+(GROUP_LABELS[gid]||gid.toUpperCase())+'</span><div class="sdl"></div></div>';
-    }
-    Object.keys(brands).forEach(function(bc) {
-      var bData = brands[bc];
-      html += '<div class="brand-block rv'+(currentFilter?' compact':'')+'">';
-      html += '<div class="brand-head">';
-      // Brand photos removed per ТЗ п.4 — unified brand headers without icons
-      // Завод показываем, только если он у блока один: после слияния серий
-      // в одном блоке могут оказаться разные заводы (DENKO — Changhong и TCL).
-      var fList = Object.keys(bData.factories);
-      var factoryTag = fList.length === 1 ? '<span class="brand-factory">Завод '+fList[0]+'</span>' : '';
-      html += '<div class="brand-info"><div class="brand-title-row"><span class="brand-name">'+bData.brand+'</span>'+factoryTag+'</div><div class="brand-line"></div></div>';
-      html += '</div>';
-      // For accessories/pipes — flat grid without series sub-headings.
-      // В режиме фильтра ВСЕ бренды рисуем плоской сеткой: компактная шапка + карточки в ряд.
-      var FLAT_GROUPS = {rashod:1, truba:1, poluprom:1, mobile:1};
-      if (FLAT_GROUPS[gid] || currentFilter) {
-        html += '<div class="sub-block"><div class="pgrid">';
-        var flatIdx = 0;
-        Object.keys(bData.series).forEach(function(sName) {
-          bData.series[sName].items.forEach(function(p) { html += cardHtml(p, flatIdx++); });
-        });
-        html += '</div></div>';
-      } else {
-        Object.keys(bData.series).forEach(function(sName) {
-          var sData = bData.series[sName];
-          var suffix = gid==='inv' ? (/invert[eo]r|инвертор/i.test(sName) ? '' : ' Inverter') : (gid==='onoff' ? (/on\s*\/\s*off/i.test(sName) ? '' : ' On/Off') : ''); // тип уже в названии серии («HARUKI inverter») — не дублируем
-          html += '<div class="sub-block">';
-          html += '<div class="series-badge g">'
-            + '<div><b>'+sName+suffix+'</b>'+sData.cardBenef+'</div>'
-            + '</div>';
-          html += '<div class="pgrid">';
-          sData.items.forEach(function(p,i){ html += cardHtml(p,i); });
-          html += '</div></div>';
-        });
-      }
+  if (currentFilter) {
+    // Режим фильтра: сплошная плотная сетка подходящих товаров всех поставщиков,
+    // без шапок брендов и плашек серий, разложенная по наличию.
+    splitByStock(list).forEach(function(items, ti) {
+      if(!items.length) return;
+      html += stockTierHead(ti, items.length) + '<div class="pgrid">';
+      items.forEach(function(p, i){ html += cardHtml(p, i, true); });
       html += '</div>';
     });
-    html += '</div>';
-  });
+  } else {
+    // Весь каталог: раздел → наличие → бренд → серия → карточки.
+    var byGroup = {};
+    list.forEach(function(p){ (byGroup[p.group] = byGroup[p.group] || []).push(p); });
+    var order = GROUP_ORDER.concat(Object.keys(byGroup).filter(function(g){ return GROUP_ORDER.indexOf(g)<0; }));
+    order.forEach(function(gid) {
+      if(!byGroup[gid]) return;
+      html += '<div id="'+gid+'">';
+      html += '<div class="section-divider"><span>'+(GROUP_LABELS[gid]||gid.toUpperCase())+'</span><div class="sdl"></div></div>';
+      splitByStock(byGroup[gid]).forEach(function(items, ti) {
+        if(items.length) html += stockTierHead(ti, items.length) + brandBlocksHtml(gid, items);
+      });
+      html += '</div>';
+    });
+  }
   content.innerHTML = html;
   observe();
 }
 
+// Блоки брендов одного раздела: бренд → серия → карточки.
+function brandBlocksHtml(gid, items) {
+  // BrandCode groups to merge into unified blocks
+  var DRAIN_BC   = {dmetplst:1, drenazhg:1};
+  var KREPEJ_BC  = {glh:1, kpo:1, blt:1, gka:1, shba:1, db:1};
+  // For accessories/pipes — flat grid without series sub-headings.
+  var FLAT_GROUPS = {rashod:1, truba:1, poluprom:1, mobile:1};
+  var brands = {};
+
+  items.forEach(function(p) {
+    var bname = p.brand;
+    if (DRAIN_BC[p.brandCode])  { bname = 'Дренаж'; }
+    else if (KREPEJ_BC[p.brandCode]) { bname = 'Крепеж (болты, гайки)'; }
+    // Блок бренда — ОДИН на раздел. Ключом был brandCode, а он у нас заведён по
+    // сериям (БИРЮСА: brcls/brfor/brleg/brsaf), из-за чего один бренд рисовался
+    // пятью одинаковыми блоками подряд. Группируем по имени бренда.
+    if(!brands[bname]) brands[bname] = {brand:bname, factories:{}, series:{}};
+    if(p.factory) brands[bname].factories[p.factory] = 1;
+    var s = p.series;
+    if(!brands[bname].series[s]) brands[bname].series[s] = {cardBenef:p.cardBenef, items:[]};
+    brands[bname].series[s].items.push(p);
+  });
+
+  var html = '';
+  Object.keys(brands).forEach(function(bn) {
+    var bData = brands[bn];
+    html += '<div class="brand-block rv">';
+    html += '<div class="brand-head">';
+    // Brand photos removed per ТЗ п.4 — unified brand headers without icons
+    // Завод показываем, только если он у блока один: после слияния серий
+    // в одном блоке могут оказаться разные заводы (DENKO — Changhong и TCL).
+    var fList = Object.keys(bData.factories);
+    var factoryTag = fList.length === 1 ? '<span class="brand-factory">Завод '+fList[0]+'</span>' : '';
+    html += '<div class="brand-info"><div class="brand-title-row"><span class="brand-name">'+bData.brand+'</span>'+factoryTag+'</div><div class="brand-line"></div></div>';
+    html += '</div>';
+    if (FLAT_GROUPS[gid]) {
+      html += '<div class="sub-block"><div class="pgrid">';
+      var flatIdx = 0;
+      Object.keys(bData.series).forEach(function(sName) {
+        bData.series[sName].items.forEach(function(p) { html += cardHtml(p, flatIdx++); });
+      });
+      html += '</div></div>';
+    } else {
+      Object.keys(bData.series).forEach(function(sName) {
+        var sData = bData.series[sName];
+        var suffix = gid==='inv' ? (/invert[eo]r|инвертор/i.test(sName) ? '' : ' Inverter') : (gid==='onoff' ? (/on\s*\/\s*off/i.test(sName) ? '' : ' On/Off') : ''); // тип уже в названии серии («HARUKI inverter») — не дублируем
+        html += '<div class="sub-block">';
+        html += '<div class="series-badge g">'
+          + '<div><b>'+sName+suffix+'</b>'+sData.cardBenef+'</div>'
+          + '</div>';
+        html += '<div class="pgrid">';
+        sData.items.forEach(function(p,i){ html += cardHtml(p,i); });
+        html += '</div></div>';
+      });
+    }
+    html += '</div>';
+  });
+  return html;
+}
+
+// Шапка выдачи: что выбрано, сколько позиций и сколько из них в наличии,
+// плюс подфильтры раздела со счётчиками (пустые не показываем).
+function renderFilterBar(list) {
+  var f = FILTER_MAP[currentFilter];
+  var inStock = list.filter(function(p){ return p.stock === 'in_stock'; }).length;
+  document.getElementById('filter-label').textContent = 'Фильтр: ' + f.label + ' · '
+    + positionsText(list.length) + (list.length ? ', в наличии ' + inStock : '');
+  var chips = '';
+  if (f.family) {
+    var visible = PRODUCTS.filter(productVisible);
+    FILTER_FAMILIES[f.family].forEach(function(k) {
+      var n = visible.filter(FILTER_MAP[k].test).length;
+      if(!n) return;
+      chips += '<button class="subf-chip'+(k===currentFilter?' active':'')+'" onclick="goFilter(\''+k+'\')">'
+        + FILTER_MAP[k].chip + ' <span>'+n+'</span></button>';
+    });
+  }
+  document.getElementById('filter-sub').innerHTML = chips;
+}
+
 function goFilter(fkey) {
-  currentFilter = fkey || null;
+  currentFilter = (fkey && FILTER_MAP[fkey]) ? fkey : null;
   document.querySelectorAll('.qbtn-filter').forEach(function(b){ b.classList.remove('active'); });
   var bar = document.getElementById('filter-bar');
   var reset = document.getElementById('btn-reset');
-  if(fkey && FILTER_MAP[fkey]) {
-    var mb = document.querySelector('.qbtn-filter[data-filter="'+fkey+'"]');
+  if(currentFilter) {
+    // У подфильтра («Дренажные насосы», «Колонные») своей кнопки нет — подсвечиваем раздел.
+    var mb = document.querySelector('.qbtn-filter[data-filter="'+currentFilter+'"]')
+      || document.querySelector('.qbtn-filter[data-filter="'+(FAMILY_BUTTON[FILTER_MAP[currentFilter].family]||'')+'"]');
     if(mb) mb.classList.add('active');
     bar.style.display = '';
-    document.getElementById('filter-label').textContent = 'Фильтр: '+FILTER_MAP[fkey].label;
     if(reset) reset.style.display = '';
   } else {
     bar.style.display = 'none';
@@ -1619,7 +1781,13 @@ function goFilter(fkey) {
   }
   renderAll();
   revealCatalogCards();
-  setTimeout(function(){ document.getElementById('catalog').scrollIntoView({behavior:'smooth'}); }, 50);
+  // Шапка закреплена сверху: без поправки на её высоту строка фильтра и подфильтры
+  // уезжали под неё (на телефоне шапка с номерами — ~130 px).
+  setTimeout(function(){
+    var nav = document.getElementById('main-nav');
+    var top = document.getElementById('catalog').getBoundingClientRect().top + window.pageYOffset;
+    window.scrollTo({top: Math.max(0, top - (nav ? nav.offsetHeight : 0)), behavior:'smooth'});
+  }, 50);
 }
 
 // Сразу показывает все карточки в каталоге без каскадной задержки.
@@ -1964,20 +2132,6 @@ function shareSite() {
   } else {
     window.open('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent('Оптовый прайс кондиционеров для монтажников и B2B — СплитХаб'), '_blank');
   }
-}
-
-function go(id) {
-  if (currentFilter) {
-    currentFilter = null;
-    document.querySelectorAll('.qbtn-filter').forEach(function(b){ b.classList.remove('active'); });
-    var bar = document.getElementById('filter-bar');
-    var reset = document.getElementById('btn-reset');
-    if(bar) bar.style.display = 'none';
-    if(reset) reset.style.display = 'none';
-    renderAll();
-  }
-  revealCatalogCards();
-  var el = document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth'});
 }
 
 // ── Nav height fix ────────────────────────────────────
@@ -2725,6 +2879,7 @@ syncFab();
         <span class="ppol-lbl">Мультисплит-системы</span>
       </button>
     </div>
+    <button class="ppol-all" onclick="closePolupromModal();goFilter('poluprom')">Весь полупром &mdash; колонные, консольные и другие</button>
     <button class="ppol-close" onclick="closePolupromModal()">&#10005; Закрыть</button>
   </div>
 </div>

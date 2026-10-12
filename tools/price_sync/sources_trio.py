@@ -159,8 +159,12 @@ STOCK_MAP = {
     "нет": ("out", "Нет в наличии"),
     "ожидается": ("order_7", "Под заказ от 7 дней"),
     "под заказ": ("order_7", "Под заказ от 7 дней"),
-    "мск": ("days_7", "7 дней"),
+    # Склад в Москве — не Крым (владелец 11.10.2026): «Под заказ», а не «7 дней».
+    "мск": ("order_7", "Под заказ от 7 дней"),
 }
+
+#: Для выбора поставщика (sync.find_offer): «МСК» — реальный остаток, сильнее «нет».
+STOCK_RANK = {"есть": 0, "мск": 3}
 
 #: Неизвестное или пустое состояние — честное «под заказ», а не «в наличии».
 UNKNOWN_STOCK = ("order_7", "Под заказ от 7 дней")
@@ -168,3 +172,7 @@ UNKNOWN_STOCK = ("order_7", "Под заказ от 7 дней")
 
 def stock_of(offer: dict) -> tuple[str, str]:
     return STOCK_MAP.get(offer.get("availability", ""), UNKNOWN_STOCK)
+
+
+def stock_rank(offer: dict) -> int:
+    return STOCK_RANK.get(offer.get("availability", ""), 4)

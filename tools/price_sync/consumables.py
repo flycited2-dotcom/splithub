@@ -10,10 +10,19 @@
 Позиции, где фасовка по-прежнему неизвестна (изоляция, кабель, дюбели), сюда НЕ
 попадают: их нельзя пересчитать вслепую, иначе болт за 230 ₽ превратится в 4 ₽.
 Они уходят в список кандидатов на подтверждение.
+
+Разделы, которые владелец прислал 25.09.2026 (медь, кронштейны, дренажные насосы,
+лента, дренаж, фреон), ведутся реестром `rashod_map.json`: карточка по sku → точная
+строка прайса и текст карточки. Реестр решает раньше угадывания по характеристикам.
 """
 from __future__ import annotations
 
+import json
 import re
+from functools import lru_cache
+from pathlib import Path
+
+from tools.price_sync import sources_trio
 
 #: Разделы прайса трио, где лежат расходники.
 SECTION_COPPER = 49
@@ -61,19 +70,35 @@ def _copper_offers(rows):
     return grouped
 
 
-def _copper_pick(offers, thick: bool):
-    """Толстая (ГОСТ) — самый толстый класс стенки, средняя — все остальные.
+def _is_thick(row, wall: float, heaviest: float) -> bool:
+    """Толстая (ГОСТ) или средняя стенка. Трио пишет класс в названии серии
+    («труба медная ТОЛСТАЯ стенка. ОАЭ») — ему и верим: иначе, когда толстой на
+    размер нет вовсе, самая толстая из средних ушла бы под видом ГОСТа. Серии нет —
+    толстая та, что в самом толстом классе среди предложений на этот размер."""
+    series = (row.get("series") or "").upper()
+    if "ТОЛСТ" in series:
+        return True
+    if "СРЕДН" in series:
+        return False
+    return wall >= heaviest - WALL_TOLERANCE
 
-    Внутри класса берём самое дешёвое предложение: марка/завод владельцу не важны.
+
+#: Наличие важнее цены (владелец 24.09.2026): «есть» → «Мск» → всё остальное.
+_COPPER_STOCK = {"есть": 0, "мск": 1}
+
+
+def _copper_pick(offers, thick: bool):
+    """Толстая (ГОСТ) или средняя стенка — из предложений всех заводов трио.
+
+    Владелец 25.09.2026: «модель писать не обязательно» — завод (ОАЭ, Узбекистан,
+    Россия) ему не важен. Внутри класса берём то, что есть на складе, из этого —
+    самое дешёвое.
     """
     heaviest = max(wall for wall, _ in offers)
-    if thick:
-        tier = [row for wall, row in offers if wall >= heaviest - WALL_TOLERANCE]
-    else:
-        tier = [row for wall, row in offers if wall < heaviest - WALL_TOLERANCE]
+    tier = [row for wall, row in offers if _is_thick(row, wall, heaviest) == thick]
     if not tier:
         return None
-    return min(tier, key=lambda row: row["dealer"])
+    return min(tier, key=lambda row: (_COPPER_STOCK.get(row.get("availability"), 2), row["dealer"]))
 
 
 def _match_copper(product, rows):
@@ -160,8 +185,90 @@ def _match_fastener(product, rows):
     return None
 
 
-def match(product: dict, trio_rows: list[dict]):
+REGISTRY_FILE = Path(__file__).resolve().parent / "rashod_map.json"
+
+
+@lru_cache(maxsize=None)
+def load_registry(path: Path = REGISTRY_FILE) -> dict[str, dict]:
+    """Реестр расходников трио: {sku: запись}. Нет файла — пустой реестр."""
+    if not path.exists():
+        return {}
+    items = json.loads(path.read_text(encoding="utf-8")).get("items", [])
+    return {item["sku"]: item for item in items}
+
+
+def registry(given: dict | None = None) -> dict[str, dict]:
+    return load_registry() if given is None else given
+
+
+def registry_entry(product: dict, given: dict | None = None):
+    return registry(given).get(product.get("sku") or "")
+
+
+def _plain(text: str) -> str:
+    """Название без двойных и неразрывных пробелов — у трио они гуляют."""
+    return " ".join((text or "").replace("\xa0", " ").split())
+
+
+def _registry_offer(entry: dict, rows):
+    """Строка прайса для записи реестра — по точному названию в своём разделе.
+
+    `pack` — сколько единиц прайса в нашей карточке (металлопласт: 44 ₽ за метр,
+    у нас бухта 100 м). `pack_promo` — в поле акции трио пишет цену всей фасовки
+    («Акция 3800 за бухту 100м»), её не умножаем.
+    """
+    wanted = _plain(entry["trio"])
+    row = next((row for row in rows
+                if row["section"] == entry["section"] and _plain(row["model"]) == wanted), None)
+    pack = entry.get("pack", 1)
+    if row is None or pack == 1:
+        return row
+    packed = dict(row)
+    packed["dealer"] = row["dealer"] * pack
+    if row["promo"] and not entry.get("pack_promo"):
+        packed["promo"] = row["promo"] * pack
+    return packed
+
+
+def delisted(product: dict, rows, given: dict | None = None) -> bool:
+    """Позиция реестра, которой у трио больше нет или цена 0,00 — «Нет в наличии».
+
+    Владелец: «какого нет — естественно пишешь нет в наличии». Но если раздел прайса
+    не скачался целиком, это сбой разбора, а не снятие с продажи — ничего не гасим.
+    """
+    entry = registry_entry(product, given)
+    if entry is None or not entry.get("trio"):
+        return False
+    if not any(row["section"] == entry["section"] for row in rows):
+        return False
+    offer = _registry_offer(entry, rows)
+    return offer is None or sources_trio.cost_of(offer) <= 0
+
+
+#: Текст карточки, который задаёт реестр. Цена, наличие, id и sku — не отсюда.
+CARD_TEXT = ("brand", "brandCode", "series", "model", "descShort", "cardBenef", "benefits", "photo")
+
+
+def apply_cards(catalog: list[dict], given: dict | None = None) -> int:
+    """Текст уже выложенных карточек расходников — из реестра. Повторный вызов
+    ничего не меняет. Возвращает число изменённых карточек."""
+    entries = registry(given)
+    changed = 0
+    for product in catalog:
+        card = (entries.get(product.get("sku") or "") or {}).get("card") or {}
+        fresh = {field: card[field] for field in CARD_TEXT if field in card}
+        if any(product.get(field) != value for field, value in fresh.items()):
+            product.update({field: list(value) if isinstance(value, list) else value
+                            for field, value in fresh.items()})
+            changed += 1
+    return changed
+
+
+def match(product: dict, trio_rows: list[dict], given: dict | None = None):
     """Найти строку прайса трио для карточки расходника. None — сопоставления нет."""
+    entry = registry_entry(product, given)
+    if entry is not None:
+        return _registry_offer(entry, trio_rows) if entry.get("trio") else None
     if product.get("group") == "truba":
         return _match_copper(product, trio_rows)
     if product.get("brand") == "Кронштейны":

@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -95,7 +96,29 @@ def price_source(name: str, product: dict, offer=None) -> str:
 
 
 def _offer_in(sources, name, product):
-    """Найти позицию у одного поставщика — способом, который подходит его прайсу."""
+    """Найти позицию у одного поставщика — способом, который подходит его прайсу.
+
+    Не нашлось по названию карточки — пробуем один код модели. На сайте «ECLIPSE
+    ECP-I18PN inv», у Бриза «…ECLIPSE Inverter 2026 ECP-I18PN»; на сайте «MHI SRK25ZTL-W»,
+    у JAC «Mitsubishi Heavy … SRK25ZTL-W». Без этого карточка числилась «без источника»
+    и неделями держала старые цену и «В наличии».
+    """
+    offer = _offer_by_model(sources, name, product)
+    code = model_code(product["model"])
+    if offer is None and code and code != product["model"]:
+        offer = _offer_by_model(sources, name, dict(product, model=code))
+    return offer
+
+
+_CODE_TOKEN = re.compile(r"(?=.*\d)(?=.*[A-Za-zА-Яа-я])[\w./()-]{5,}")
+
+
+def model_code(model: str) -> str:
+    """Код модели из названия карточки: слова с буквами и цифрами («ECP-I18PN»)."""
+    return " ".join(token for token in model.split() if _CODE_TOKEN.fullmatch(token))
+
+
+def _offer_by_model(sources, name, product):
     index, _, _ = sources[name]
     if name == "oasis":
         # Названия описательные («…серии ELYSIUM Inverter ELB-I07PN») — ищем наш код в них.
@@ -104,8 +127,10 @@ def _offer_in(sources, name, product):
                                       prefer=sources_oasis.breez_in_stock_first)
     if name == "techno":
         # Коды бывают и длиннее наших («RK-07SCDG/E»), и короче («ICE20») — ищем в обе стороны.
-        offer = matching.lookup_either(index, product["model"], product["brand"])
-        return offer if offer is not None and same_kind(offer.get("series", ""), product) else None
+        # Ищем только среди строк того же типа: «inv» нормализация отбрасывает, и «DU-07» с
+        # «DU-07 inv» давали один ключ — бралась чужая строка, а потом отбрасывалась.
+        same = [entry for entry in index if same_kind(entry[1].get("series", ""), product)]
+        return matching.lookup_either(same, product["model"], product["brand"])
     return matching.lookup(index, product["model"], product["brand"])
 
 
@@ -134,9 +159,13 @@ STOCK_RANK = {"in_stock": 0, "days_1_2": 1, "days_3_5": 2, "days_7": 3}
 NO_STOCK_RANK = 4
 
 
-def find_offer(sources, product):
+def find_offer(sources, product, registry=None):
     """Из всех поставщиков, у кого есть позиция, побеждает самая низкая цена витрины —
     среди тех, у кого она есть на складе.
+
+    Расходник из реестра трио (rashod_map.json) ищется только по реестру и всегда
+    с наценкой 10%: владелец задал её на присланные разделы целиком, и слово «болт»
+    в названии виброопоры не делает её крепежом с наценкой 100%.
 
     Правило владельца: «если дешевле у трио — берём трио, если у Техносистемса —
     берём его». Сравниваем итоговую цену, а не закупку: наценки у поставщиков разные.
@@ -145,6 +174,11 @@ def find_offer(sources, product):
     Если на складе нет ни у кого — побеждает просто самая низкая цена, и «под заказ»
     не перебивает «нет» у трио (владелец: у трио «нет» — ставим «нет»).
     """
+    if consumables.registry_entry(product, registry) is not None:
+        offer = consumables.match(product, sources["trio"][2], registry)
+        if offer is not None and sources_trio.cost_of(offer) > 0:
+            return "trio_rashod", sources_trio, offer
+        return None, None, None
     best = None
     for name in SOURCE_ORDER:
         offer = _offer_in(sources, name, product)
@@ -166,7 +200,7 @@ def find_offer(sources, product):
     if best is not None:
         return best[1], best[2], best[3]
     # Расходники моделью не совпадают — ищем по характеристикам товара.
-    offer = consumables.match(product, sources["trio"][2])
+    offer = consumables.match(product, sources["trio"][2], registry)
     if offer is not None:
         return price_source("trio", product, offer), sources_trio, offer
     return None, None, None
@@ -186,12 +220,21 @@ def load_revisions(path: Path = REVISIONS_FILE) -> dict[str, str]:
 
 
 def apply_revisions(catalog: list[dict], revisions: dict[str, str] | None = None) -> list[dict]:
-    """Перевести карточки со снятых моделей на новые. Повторный вызов ничего не меняет."""
+    """Перевести карточки со снятых моделей на новые. Повторный вызов ничего не меняет.
+
+    Ревизия null — карточку снимаем: новая ревизия уже стоит на витрине своей карточкой,
+    а старая висела дублем с ложным «В наличии» (MSAG3 N8C2S, 12.10.2026).
+    """
     revisions = load_revisions() if revisions is None else revisions
+    kept = []
     for product in catalog:
-        new = revisions.get(product.get("model", ""))
-        if new:
-            product["model"] = new
+        model = product.get("model", "")
+        if model in revisions and revisions[model] is None:
+            continue
+        if revisions.get(model):
+            product["model"] = revisions[model]
+        kept.append(product)
+    catalog[:] = kept
     return catalog
 
 
@@ -211,6 +254,13 @@ def supplier_model(source: str, offer: dict) -> str:
     return sources_jac.model_of(offer)
 
 
+#: Сроки короче «под заказ 7 дней», которых владелец больше не обещает (11.10.2026).
+SHORT_TERMS = ("days_1_2", "days_3_5", "days_7")
+
+#: Кондиционеры (не расходники): без поставщика их «в наличии» ничем не подтверждено.
+AC_GROUPS = ("inv", "onoff", "pac_inv", "pac_onoff")
+
+
 def sync(catalog_source: str, out_dir: Path, jac_path=None, restore: bool = True, oasis_path=None):
     catalog = apply_revisions(load_catalog(catalog_source))
     restored = restore_missing(catalog) if restore else []
@@ -225,6 +275,17 @@ def sync(catalog_source: str, out_dir: Path, jac_path=None, restore: bool = True
         name, module, offer = find_offer(sources, product)
         cost = module.cost_of(offer) if offer is not None else 0
         if offer is None or cost <= 0:
+            # Расходник реестра пропал из прайса трио — цену держим, но «Нет в наличии».
+            if consumables.delisted(product, sources["trio"][2]):
+                fresh["stock"], fresh["stockLabel"] = sources_trio.STOCK_MAP["нет"]
+            elif fresh.get("group") in AC_GROUPS and fresh.get("stock") == "in_stock":
+                # Кондиционера нет ни в одном прайсе — подтвердить «в наличии» нечем; «в
+                # наличии» у нас — только то, что поставщик держит в Крыму (владелец 11.10.2026).
+                fresh["stock"], fresh["stockLabel"] = "order_7", "Под заказ 7 дней"
+            elif fresh.get("stock") in SHORT_TERMS:
+                # Без поставщика сроку «1–2 / 3–5 / 7 дней» верить не на чем, а владелец
+                # 11.10.2026 таких сроков не даёт вовсе: только «в наличии» или «под заказ».
+                fresh["stock"], fresh["stockLabel"] = "order_7", "Под заказ 7 дней"
             untouched.append(product)
             updated.append(fresh)
             continue

@@ -102,7 +102,10 @@ def lookup_within(text_index, model: str, brand: str = "", min_length: int = 5, 
     # Точное совпадение сильнее вхождения: «MULT18» входит и в «MULT18/2» (наружный
     # блок), и совпадает с «MULT18» (внутренний). Без этого прохода внутреннему
     # блоку доставалась цена наружного — втрое дороже.
-    for key in ordered:
+    # Полное совпадение надёжно и для короткого кода: «DU-07» у нас и «DU-07» у
+    # Техносистемса — четыре знака, и без этого DENKO DU стояли «без источника».
+    exact = sorted((key for key in keys(model, brand) if len(key) >= 4), key=len, reverse=True)
+    for key in exact:
         for text, offer, _ in text_index:
             if key == text:
                 return offer

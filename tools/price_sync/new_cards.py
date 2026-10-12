@@ -18,7 +18,7 @@ import re
 import sys
 from pathlib import Path
 
-from tools.price_sync import matching, pricing, sources_techno, sync
+from tools.price_sync import consumables, matching, pricing, sources_techno, sources_trio, sync
 from tools.price_sync.sync import DEFAULT_OUT, load_catalog
 
 #: Завод-изготовитель указан в прайсе в скобках: «TCL on/off», «ASTRID (Midea)».
@@ -457,6 +457,65 @@ def build_supplier_cards(sources: dict, catalog: list[dict], registry: list[dict
     return cards
 
 
+# ── Расходники трио по реестру (rashod_map.json) ───────────────────────────────
+
+
+def rashod_card(entry: dict, identifier: int) -> dict:
+    """Заготовка карточки расходника: текст — из реестра, цена и наличие — потом."""
+    text = entry["card"]
+    return {
+        "id": str(identifier),
+        "sku": entry["sku"],
+        "brandCode": text["brandCode"],
+        "brand": text["brand"],
+        "series": text["series"],
+        "model": text["model"],
+        "group": text.get("group", "rashod"),
+        "type": "sol",
+        "factory": "",
+        "color": "white",
+        "btu": "-",
+        "area": 0,
+        "price": 0,
+        "stock": "order_7",
+        "stockLabel": "Под заказ от 7 дней",
+        "descShort": text["descShort"],
+        "cardBenef": text["cardBenef"],
+        "benefits": list(text["benefits"]),
+        "compressor": "-",
+        "freon": "-",
+        "photo": text["photo"],
+    }
+
+
+def build_rashod_cards(trio_rows: list[dict], catalog: list[dict], start_id: int,
+                       registry: dict | None = None) -> list[dict]:
+    """Карточки расходников трио из реестра, которых ещё нет на витрине.
+
+    Владелец 25.09.2026 о присланных разделах: «наценка плюс 10%», чего у нас нет —
+    выложить, а «какого нет — естественно пишешь нет в наличии». Поэтому берём все
+    позиции с ценой, а не только «есть». Нет цены у трио (R404: 0,00) — карточка
+    ждёт её, merge такую откладывает.
+    """
+    entries = consumables.registry(registry)
+    taken = {product.get("sku") for product in catalog}
+    identifier = start_id
+    cards = []
+    for entry in entries.values():
+        if not entry.get("card") or not entry.get("trio") or entry["sku"] in taken:
+            continue
+        card = rashod_card(entry, identifier)
+        offer = consumables.match(card, trio_rows, entries)
+        cost = sources_trio.cost_of(offer) if offer is not None else 0
+        if cost > 0:
+            card["price"] = pricing.compute_price(cost, "trio_rashod")
+            card["stock"], card["stockLabel"] = sources_trio.stock_of(offer)
+        taken.add(entry["sku"])
+        cards.append(card)
+        identifier += 1
+    return cards
+
+
 def write_review_csv(path: Path, cards: list[dict]) -> None:
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.writer(handle, delimiter=";")
@@ -477,9 +536,12 @@ def main(argv=None) -> int:
 
     catalog = load_catalog(args.catalog)
     cards = build(sources_techno.load(), catalog)
+    sources = sync.build_sources()
     # Новинки трио и Бриза по реестру серий (series_map.json).
-    cards += build_supplier_cards(sync.build_sources(), catalog + cards, load_series_map(),
+    cards += build_supplier_cards(sources, catalog + cards, load_series_map(),
                                   next_id(catalog + cards))
+    # Расходники трио по реестру (rashod_map.json).
+    cards += build_rashod_cards(sources["trio"][2], catalog + cards, next_id(catalog + cards))
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "new_cards_draft.json").write_text(
