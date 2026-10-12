@@ -26,6 +26,10 @@ COLUMNS = ("source", "nc_code", "brand", "title", "series",
 BREEZ_MARKERS = ("breez", "бриз")
 RUSKLIMAT_MARKERS = ("rusklimat", "русклимат")
 
+#: Владелец 12.10.2026: Русклимат пока не подключаем («потом подключим») — его строки
+#: в сверку не попадают вовсе. Подключить: поставить True.
+SUPPLIER_ENABLED = {"rusklimat": False}
+
 #: Склад, который для СплитХаба означает «в наличии здесь и сейчас».
 CRIMEA = "Симферополь"
 
@@ -71,6 +75,8 @@ def load(path: Path | str, breez_base_path: Path | str | None = None) -> list[di
             if len(parts) != len(COLUMNS):
                 continue
             row = dict(zip(COLUMNS, parts))
+            if not SUPPLIER_ENABLED.get(parts[0].lower(), True):
+                continue
             row["price_wholesale"] = _number(row["price_wholesale"])
             row["price_base"] = _number(row["price_base"])
             row["quantity"] = _number(row["quantity"])
@@ -115,7 +121,11 @@ def cost_of(offer: dict) -> float:
     return offer["price_wholesale"] or offer["price_base"]
 
 
-def _is_breez(offer: dict) -> bool:
+def is_daichi(offer: dict) -> bool:
+    return (offer.get("supplier") or "").lower() == "daichi"
+
+
+def is_breez(offer: dict) -> bool:
     return any(marker in (offer.get("supplier") or "").lower() for marker in BREEZ_MARKERS)
 
 
@@ -150,4 +160,4 @@ def breez_in_stock_first(offer: dict) -> int:
     не меняют: у JAC в базе так лежат MDV с Wi-Fi и без, а их наличие и цены
     владелец велел не трогать.
     """
-    return stock_rank(offer) if _is_breez(offer) else 0
+    return stock_rank(offer) if is_breez(offer) else 0

@@ -160,7 +160,9 @@ def main(argv=None) -> int:
     parser.add_argument("--assets", default=str(Path(__file__).resolve().parents[2] / "assets" / "img" / "products"))
     args = parser.parse_args(argv)
 
-    result = build(Path(args.out), Path(args.assets))
+    # Адрес сайта оставляем строкой: Path() схлопнул бы «https://» в «https:/».
+    on_site = args.assets.startswith(("http://", "https://"))
+    result = build(Path(args.out), args.assets if on_site else Path(args.assets))
     write = sys.stdout.buffer.write
     if result["problems"]:
         write("КАТАЛОГ НЕ СОБРАН — сначала нужно исправить:\n".encode("utf-8"))

@@ -136,3 +136,18 @@ def test_na_servere_foto_proveryaetsya_na_sayte(tmp_path, monkeypatch):
     assert result["photos"] == ["net.webp"]
     assert sorted(asked) == ["https://splithub.ru/assets/img/products/est.webp",
                              "https://splithub.ru/assets/img/products/net.webp"]
+
+
+def test_adres_foto_na_sayte_ne_lomaetsya_v_put(monkeypatch, tmp_path):
+    # Сервер передаёт --assets https://splithub.ru/... ; Path() схлопывал «//» в «/»,
+    # проверка «на сайте» не срабатывала, и все новые фото считались отсутствующими.
+    seen = {}
+
+    def fake_build(out_dir, assets, registry=None):
+        seen["assets"] = assets
+        return {"problems": [], "merged": [], "skipped": [], "written": True, "target": tmp_path,
+                "photos": [], "was": 0, "added": 0, "renamed": 0, "rashod_text": 0}
+
+    monkeypatch.setattr(merge, "build", fake_build)
+    merge.main(["--out", str(tmp_path), "--assets", "https://splithub.ru/assets/img/products/"])
+    assert str(seen["assets"]).startswith("https://")

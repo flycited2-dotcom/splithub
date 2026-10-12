@@ -157,3 +157,42 @@ def test_kartochka_iz_reestra():
     assert card["brandCode"] == "mdpri"
     assert card["btu"] == "12" and card["area"] == 35
     assert card["photo"] == "midea-easy-inv.webp" and card["group"] == "inv"
+
+
+# ── Daichi (владелец 12.10.2026: чего нет у трио, а у Daichi есть — выкладываем) ──
+
+
+def daichi_row(title, series, brand="Kentatsu", quantity=3, warehouse="Симферополь"):
+    return {"source": "oasis", "supplier": "daichi", "nc_code": "D-" + title, "brand": brand,
+            "title": title, "series": series, "price_wholesale": 30000.0, "price_base": 0.0,
+            "warehouse": warehouse, "quantity": quantity, "breez_base": 0.0}
+
+
+KANAMI = {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Канами R32 (Kanami R32)",
+          "brand": "KENTATSU", "series": "KANAMI R32 on/off", "group": "onoff", "suffix": "on/off",
+          "size": "kw", "photo": "kentatsu-kanami.webp"}
+
+
+def test_kod_modeli_iz_nazvaniya_daichi():
+    assert new_cards.daichi_code("Kentatsu KSGA21HFRN1/KSRA21HFRN1 Канами R32 (Kanami R32)",
+                                 "Kentatsu", "Канами R32 (Kanami R32)") == "KSGA21HFRN1"
+    assert new_cards.daichi_code("Bosch CLL2000 W 26/CLL2000 26 Climate Line 2000",
+                                 "Bosch", "Climate Line 2000") == "CLL2000 W 26"
+    assert new_cards.daichi_code(
+        "Daichi DA140BLCS1R1/DF140BLS3R1/DPC06L DA-BLC-R1/DF", "Daichi", "DA-BLC-R1/DF") == "DA140BLCS1R1"
+
+
+def test_daichi_tolko_na_sklade_i_svoego_brenda():
+    rows = [daichi_row("Kentatsu KSGA21HFRN1/KSRA21HFRN1 Канами R32 (Kanami R32)", "Канами R32 (Kanami R32)"),
+            daichi_row("Kentatsu KSGA26HFRN1/KSRA26HFRN1 Канами R32 (Kanami R32)", "Канами R32 (Kanami R32)",
+                       quantity=0),
+            daichi_row("Midea KSGA35HFRN1/X Канами R32 (Kanami R32)", "Канами R32 (Kanami R32)", brand="Midea")]
+    found = [code for _, code, _ in new_cards.supplier_offers([], rows, [KANAMI])]
+    assert found == ["KSGA21HFRN1"]
+
+
+def test_daichi_uzhe_na_sayte_s_hvostom_i():
+    # на сайте «MIDEA MSFE1S-09FRN8G1-I inv», у Daichi «MSFE1S-09FRN8G1» — один товар
+    codes = new_cards.catalog_codes([{"model": "MIDEA MSFE1S-09FRN8G1-I inv", "brand": "MIDEA"}])
+    assert new_cards.daichi_listed(codes, "MSFE1S-09FRN8G1")
+    assert not new_cards.daichi_listed(codes, "MSFE1S-12FRN8G1")

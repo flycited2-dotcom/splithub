@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
 import io
 
+import pytest
+
 from tools.price_sync import sources_oasis
+
+
+@pytest.fixture(autouse=True)
+def rusklimat_on(monkeypatch):
+    # Русклимат с 12.10.2026 отключён, но разбор его строк должен остаться рабочим.
+    monkeypatch.setitem(sources_oasis.SUPPLIER_ENABLED, "rusklimat", True)
+
 
 EXPORT = "\n".join([
     "rusklimat|NC-1|ULTIMA COMFORT|ELYSIUM ELB-I07PN|ELYSIUM|24900|16100|Симферополь|3",

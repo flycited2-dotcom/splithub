@@ -230,7 +230,7 @@ def build(offers: list[dict], catalog: list[dict]) -> list[dict]:
 SERIES_FILE = Path(__file__).resolve().parent / "series_map.json"
 
 #: Типоразмер в киловаттах×10 (DAICHI DA20, FUNAI KD55) → BTU витрины.
-KW_TO_BTU = {"20": "07", "22": "07", "25": "09", "26": "09", "28": "09", "30": "09",
+KW_TO_BTU = {"20": "07", "21": "07", "22": "07", "25": "09", "26": "09", "28": "09", "30": "09",
              "35": "12", "40": "12", "45": "18", "50": "18", "53": "18", "55": "18",
              "60": "24", "65": "24", "70": "24", "75": "24"}
 _BTU_CODE = re.compile(r"(?<![\d.])(07|09|12|18|24|28|30|36|48|60)(?!\d)")
@@ -292,6 +292,25 @@ def breez_code(title: str, series: str) -> str:
     return re.sub(r"\s*/\s*", "/", " ".join(tokens))
 
 
+def daichi_code(title: str, brand: str, series: str) -> str:
+    """Код внутреннего блока из названия Daichi: «Бренд ВНУТР/НАРУЖ[/панель] Серия»."""
+    middle = title.strip()
+    if middle.lower().startswith(brand.lower()):
+        middle = middle[len(brand):]
+    if series and middle.rstrip().endswith(series):
+        middle = middle.rstrip()[:-len(series)]
+    return middle.split("/")[0].strip()
+
+
+def daichi_listed(codes: list[str], code: str) -> bool:
+    """У Daichi нет хвоста «-I», который бывает в наших карточках («MSFE1S-09FRN8G1-I»)."""
+    if already_listed(codes, code):
+        return True
+    mine = matching.normalize(code)
+    return any(other in (mine + "I", mine + "R") or mine in (other + "I", other + "R")
+               for other in codes)
+
+
 def size_of(code: str, kind: str) -> str:
     """Типоразмер по коду: BTU (MSES1-07) или киловатты×10 (DA20, ICE60 = 6 кВт)."""
     upper = code.upper()
@@ -335,6 +354,16 @@ def supplier_offers(trio_rows: list[dict], oasis_rows: list[dict], registry: lis
                 if _title(row.get("series")) != match:
                     continue
                 yield entry, breez_code(row["title"], row["series"]), row
+        elif entry["supplier"] == "daichi":
+            # У Daichi в API один склад — Симферополь: берём только то, что лежит там.
+            for row in oasis_rows:
+                if (row.get("supplier") or "").lower() != "daichi" or row.get("quantity", 0) <= 0:
+                    continue
+                if (row.get("brand") or "").lower() != entry["brand_at_supplier"].lower():
+                    continue
+                if _title(row.get("series")) != match:
+                    continue
+                yield entry, daichi_code(row["title"], row["brand"], row["series"]), row
 
 
 def _bare(model: str, brand: str) -> str:
@@ -443,7 +472,8 @@ def build_supplier_cards(sources: dict, catalog: list[dict], registry: list[dict
     identifier = start_id
     cards = []
     for entry, code, _row in supplier_offers(sources["trio"][2], sources["oasis"][2], registry):
-        if not code or already_listed(codes, code):
+        listed = daichi_listed if entry["supplier"] == "daichi" else already_listed
+        if not code or listed(codes, code):
             continue
         card = enrich(supplier_card(entry, code, catalog, identifier), by_series, by_model,
                       entry["brand"] + "|" + entry["series"])

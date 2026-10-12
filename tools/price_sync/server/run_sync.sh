@@ -98,6 +98,24 @@ else
 fi
 unset H U
 
+# ── 3а. Техносистемс: их Telegram-канал и прайс-таблица ──────────────────────
+# Канал читает личный Telegram владельца — сессия живёт в контейнере telegram-personal-mcp
+# и наружу не выходит, скрипт подаём ему на stdin. Свежий текстовый прайс из канала
+# перебивает их Google-таблицу; таблица (цены + склад) — основа. Не вышло — прайс прежний.
+log "Техносистемс: канал и прайс-таблица..."
+last=$(cd "$APP" && "$PY" -m tools.price_sync.techno_live --last-id 2>/dev/null || echo 0)
+part=$OUT/techno_tg.json.part
+if docker exec -i -w /app -e LAST_ID="$last" telegram-personal-mcp-telegram-mcp-1 python -         < "$APP/tools/price_sync/server/techno_tg_fetch.py" > "$part" 2>/dev/null         && [ "$(head -c 1 "$part")" = "[" ]; then
+    mv -f "$part" "$OUT/techno_tg.json"
+else
+    rm -f "$part"
+    echo "[]" > "$OUT/techno_tg.json"
+    log "Техносистемс: канал прочитать не удалось — беру только таблицу"
+fi
+techno_args=""
+[ -n "$DRY" ] && techno_args="--dry-run"
+(cd "$APP" && "$PY" -m tools.price_sync.techno_live $techno_args)     || log "Техносистемс: таблица не прочиталась — прайс прежний"
+
 # ── 4–7. Пересчёт, карточки, сборка, заливка ─────────────────────────────────
 step() {  # step "название" попыток модуль [аргументы...]
     local title=$1 attempts=$2 i

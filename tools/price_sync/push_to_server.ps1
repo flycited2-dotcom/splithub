@@ -31,7 +31,7 @@ function Add-Files([string]$from, [string]$to, [string[]]$patterns) {
 # SplitHome, products.js репозитория (из него возвращаются THAICON и Mitsubishi Heavy).
 Add-Files (Join-Path $siteRoot "tools") (Join-Path $app "tools") @("__init__.py")
 Add-Files $syncRoot (Join-Path $app "tools\price_sync") @("*.py", "*.json", "*.csv", "*.sql")
-Add-Files (Join-Path $syncRoot "server") (Join-Path $app "tools\price_sync\server") @("*.sh")
+Add-Files (Join-Path $syncRoot "server") (Join-Path $app "tools\price_sync\server") @("*.sh", "*.py")
 Add-Files $siteRoot $app @("products.js")
 if ($WithSecrets) {
     Add-Files (Join-Path $siteRoot "converter\config") (Join-Path $app "converter\config") @("deploy.json")

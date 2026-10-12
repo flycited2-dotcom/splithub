@@ -33,6 +33,10 @@ RESTORE_BRANDS = ("THAICON", "MITSUBISHI HEAVY IND")
 #: Порядок опроса источников: первый, кто узнал модель, задаёт цену.
 SOURCE_ORDER = ("techno", "trio", "jac", "oasis")
 
+#: Бренды, которые берём только у Бриза (владелец 12.10.2026: «Royal Clima и Hisense
+#: у Чабанова не берём, это исключительно бризовская история»; FUNAI — с 24.09.2026).
+BREEZ_ONLY_BRANDS = ("ROYAL CLIMA", "HISENSE", "FUNAI")
+
 
 def parse_products_js(text: str) -> list[dict]:
     return json.loads(text[text.index("["):text.rindex("]") + 1])
@@ -180,9 +184,15 @@ def find_offer(sources, product, registry=None):
             return "trio_rashod", sources_trio, offer
         return None, None, None
     best = None
+    candidates = {}
+    breez_only = (product.get("brand") or "").upper() in BREEZ_ONLY_BRANDS
     for name in SOURCE_ORDER:
+        if breez_only and name != "oasis":
+            continue
         offer = _offer_in(sources, name, product)
         if offer is None:
+            continue
+        if breez_only and not sources_oasis.is_breez(offer):
             continue
         module = sources[name][1]
         cost = module.cost_of(offer)
@@ -195,8 +205,15 @@ def find_offer(sources, product, registry=None):
         rank_of = getattr(module, "stock_rank", None)
         level = rank_of(offer) if rank_of else STOCK_RANK.get(module.stock_of(offer)[0], NO_STOCK_RANK)
         rank = (level, price)
+        candidates[name] = (rank, source, module, offer)
         if best is None or rank < best[0]:
             best = (rank, source, module, offer)
+    trio = candidates.get("trio")
+    if (best is not None and trio is not None and best[1] == "oasis"
+            and sources_oasis.is_daichi(best[3]) and trio[0][0] <= best[0][0]):
+        # Трио (ИП Чабанов) берёт у того же Daichi и даёт отсрочку — владелец 12.10.2026:
+        # есть у трио не хуже по наличию — берём трио, даже если у Daichi дешевле.
+        best = trio
     if best is not None:
         return best[1], best[2], best[3]
     # Расходники моделью не совпадают — ищем по характеристикам товара.
