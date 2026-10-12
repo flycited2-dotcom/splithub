@@ -1,0 +1,629 @@
+{
+  "_comment": "Серии поставщиков, которые СплитХаб продаёт (владелец 24.09.2026: «начинай с тех, что в наличии; FUNAI — через API Бриза»; вечером того же дня — все бренды Бриза тем же способом: Royal Clima, Hisense, XIGMA, Ultima Comfort, Expertair, Hitachi, Alfacool, High Life, LG). Новая модель такой серии попадает на витрину сама, когда появляется в наличии: у трио — «есть», у Бриза — остаток на любом его складе (в Симферополе — «В наличии», на остальных — «Под заказ 7 дней», владелец 24.09.2026). Серии без наполнения в card_content.json или без фото ждут в черновике. match — название серии у поставщика (пробелы и регистр не важны; у трио — начало названия). size: btu — в коде BTU (07/09/12…), kw — киловатты×10 (20/25/35…). code: indoor — только внутренний блок, pair — пара блоков как у поставщика. series — ключ наполнения в card_content.json; на витрину серия идёт без слов inverter и on/off (их дописывает сама витрина), см. new_cards.display_series. Daichi (владелец 12.10.2026): серии на складе Daichi в Симферополе; supplier=daichi, match — серия Daichi как в его API; трио по таким моделям всё равно приоритетнее (sync.find_offer).",
+  "series": [
+    {"supplier": "trio", "section": 25, "match": "Сплит-системы Midea серии EASY (MSES) On/of",
+     "brand": "MIDEA", "series": "EASY on/off", "group": "onoff", "suffix": "on/off",
+     "size": "btu", "photo": "midea-easy.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 25, "match": "Сплит-системы Midea серии EASY (MSES) Inverter",
+     "brand": "MIDEA", "series": "EASY inverter", "group": "inv", "suffix": "inv",
+     "size": "btu", "photo": "midea-easy-inv.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 25, "match": "Сплит-системы HeatForce Тепловой насос",
+     "brand": "MIDEA", "series": "HeatForce inverter", "group": "inv", "suffix": "inv",
+     "size": "btu", "photo": "midea-heatforce.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 25, "match": "Сплит-системы Midea PRIMARY Inverter",
+     "brand": "MIDEA", "series": "PRIMARY inverter", "group": "inv", "suffix": "inv",
+     "size": "btu", "photo": "midea-primary-inv.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI серия AIR On/Off",
+     "brand": "DAICHI", "series": "AIR on/off", "group": "onoff", "suffix": "",
+     "size": "kw", "photo": "daichi-air.webp", "factory": "TCL"},
+    {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI серия EVEREST On/Off",
+     "brand": "DAICHI", "series": "EVEREST on/off", "group": "onoff", "suffix": "",
+     "size": "kw", "photo": "daichi-everest.webp", "factory": "TCL"},
+    {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI серия ICE On/Off",
+     "brand": "DAICHI", "series": "ICE on/off", "group": "onoff", "suffix": "",
+     "size": "kw", "photo": "daichi-ice.webp", "factory": "GREE"},
+    {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI серия ALPINE inverter",
+     "brand": "DAICHI", "series": "ALPINE inverter", "group": "inv", "suffix": "",
+     "size": "kw", "photo": "daichi-alpine.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI Тепловой насос серии SIBERIA",
+     "brand": "DAICHI", "series": "SIBERIA (-25°C inverter)", "group": "inv", "suffix": "",
+     "size": "kw", "photo": "daichi-siberia-25-c-inverter.webp", "factory": "GREE"},
+    {"supplier": "trio", "section": 22, "match": "Сплит-системы Бирюса серия Safari on/off",
+     "brand": "БИРЮСА", "series": "Safari on/off", "group": "onoff", "suffix": "on/off",
+     "size": "btu", "code": "pair", "photo": "birusa-safari.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 24, "match": "Roland FAVORITE II on/off",
+     "brand": "ROLAND", "series": "FAVORITE II on/off", "group": "onoff", "suffix": "on/off",
+     "size": "btu", "photo": "roland-favorite.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 24, "match": "Сплит-системы Roland FAVORITE II INVERTER",
+     "brand": "ROLAND", "series": "FAVORITE II inverter", "group": "inv", "suffix": "inv",
+     "size": "btu", "photo": "roland-favorite-inv.webp", "factory": "MIDEA"},
+    {"supplier": "trio", "section": 36, "match": "Напольно-потолочные блоки COMPETENZA On/Off",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA on/off", "group": "pac_onoff", "type": "floor-ceiling",
+     "suffix": "", "size": "btu", "code": "pair", "photo": "royalclima-competenza.webp", "factory": "AUX"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии AKOYA Inverter",
+     "brand": "FUNAI", "series": "AKOYA inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-akoya-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии AKOYA NERO Inverter",
+     "brand": "FUNAI", "series": "AKOYA NERO inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "color": "black", "photo": "funai-akoya-nero-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии DAIJIN Inverter",
+     "brand": "FUNAI", "series": "DAIJIN", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-daijin-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии DAIJIN",
+     "brand": "FUNAI", "series": "DAIJIN on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-daijin.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии EMPEROR SMART EYE FULL DC Inverter 2024",
+     "brand": "FUNAI", "series": "EMPEROR SMART EYE inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-emperor-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии EMPEROR UP SMART EYE FULL DC Inverter",
+     "brand": "FUNAI", "series": "EMPEROR UP SMART EYE inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-emperor-up-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии KADZOKU Inverter 2024",
+     "brand": "FUNAI", "series": "KADZOKU inverter 2024", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-kadzoku-inv-2024.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии KADZOKU Inverter 2025",
+     "brand": "FUNAI", "series": "KADZOKU inverter 2025", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-kadzoku-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии KAGAMI Inverter",
+     "brand": "FUNAI", "series": "KAGAMI inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-kagami-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии SENSEI 2.0 Inverter",
+     "brand": "FUNAI", "series": "SENSEI 2.0 inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-sensei-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии SHOGUN Inverter 2025",
+     "brand": "FUNAI", "series": "SHOGUN inverter 2025", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-shogun-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии SOYOKAZE Inverter",
+     "brand": "FUNAI", "series": "SOYOKAZE inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-soyokaze-inv.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии KADZOKU 2025",
+     "brand": "FUNAI", "series": "KADZOKU on/off 2025", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-kadzoku.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии KAGAMI",
+     "brand": "FUNAI", "series": "KAGAMI on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-kagami.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии SENSEI 2.0",
+     "brand": "FUNAI", "series": "SENSEI 2.0 on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-sensei.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии SENSEI 2025",
+     "brand": "FUNAI", "series": "SENSEI on/off 2025", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-sensei-2025.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии SENSEI NERO 2.0",
+     "brand": "FUNAI", "series": "SENSEI NERO 2.0 on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "color": "black", "photo": "funai-sensei-nero.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии SHOGUN 2025",
+     "brand": "FUNAI", "series": "SHOGUN on/off 2025", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-shogun-2025.webp"},
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии SHOGUN 2026",
+     "brand": "FUNAI", "series": "SHOGUN on/off 2026", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-shogun.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторная сплит-система кассетного типа серии COMPETENZA FULL DC EU Inverter 2024",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA кассетный inverter", "group": "pac_inv", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "royalclima-competenza-cassette-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы с функцией притока свежего воздуха серии ROYAL FRESH STANDARD FULL DC EU Inverter",
+     "brand": "ROYAL CLIMA", "series": "ROYAL FRESH STANDARD inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-royal-fresh-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии ARIA DC Inverter",
+     "brand": "ROYAL CLIMA", "series": "ARIA inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-aria-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии ATTICA NERO Inverter",
+     "brand": "ROYAL CLIMA", "series": "ATTICA NERO inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "color": "black", "photo": "royalclima-attica-nero-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии FELICITA Inverter",
+     "brand": "ROYAL CLIMA", "series": "FELICITA inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-felicita-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии GLORIA Inverter",
+     "brand": "ROYAL CLIMA", "series": "GLORIA inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-gloria-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии GRIDA DC EU Inverter",
+     "brand": "ROYAL CLIMA", "series": "GRIDA inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-grida-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии PERFETTO DC EU Inverter 2025",
+     "brand": "ROYAL CLIMA", "series": "PERFETTO inverter 2025", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-perfetto-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии RENAISSANCE DC EU Inverter 2024",
+     "brand": "ROYAL CLIMA", "series": "RENAISSANCE inverter 2024", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-renaissance-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии ROYAL SUPREMO BLANCO FULL DC EU Inverter",
+     "brand": "ROYAL CLIMA", "series": "ROYAL SUPREMO BLANCO inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-supremo-blanco-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии ROYAL SUPREMO NERO FULL DC EU Inverter",
+     "brand": "ROYAL CLIMA", "series": "ROYAL SUPREMO NERO inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "color": "black", "photo": "royalclima-supremo-nero-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии TRIUMPH LITE Inverter",
+     "brand": "ROYAL CLIMA", "series": "TRIUMPH LITE inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-triumph-lite-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии VELA NUOVA Inverter",
+     "brand": "ROYAL CLIMA", "series": "VELA NUOVA inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-vela-nuova-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система напольно-потолочного типа серии COMPETENZA 2023",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "factory": "AUX", "photo": "royalclima-competenza.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы повышенной мощности серии GRANDE",
+     "brand": "ROYAL CLIMA", "series": "GRANDE on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-grande.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии ATTICA NERO",
+     "brand": "ROYAL CLIMA", "series": "ATTICA NERO on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "color": "black", "photo": "royalclima-attica-nero.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии FELICITA",
+     "brand": "ROYAL CLIMA", "series": "FELICITA on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-felicita.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии GLORIA",
+     "brand": "ROYAL CLIMA", "series": "GLORIA on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-gloria.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии GRIDA",
+     "brand": "ROYAL CLIMA", "series": "GRIDA on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-grida.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии PANDORA",
+     "brand": "ROYAL CLIMA", "series": "PANDORA on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-pandora.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии PANDORA 2025",
+     "brand": "ROYAL CLIMA", "series": "PANDORA on/off 2025", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-pandora-2025.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии RENAISSANCE 2025",
+     "brand": "ROYAL CLIMA", "series": "RENAISSANCE on/off 2025", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-renaissance.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии TRIUMPH LITE",
+     "brand": "ROYAL CLIMA", "series": "TRIUMPH LITE on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-triumph-lite.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии VELA NUOVA",
+     "brand": "ROYAL CLIMA", "series": "VELA NUOVA on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-vela-nuova.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-система серии CITY 2.0 DC Inverter",
+     "brand": "HISENSE", "series": "CITY 2.0 inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-city-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы канального типа серии HEAVY EU DC INVERTER R32",
+     "brand": "HISENSE", "series": "HEAVY канальный inverter", "group": "pac_inv", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-duct-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии EXPERT PRO 2.0 EU DC Inverter",
+     "brand": "HISENSE", "series": "EXPERT PRO 2.0 inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-expert-pro-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии SMART DC Inverter (R32)",
+     "brand": "HISENSE", "series": "SMART inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-smart-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии VIBE DC Inverter",
+     "brand": "HISENSE", "series": "VIBE inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-vibe-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии VIBE PRO CHAMPAGNE EU DC Inverter",
+     "brand": "HISENSE", "series": "VIBE PRO CHAMPAGNE inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-vibe-pro-champagne-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии VISION PRO 2.0 CARBON SUPERIOR DC Inverter",
+     "brand": "HISENSE", "series": "VISION PRO 2.0 CARBON inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "color": "black", "photo": "hisense-vision-pro-carbon-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии ZOOM 2.0 DC Inverter",
+     "brand": "HISENSE", "series": "ZOOM 2.0 inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-zoom-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классическая сплит-система серии CITY 2.0 Classic A",
+     "brand": "HISENSE", "series": "CITY 2.0 on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-city.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классическая сплит-система серии STRONG VIBE Classic A",
+     "brand": "HISENSE", "series": "STRONG VIBE on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-strong-vibe.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-система серии ZOOM 2.0 Classic A",
+     "brand": "HISENSE", "series": "ZOOM 2.0 on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-zoom.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии BLACK CRYSTAL Classic A",
+     "brand": "HISENSE", "series": "BLACK CRYSTAL on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "color": "black", "photo": "hisense-black-crystal.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии EASY Classic A",
+     "brand": "HISENSE", "series": "EASY on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-easy.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии ERA Classic A Wi-Fi",
+     "brand": "HISENSE", "series": "ERA on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-era.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии NEO Classic A (R32)",
+     "brand": "HISENSE", "series": "NEO on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-neo.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии NEO Premium Classic A Wi-Fi",
+     "brand": "HISENSE", "series": "NEO Premium on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-neo-premium.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии STRONG NEO Premium Classic A",
+     "brand": "HISENSE", "series": "STRONG NEO Premium on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-strong-neo-premium.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии VIBE Classic A",
+     "brand": "HISENSE", "series": "VIBE on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-vibe.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ULTIMA COMFORT", "match": "Классические сплит-системы серии ECLIPSE 2024",
+     "brand": "ULTIMA COMFORT", "series": "ECLIPSE on/off 2024", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "ultima-eclipse-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ULTIMA COMFORT", "match": "Классические сплит-системы серии EXCEED",
+     "brand": "ULTIMA COMFORT", "series": "EXCEED on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "ultima-exceed.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Инверторные сплит-системы серии JETPRO Inverter",
+     "brand": "XIGMA", "series": "JETPRO inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "xigma-jetpro-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Инверторные сплит-системы серии SKY Inverter",
+     "brand": "XIGMA", "series": "SKY inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "xigma-sky-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Инверторные сплит-системы серии TURBOCOOL Inverter 2024",
+     "brand": "XIGMA", "series": "TURBOCOOL inverter 2024", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "xigma-turbocool-inv-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Классические сплит-системы серии JETPRO",
+     "brand": "XIGMA", "series": "JETPRO on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "xigma-jetpro.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Классические сплит-системы серии SKY",
+     "brand": "XIGMA", "series": "SKY on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "xigma-sky.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Инверторные сплит-системы серии CYCLONE DC Inverter",
+     "brand": "EXPERTAIR", "series": "CYCLONE inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "expertair-cyclone-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Инверторные сплит-системы серии PROFF DC Inverter",
+     "brand": "EXPERTAIR", "series": "PROFF inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "expertair-proff-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Классические сплит-системы кассетного типа серии HARD",
+     "brand": "EXPERTAIR", "series": "HARD кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "expertair-hard-cassette.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Классические сплит-системы серии PROGRESS",
+     "brand": "EXPERTAIR", "series": "PROGRESS on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "expertair-progress.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hitachi", "match": "Инверторные сплит-системы серии Shiratama",
+     "brand": "HITACHI", "series": "Shiratama inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "hitachi-shiratama-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hitachi", "match": "Инверторные сплит-системы серии X-Comfort",
+     "brand": "HITACHI", "series": "X-Comfort inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "hitachi-x-comfort-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ALFACOOL", "match": "Инверторные сплит-системы серии APUS Inverter 2024",
+     "brand": "ALFACOOL", "series": "APUS inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "alfacool-apus-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ALFACOOL", "match": "Классические сплит-системы серии APUS",
+     "brand": "ALFACOOL", "series": "APUS on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "alfacool-apus.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "HIGH LIFE", "match": "Классические сплит-системы серии PRIORITY CLASS 2.0",
+     "brand": "HIGH LIFE", "series": "PRIORITY CLASS 2.0 on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "highlife-priority-class.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "LG", "match": "Инверторные сплит-системы серии MEGACOOL DUAL Inverter",
+     "brand": "LG", "series": "MEGACOOL", "group": "inv", "suffix": "", "size": "btu",
+     "photo": "lg-megacool.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы канального (высоконапорного) типа серии HEAVY EU DC INVERTER R32",
+     "brand": "HISENSE", "series": "HEAVY высоконапорный канальный inverter", "group": "pac_inv", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-duct-hp-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы канального типа серии HEAVY EU DC INVERTER Wi-Fi",
+     "brand": "HISENSE", "series": "HEAVY канальный inverter Wi-Fi", "group": "pac_inv", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-duct-wifi-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы кассетного типа серии HEAVY EU DC INVERTER Wi-Fi",
+     "brand": "HISENSE", "series": "HEAVY кассетный inverter Wi-Fi", "group": "pac_inv", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-cassette-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы консольного типа серии HEAVY EU DC INVERTER Wi-Fi",
+     "brand": "HISENSE", "series": "HEAVY консольный inverter Wi-Fi", "group": "pac_inv", "type": "console", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-console-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы напольно-потолочного типа серии HEAVY EU DC INVERTER Wi-Fi",
+     "brand": "HISENSE", "series": "HEAVY напольно-потолочный inverter Wi-Fi", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-floor-ceiling-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии BLACK CRYSTAL SUPER DC Inverter Wi-Fi",
+     "brand": "HISENSE", "series": "BLACK CRYSTAL SUPER inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "color": "black", "photo": "hisense-black-crystal-super-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии CITY DC Inverter",
+     "brand": "HISENSE", "series": "CITY inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-city-dc-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии GOAL 2.0 DC Inverter",
+     "brand": "HISENSE", "series": "GOAL 2.0 inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-goal-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии Premium DESIGN Super DC Inverter Wi-Fi",
+     "brand": "HISENSE", "series": "Premium DESIGN inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-premium-design-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии SILVER CRYSTAL SUPER DC Inverter Wi-Fi",
+     "brand": "HISENSE", "series": "SILVER CRYSTAL SUPER inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-silver-crystal-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии VIBE PRO CARBON EU DC Inverter",
+     "brand": "HISENSE", "series": "VIBE PRO CARBON inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "color": "black", "photo": "hisense-vibe-pro-carbon-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии VIBE PRO SILVER EU DC Inverter",
+     "brand": "HISENSE", "series": "VIBE PRO SILVER inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-vibe-pro-silver-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии VISION PRO 2.0 SUPERIOR DC Inverter",
+     "brand": "HISENSE", "series": "VISION PRO 2.0 SUPERIOR inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-vision-pro-superior-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Инверторные сплит-системы серии ZOOM DC Inverter Wi-Fi",
+     "brand": "HISENSE", "series": "ZOOM inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "hisense-zoom-wifi-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Классические сплит-системы серии GOAL 2.0 Classic A",
+     "brand": "HISENSE", "series": "GOAL 2.0 on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "hisense-goal.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-система канального типа серии HEAVY 2.0 CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY 2.0 канальный on/off", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy2-duct.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-система кассетного типа серии HEAVY 2.0 CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY 2.0 кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy2-cassette.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-система колонного типа серии HEAVY 2.0 CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY 2.0 колонный on/off", "group": "pac_onoff", "type": "column", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy2-column.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-система напольно-потолочного типа серии HEAVY 2.0 CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY 2.0 напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy2-floor-ceiling.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-системы канального типа серии HEAVY CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY CLASSIC канальный on/off", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-classic-duct.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-системы кассетного типа серии HEAVY CLASSIC 2022",
+     "brand": "HISENSE", "series": "HEAVY CLASSIC кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-classic-cassette.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-системы колонного типа серии HEAVY CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY CLASSIC колонный on/off", "group": "pac_onoff", "type": "column", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-classic-column.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hisense", "match": "Сплит-системы напольно-потолочного типа серии HEAVY CLASSIC",
+     "brand": "HISENSE", "series": "HEAVY CLASSIC напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "hisense-heavy-classic-floor-ceiling.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторная сплит-система колонного типа серии ELEGANZA FULL DC EU Inverter",
+     "brand": "ROYAL CLIMA", "series": "ELEGANZA колонный inverter", "group": "pac_inv", "type": "column", "suffix": "", "size": "btu",
+     "photo": "royalclima-eleganza-column-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторная сплит-система канального типа серии COMPETENZA DC Inverter 2025",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA канальный inverter 2025", "group": "pac_inv", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "royalclima-competenza-duct-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторная сплит-система кассетного типа серии COMPETENZA DC Inverter 2025",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA кассетный inverter 2025", "group": "pac_inv", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "royalclima-competenza-cassette-inv-2025.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторная сплит-система напольно-потолочного типа серии COMPETENZA DC INVERTER 2025",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA напольно-потолочный inverter 2025", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "royalclima-competenza-floor-ceiling-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии FELICITA HEAT PUMP FULL DC EU Inverter",
+     "brand": "ROYAL CLIMA", "series": "FELICITA HEAT PUMP inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-felicita-heat-pump-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Инверторные сплит-системы серии OPTIMUM 2.0 Inverter",
+     "brand": "ROYAL CLIMA", "series": "OPTIMUM 2.0 inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "royalclima-optimum-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система канального типа серии ESPERTO 2024",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO канальный on/off 2024", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-duct-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система канального типа серии ESPERTO 2026",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO канальный on/off 2026", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-duct-2026.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система канального типа серии COMPETENZA 2023",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA канальный on/off", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "royalclima-competenza-duct.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система кассетного типа серии COMPETENZA 2024",
+     "brand": "ROYAL CLIMA", "series": "COMPETENZA кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "royalclima-competenza-cassette.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система кассетного типа серии ESPERTO 2024",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO кассетный on/off 2024", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-cassette-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система кассетного типа серии ESPERTO 2026",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO кассетный on/off 2026", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-cassette-2026.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система колонного типа серии ESPERTO 2024",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO колонный on/off 2024", "group": "pac_onoff", "type": "column", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-column-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система колонного типа серии ESPERTO 2026",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO колонный on/off 2026", "group": "pac_onoff", "type": "column", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-column-2026.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система напольно-потолочного типа серии ESPERTO 2024",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO напольно-потолочный on/off 2024", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-floor-ceiling-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классическая сплит-система напольно-потолочного типа серии ESPERTO 2026",
+     "brand": "ROYAL CLIMA", "series": "ESPERTO напольно-потолочный on/off 2026", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "royalclima-esperto-floor-ceiling-2026.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ROYAL CLIMA", "match": "Классические сплит-системы серии NOBILE",
+     "brand": "ROYAL CLIMA", "series": "NOBILE on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "royalclima-nobile.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии ONSEN FULL DC Inverter Heat Pump",
+     "brand": "FUNAI", "series": "ONSEN inverter", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-onsen-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии SENSEI Inverter 2023",
+     "brand": "FUNAI", "series": "SENSEI inverter 2023", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-sensei-inv-2023.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Инверторные сплит-системы серии SHOGUN Inverter 2024",
+     "brand": "FUNAI", "series": "SHOGUN inverter 2024", "group": "inv", "suffix": "inv", "size": "kw",
+     "photo": "funai-shogun-inv-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы канального типа серии DRAGON",
+     "brand": "FUNAI", "series": "DRAGON канальный on/off", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "kw",
+     "photo": "funai-dragon-duct.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы кассетного типа серии DRAGON",
+     "brand": "FUNAI", "series": "DRAGON кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "kw",
+     "photo": "funai-dragon-cassette.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы напольно-потолочного типа серии DRAGON",
+     "brand": "FUNAI", "series": "DRAGON напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "kw",
+     "photo": "funai-dragon-floor-ceiling.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "FUNAI", "match": "Классические сплит-системы серии KADZOKU",
+     "brand": "FUNAI", "series": "KADZOKU on/off", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "funai-kadzoku-classic.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Инверторные сплит-системы серии PROGRESS Inverter",
+     "brand": "EXPERTAIR", "series": "PROGRESS inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "expertair-progress-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Классические сплит-системы канального типа серии HARD",
+     "brand": "EXPERTAIR", "series": "HARD канальный on/off", "group": "pac_onoff", "type": "duct", "suffix": "", "size": "btu",
+     "photo": "expertair-hard-duct.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "EXPERTAIR by ZILON", "match": "Классические сплит-системы напольно-потолочного типа серии HARD",
+     "brand": "EXPERTAIR", "series": "HARD напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu",
+     "photo": "expertair-hard-floor-ceiling.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ECOSTAR", "match": "Инверторные сплит-системы серии RADIUM Inverter",
+     "brand": "ECOSTAR", "series": "RADIUM inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "ecostar-radium-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ECOSTAR", "match": "Инверторные сплит-системы серии RADIUM Inverter 2026",
+     "brand": "ECOSTAR", "series": "RADIUM inverter 2026", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "ecostar-radium-inv-2026.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ECOSTAR", "match": "Классические сплит-системы серии RADIUM",
+     "brand": "ECOSTAR", "series": "RADIUM on/off", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "ecostar-radium.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ECOSTAR", "match": "Классические сплит-системы серии RADIUM 2026",
+     "brand": "ECOSTAR", "series": "RADIUM on/off 2026", "group": "onoff", "suffix": "on/off", "size": "btu",
+     "photo": "ecostar-radium-2026.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ULTIMA COMFORT", "match": "Инверторные сплит-системы серии ECLIPSE Inverter 2024",
+     "brand": "ULTIMA COMFORT", "series": "ECLIPSE inverter 2024", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "ultima-eclipse-inv-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "ULTIMA COMFORT", "match": "Инверторные сплит-системы серии EXCEED Inverter",
+     "brand": "ULTIMA COMFORT", "series": "EXCEED inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "ultima-exceed-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Классические сплит-системы серии EXTRAFORCE 2024",
+     "brand": "XIGMA", "series": "EXTRAFORCE on/off 2024", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "xigma-extraforce.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "XIGMA", "match": "Классические сплит-системы серии TURBOCOOL 2024",
+     "brand": "XIGMA", "series": "TURBOCOOL on/off 2024", "group": "onoff", "suffix": "on/off", "size": "kw",
+     "photo": "xigma-turbocool-2024.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "HIGH LIFE", "match": "Инверторные сплит-системы серии COMFORT CLASS Inverter",
+     "brand": "HIGH LIFE", "series": "COMFORT CLASS inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "highlife-comfort-class-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "HIGH LIFE", "match": "Инверторные сплит-системы серии PRIORITY CLASS 2.0 Inverter",
+     "brand": "HIGH LIFE", "series": "PRIORITY CLASS 2.0 inverter", "group": "inv", "suffix": "inv", "size": "btu",
+     "photo": "highlife-priority-class-inv.webp"},
+
+    {"supplier": "breez", "brand_at_supplier": "Hitachi", "match": "Инверторные сплит-системы канального типа",
+     "brand": "HITACHI", "series": "RAD канальный inverter", "group": "pac_inv", "type": "duct", "suffix": "", "size": "kw",
+     "photo": "hitachi-duct-inv.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "AKAI", "match": "Асита (Asita)", "brand": "AKAI", "series": "ASITA on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "akai-asita-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Axioma", "match": "Серия F", "brand": "AXIOMA", "series": "Серия F on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "axioma-seriya-f-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Axioma", "match": "Серия H R32", "brand": "AXIOMA", "series": "Серия H R32 on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "axioma-seriya-h-r32-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Axioma", "match": "Серия H Инвертор R32 (Серия H Inverter R32)", "brand": "AXIOMA", "series": "Серия H R32 inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "axioma-seriya-h-r32-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Axioma", "match": "Серия F Инвертор (Серия F Inverter)", "brand": "AXIOMA", "series": "Серия F inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "axioma-seriya-f-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Bosch", "match": "Climate Line 2000", "brand": "BOSCH", "series": "CLIMATE LINE 2000 on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "bosch-climate-line-2000-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Coolup", "match": "Серия G Инвертор (Серия G Inverter)", "brand": "COOLUP", "series": "Серия G inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "coolup-seriya-g-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Coolup", "match": "Genius", "brand": "COOLUP", "series": "GENIUS on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "coolup-genius-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "DAICHIxMES", "match": "Эпсилон UNL_A (Epsilon_UNL_A)", "brand": "DAICHI", "series": "EPSILON UNL A on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daichi-epsilon-unl-a-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Альфа 1_UNL_A (Alpha 1_UNL_A)", "brand": "DAICHI", "series": "ALPHA 1 UNL A on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daichi-alpha-1-unl-a-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Альфа 2 Unl (Alpha 2 Unl)", "brand": "DAICHI", "series": "ALPHA 2 UNL on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daichi-alpha-2-unl-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Эйр R32 (Air R32)", "brand": "DAICHI", "series": "AIR R32 on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daichi-air-r32-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Эйр 2 Инвертор (Air 2 Inverter)", "brand": "DAICHI", "series": "AIR 2 inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "daichi-air-2-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "DA-BLC-R1/DF", "brand": "DAICHI", "series": "DA-BLC-R1/DF кассетный inverter", "group": "pac_inv", "type": "cassette", "suffix": "", "size": "btu", "photo": "daichi-da-blc-r1-df-kassetnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Сити Лайн (City Line) Ceiling&Floor", "brand": "DAICHI", "series": "CITY LINE напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "daichi-city-line-napolno-potolochnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Эверест (Everest)", "brand": "DAICHI", "series": "EVEREST on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daichi-everest.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "Карбон (Carbon)", "brand": "DAICHI", "series": "CARBON on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daichi-carbon-on-off.webp", "color": "black"},
+    {"supplier": "daichi", "brand_at_supplier": "Daichi", "match": "DA-BLK-R1/DF", "brand": "DAICHI", "series": "DA-BLK-R1/DF напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "daichi-da-blk-r1-df-napolno-potolochnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daikin", "match": "FTXF-E Sensira", "brand": "DAIKIN", "series": "FTXF-E SENSIRA inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "daikin-ftxf-e-sensira-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Daikin", "match": "FTYN", "brand": "DAIKIN", "series": "FTYN on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "daikin-ftyn-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "KSCB-W/KSUNB", "brand": "KENTATSU", "series": "KSCB-W/KSUNB напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "kentatsu-kscb-w-ksunb-napolno-potolochnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Канами (Kanami)", "brand": "KENTATSU", "series": "KANAMI on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "kentatsu-kanami-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Канами R32 (Kanami R32)", "brand": "KENTATSU", "series": "KANAMI R32 on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "kentatsu-kanami-r32-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Канами Инвертор Wi-Fi (Kanami Inverter Wi-Fi)", "brand": "KENTATSU", "series": "KANAMI WI-FI inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "kentatsu-kanami-wi-fi-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Ичи R32 (Ichi R32)", "brand": "KENTATSU", "series": "ICHI R32 on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "kentatsu-ichi-r32-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Кумо Инвертор (Kumo Inverter)", "brand": "KENTATSU", "series": "KUMO inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "kentatsu-kumo-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Отари (Otari)", "brand": "KENTATSU", "series": "OTARI inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "kentatsu-otari-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Тиба (Tiba)", "brand": "KENTATSU", "series": "TIBA on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "kentatsu-tiba-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Тиба Инвертор (Tiba Inverter)", "brand": "KENTATSU", "series": "TIBA inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "kentatsu-tiba-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Токачи (Tokachi)", "brand": "KENTATSU", "series": "TOKACHI inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "kentatsu-tokachi-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "Юки (Yuki)", "brand": "KENTATSU", "series": "YUKI inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "kentatsu-yuki-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "KSHG/KSUTG", "brand": "KENTATSU", "series": "KSHG/KSUTG напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "kentatsu-kshg-ksutg-napolno-potolochnyy-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "KSVG/KSUTG", "brand": "KENTATSU", "series": "KSVG/KSUTG кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu", "photo": "kentatsu-ksvg-ksutg-kassetnyy-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Kentatsu", "match": "KSVT-R/KSUT-L", "brand": "KENTATSU", "series": "KSVT-R/KSUT-L кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu", "photo": "kentatsu-ksvt-r-ksut-l-kassetnyy-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MCA3/MOU-L", "brand": "MIDEA", "series": "MCA3/MOU-L кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu", "photo": "midea-mca3-mou-l-kassetnyy-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MCD1", "brand": "MIDEA", "series": "MCD1 кассетный inverter", "group": "pac_inv", "type": "cassette", "suffix": "", "size": "btu", "photo": "midea-mcd1-kassetnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MCD1-F-B/MO-N8", "brand": "MIDEA", "series": "MCD1-F-B/MO-N8 кассетный inverter", "group": "pac_inv", "type": "cassette", "suffix": "", "size": "btu", "photo": "midea-mcd1-f-b-mo-n8-kassetnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MCD1/MOU-L", "brand": "MIDEA", "series": "MCD1/MOU-L кассетный on/off", "group": "pac_onoff", "type": "cassette", "suffix": "", "size": "btu", "photo": "midea-mcd1-mou-l-kassetnyy-on-off.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "Парамаунт Инвертор (Paramount Inverter)", "brand": "MIDEA", "series": "PARAMOUNT inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "midea-paramount-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "Анлимитед (Unlimited)", "brand": "MIDEA", "series": "UNLIMITED on/off", "group": "onoff", "type": "split", "suffix": "on/off", "size": "btu", "photo": "midea-unlimited.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "Анлимитед Инвертор (Unlimited Inverter)", "brand": "MIDEA", "series": "UNLIMITED inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "midea-unlimited-inv.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "Изи Инвертор (Easy Inverter)", "brand": "MIDEA", "series": "EASY inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "midea-easy-inv.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "Breezeless E", "brand": "MIDEA", "series": "BREEZELESS E inverter", "group": "inv", "type": "split", "suffix": "inv", "size": "btu", "photo": "midea-breezeless.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MTJ1", "brand": "MIDEA", "series": "MTJ1 канальный inverter", "group": "pac_inv", "type": "duct", "suffix": "", "size": "btu", "photo": "midea-mtj1-kanalnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE(U)", "brand": "MIDEA", "series": "MUE напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-napolno-potolochnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE/MO-N8", "brand": "MIDEA", "series": "MUE/MO-N8 напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-mo-n8-napolno-potolochnyy-inverter.webp"},
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE/MOU-L", "brand": "MIDEA", "series": "MUE/MOU-L напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-mou-l-napolno-potolochnyy-on-off.webp"}
+  ]
+}

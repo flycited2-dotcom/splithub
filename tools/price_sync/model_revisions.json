@@ -1,0 +1,22 @@
+{
+  "_comment": "Снятые модели → новая ревизия той же серии. Breezeless E: у трио с сентября 2026 только MSFE1S-xxFRN8G1, старый MSFE-xxN8D6 остался лишь строкой Daichi с 0 шт. 12.10.2026: MSAG2-12 N8C2S → N8C2U (трио, Daichi), THAICON TL-RWB80/100 NR → NA (JAC). null — карточка снимается с витрины: её место уже заняла карточка новой ревизии (MSAG3 N8C2S → 1809–1811: MSAG3-12N8C2, MSAG3-18/24N8D0). 12.10.2026 сняты (нет ни у одного поставщика, владелец: «снимай»): MSAG2-18/24 N8C2S, Бирюса B-07/24 СPR, В-30/36 SPR, EUROHOFF AVE-24M. 12.10.2026: MARSA 12/18MTA3 → RK-12/18MTA4 (в прайсе и на складе Техносистемса только MTA4).",
+  "MIDEA MSFE-09N8D6-I inv": "MIDEA MSFE1S-09FRN8G1-I inv",
+  "MIDEA MSFE-12N8D6-I inv": "MIDEA MSFE1S-12FRN8G1-I inv",
+  "MIDEA MSFE-18N8D6-I inv": "MIDEA MSFE1S-18FRN8G1-I inv",
+  "MIDEA MSFE-24N8D6-I inv": "MIDEA MSFE1S-24FRN8G1-I inv",
+  "MIDEA MSAG2-12N8C2S-I inv": "MIDEA MSAG2-12N8C2U-I inv",
+  "THAICON TL-RWB80-NR": "THAICON TL-RWB80-NA",
+  "THAICON TL-RWB100-NR": "THAICON TL-RWB100-NA",
+  "MIDEA MSAG3-12N8C2S-I inv": null,
+  "MIDEA MSAG3-18N8C2S-I inv": null,
+  "MIDEA MSAG3-24N8C2S-I inv": null,
+  "EUROHOFF AVE-24M on/off": null,
+  "MIDEA MSAG2-18N8C2S-I inv": null,
+  "MIDEA MSAG2-24N8C2S-I inv": null,
+  "БИРЮСА В-30SPR/B-30SPQ on/off": null,
+  "БИРЮСА В-36SPR/B-36SPQ on/off": null,
+  "БИРЮСА B-07СPR/B-07СPQ on/off": null,
+  "БИРЮСА B-24СPR/B-24СPQ on/off": null,
+  "MARSA 12MTA3/E": "MARSA RK-12MTA4/RK-12MTA4E",
+  "MARSA 18MTA3/E": "MARSA RK-18MTA4/RK-18MTA4E"
+}
