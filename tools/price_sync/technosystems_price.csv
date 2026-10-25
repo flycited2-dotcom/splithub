@@ -11,17 +11,17 @@ EUROHOFF;Напольно-потолочные inverter (Gree);EUD140W1/ZD1;на
 EUROHOFF;Напольно-потолочные inverter (Gree);EUD160W1/ZD1;напольно-потолочный;167950;;есть;
 EUROHOFF;Кассетные inverter (Gree);EUD100W1/T1;кассета;103900;;есть;
 EUROHOFF;Кассетные inverter (Gree);EUD140W1/T1;кассета;160200;;есть;
-EUROHOFF;Кассетные inverter (Gree);EUD160W1/T1;кассета;165050;;есть;
+EUROHOFF;Кассетные inverter (Gree);EUD160W1/T1;кассета;165050;;под заказ;
 DENKO;Напольно-потолочные on/off (TCL);DNP-18A;напольно-потолочный;39950;;есть;
 DENKO;Напольно-потолочные on/off (TCL);DNP-24A;напольно-потолочный;51600;;есть;
 DENKO;Напольно-потолочные inverter (TCL);DNP-36A-I;напольно-потолочный;82550;;есть;
 DENKO;Напольно-потолочные inverter (TCL);DNP-48A-I;напольно-потолочный;103900;;под заказ;
 DENKO;Напольно-потолочные inverter (TCL);DNP-60A-I;напольно-потолочный;111650;;есть;
-DENKO;Кассетные on/off (TCL);DCS-36A;кассета;66800;;есть;
+DENKO;Кассетные on/off (TCL);DCS-36A;кассета;;;под заказ;
 DENKO;Кассетные inverter (TCL);DCS-18A-I;кассета;47600;;есть;
 DENKO;Кассетные inverter (TCL);DCS-24A-I;кассета;59700;;есть;
-DENKO;Кассетные inverter (TCL);DCS-36A-I;кассета;81500;;есть;
-DENKO;Кассетные inverter (TCL);DCS-48A-I;кассета;104850;;есть;
+DENKO;Кассетные inverter (TCL);DCS-36A-I;кассета;81500;;под заказ;
+DENKO;Кассетные inverter (TCL);DCS-48A-I;кассета;104850;;под заказ;
 DENKO;Кассетные inverter (TCL);DCS-60A-I;кассета;111650;;есть;
 DENKO;Канальные on/off (TCL);DKN-36A;канальный;;;под заказ;цена не указана
 DENKO;Канальные on/off (TCL);DKN-48A;канальный;;;под заказ;цена не указана
@@ -41,7 +41,7 @@ DAICHI;ICE (-15°C inverter);ICE25;настенный;28450;;есть;
 DAICHI;ICE (-15°C inverter);ICE35;настенный;31650;;есть;
 DAICHI;ICE (-15°C inverter);ICE50;настенный;57650;;есть;
 DAICHI;ICE (-15°C inverter);ICE70;настенный;68600;;есть;
-DAICHI;SIBERIA (-25°C inverter);SIB25;настенный;39000;;есть;
+DAICHI;SIBERIA (-25°C inverter);SIB25;настенный;41000;;есть;
 DANTEX;Gree on/off;RK-07SCDG/E;настенный;18650;17850;есть;
 DANTEX;Gree on/off;RK-09SCDG/E;настенный;20450;19600;есть;
 DANTEX;Gree on/off;RK-12SCDG/E;настенный;28950;27700;есть;
@@ -50,8 +50,8 @@ DANTEX;Gree on/off;RK-24SCDG/E;настенный;55550;53200;есть;
 DANTEX;CONCORD inverter (Gree);RK-07SCDGI/E;настенный;29000;;есть;
 DANTEX;CONCORD inverter (Gree);RK-09SCDGI/E;настенный;30400;;есть;
 DANTEX;ADVANCE on/off (TCL);RK-12SAT/E;настенный;23200;19700;есть;
-DANTEX;ADVANCE on/off (TCL);RK-07SAT/E;настенный;;;;
-DANTEX;ADVANCE on/off (TCL);RK-09SAT/E;настенный;;;;
+DANTEX;ADVANCE on/off (TCL);RK-07SAT/E;настенный;19450;;под заказ;
+DANTEX;ADVANCE on/off (TCL);RK-09SAT/E;настенный;18500;;под заказ;
 DANTEX;ADVANCE inverter (TCL);RK-09SATI PLUS/E;настенный;28500;24900;есть;
 DANTEX;ADVANCE inverter (TCL);RK-12SATI PLUS/E;настенный;31100;27100;есть;
 EUROHOFF;ASTRID (Midea);AVE-07M;настенный;15500;14300;есть;
@@ -62,15 +62,15 @@ EUROHOFF;CALLISTO inverter (Midea);EM-07I;настенный;23300;20700;ест�
 EUROHOFF;CALLISTO inverter (Midea);EM-09I;настенный;24600;22200;есть;
 EUROHOFF;CALLISTO inverter (Midea);EM-12I;настенный;26800;26300;под заказ;
 EUROHOFF;CALLISTO inverter (Midea);EM-18I;настенный;44800;41000;под заказ;
-EUROHOFF;CALLISTO inverter (Midea);EM-24I;настенный;54000;;есть;
+EUROHOFF;CALLISTO inverter (Midea);EM-24I;настенный;54000;;под заказ;
 EUROHOFF;COSMOS PRO inverter (Midea);EUMD-09i;настенный;24600;22200;под заказ;
 EUROHOFF;COSMOS PRO inverter (Midea);EUMD-12i;настенный;26300;;есть;
 EUROHOFF;COSMOS PRO inverter (Midea);EUMD-18i;настенный;44800;40750;есть;
 EUROHOFF;COSMOS PRO inverter (Midea);EUMD-24i;настенный;54000;;есть;
 MARSA;TCL;RK-12MTA4/RK-12MTA4E;настенный;22100;18600;есть;
 MARSA;TCL;RK-18MTA4/RK-18MTA4E;настенный;35900;33900;есть;
-MARSA;TCL;RK-07MTA3/RK-07MTA3E;настенный;;;;
-MARSA;TCL;RK-09MTA4/RK-09MTA4E;настенный;;;;
+MARSA;TCL;RK-07MTA3/RK-07MTA3E;настенный;16400;;под заказ;
+MARSA;TCL;RK-09MTA4/RK-09MTA4E;настенный;17800;13700;под заказ;
 DENKO;Changhong inverter;QW-07 inv;настенный;18000;;есть;
 DENKO;TCL on/off;DU-07;настенный;14200;12700;есть;
 DENKO;TCL on/off;DU-09;настенный;15700;13700;есть;
@@ -78,9 +78,9 @@ DENKO;TCL on/off;DU-12;настенный;21600;18600;есть;
 DENKO;TCL on/off;DU-18;настенный;35500;;под заказ;
 DENKO;TCL on/off;DU-24;настенный;44350;;под заказ;
 DENKO;TCL inverter;DU-07 inv;настенный;20000;18800;под заказ;
-DENKO;TCL inverter;DU-09 inv;настенный;21400;20000;есть;
+DENKO;TCL inverter;DU-09 inv;настенный;21400;20000;под заказ;
 DENKO;TCL inverter;DU-12 inv;настенный;25000;23350;под заказ;
-DENKO;TCL inverter;DU-18 inv;настенный;35500;;под заказ;в прайсе цена как у on/off
+DENKO;TCL inverter;DU-18 inv;настенный;40200;;под заказ;в прайсе цена как у on/off
 DENKO;TCL inverter;DU-24 inv;настенный;44350;;под заказ;в прайсе цена как у on/off
 YUETU;GMCC on/off;YEL-07IN/OUT;настенный;11200;10900;есть;
 YNOVIK;on/off;YNA-09IN/OUT;настенный;12550;12300;есть;
@@ -88,11 +88,16 @@ YNOVIK;on/off;YNA-12IN/OUT;настенный;18310;17950;есть;
 YUETU;GMCC inverter;YEL-07Z;настенный;15600;;под заказ;
 YUETU;GMCC inverter;YEL-09Z;настенный;16900;;есть;
 YUETU;GMCC inverter;YEL-12Z;настенный;19850;;есть;
-DAHATSU;LEGEND on/off;DA-07H;настенный;;;;
-DAHATSU;LEGEND on/off;DA-09H;настенный;;;;
-DAHATSU;LEGEND on/off;DA-12H;настенный;;;;
-DAHATSU;LEGEND on/off;DA-18H;настенный;;;;
-DAHATSU;DA inverter;DA-07I;настенный;;;;
-DAHATSU;DA inverter;DA-09I;настенный;;;;
-DAHATSU;DA inverter;DA-18I;настенный;;;;
-DAHATSU;DA inverter;DA-24I;настенный;;;;
+DAHATSU;LEGEND on/off;DA-07H;настенный;16400;;под заказ;
+DAHATSU;LEGEND on/off;DA-09H;настенный;17950;;под заказ;
+DAHATSU;LEGEND on/off;DA-12H;настенный;25250;;под заказ;
+DAHATSU;LEGEND on/off;DA-18H;настенный;41200;;под заказ;
+DAHATSU;DA inverter;DA-07I;настенный;22100;;под заказ;
+DAHATSU;DA inverter;DA-09I;настенный;23950;;под заказ;
+DAHATSU;DA inverter;DA-18I;настенный;46200;;есть;
+DAHATSU;DA inverter;DA-24I;настенный;60250;;под заказ;
+DAICHI;DAICHI SIBERIA -25С INVERTOR;SIB35AVQS1R;настенный;48500;;под заказ;добавлено автоматически из прайса Техносистемса
+EUROHOFF;Серия Astrid (Мidea);AVE-24M;настенный;44000;42000;под заказ;добавлено автоматически из прайса Техносистемса
+EUROHOFF;Тепловой inverter;ETN-18M inv;настенный;68750;63750;под заказ;добавлено автоматически из прайса Техносистемса
+EUROHOFF;насос -25С inverter;ETN-24M inv;настенный;85750;;под заказ;добавлено автоматически из прайса Техносистемса
+DENKO;кассетные on/off TCL;DCS-36M касс.on/of AUX;кассета;66800;;есть;добавлено автоматически из прайса Техносистемса

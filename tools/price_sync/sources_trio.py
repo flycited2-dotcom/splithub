@@ -99,6 +99,8 @@ def parse(html: str, page: str, section) -> list[dict]:
                 availability = _availability(marker)
                 marker.extract()
             model = cells[0].get_text(" ", strip=True)
+            # Опечатка в прайсе трио: «ICE35AVQS1R/2/ICE35FVS1R-2» вместо «ICE35AVQS1R-2/…».
+            model = re.sub(r"(?<=[A-Z0-9]R)/(\d)/", r"-\1/", model)
             old, promo = cells[1].select_one(".old_price"), cells[1].select_one(".price_promotion")
             if old is not None and promo is not None:
                 dealer = _money(old.get_text())

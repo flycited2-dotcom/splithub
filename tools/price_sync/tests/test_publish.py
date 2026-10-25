@@ -15,16 +15,20 @@ def test_obychnoe_izmenenie_ceny_prohodit():
     assert report["prices"] == 1 and not report["held"]
 
 
-def test_skachok_ceny_derzhim_staruyu():
-    # MIDEA MSFE: 29 190 -> 40 190 (+38%) — похоже на заглушку, без человека не льём
-    final, report = publish.guard([item("1", 29190)], [item("1", 40190)])
-    assert final[0]["price"] == 29190
-    assert report["held"][0]["new"] == 40190
-    assert report["prices"] == 0
+def test_rost_ceny_posle_akcii_primenyaetsya():
+    # владелец 21.10.2026: Hisense +30% — товар вышел из акции, цена должна быть актуальной
+    final, report = publish.guard([item("1", 18290)], [item("1", 23690)])
+    assert final[0]["price"] == 23690 and not report["held"] and report["prices"] == 1
+
+
+def test_cena_vyrosshaya_vdvoe_derzhitsya_na_proverku():
+    final, report = publish.guard([item("1", 165)], [item("1", 8250)])      # потерялась фасовка
+    assert final[0]["price"] == 165
+    assert report["held"][0]["new"] == 8250 and report["prices"] == 0
 
 
 def test_nalichie_obnovlyaetsya_dazhe_pri_zaderzhannoy_cene():
-    final, report = publish.guard([item("1", 29190, "order_7")], [item("1", 40190, "out")])
+    final, report = publish.guard([item("1", 29190, "order_7")], [item("1", 70000, "out")])
     assert final[0]["price"] == 29190
     assert final[0]["stock"] == "out"
     assert report["stocks"] == 1
@@ -73,3 +77,19 @@ def test_smena_modeli_ne_zaderzhivaetsya():
 def test_soobshchenie_pro_zamenu_modeley():
     report = {"prices": 0, "stocks": 4, "added": 0, "held": [], "replaced": 4}
     assert "заменено моделей: 4" in publish.message(report, True, datetime(2026, 9, 24, 12, 0))
+
+
+def test_obval_ceny_bolee_chem_na_70_procentov_derzhim_staruyu():
+    # 21.10.2026: «Гайка М10» 165 → 5 ₽ (−97%) ушла на сайт как «Акция» — это ошибка данных
+    # (потерялась фасовка), а не акция. Настоящее падение бывает до ~50%.
+    final, report = publish.guard([item("1", 165)], [item("1", 5)])
+    assert final[0]["price"] == 165 and "badge" not in final[0]
+    assert report["held_drop"][0]["new"] == 5 and not report["sales"]
+    assert "5" in publish.message(dict(report, prices=0, stocks=0, added=0), False,
+                                  datetime(2026, 10, 21, 4, 0))
+
+
+def test_padenie_na_40_procentov_ostaetsya_akciey():
+    final, report = publish.guard([item("1", 1000)], [item("1", 600)])
+    assert final[0]["price"] == 600 and final[0]["badge"] == "sale"
+    assert not report["held_drop"]

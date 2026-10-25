@@ -624,6 +624,8 @@
     {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MTJ1", "brand": "MIDEA", "series": "MTJ1 канальный inverter", "group": "pac_inv", "type": "duct", "suffix": "", "size": "btu", "photo": "midea-mtj1-kanalnyy-inverter.webp"},
     {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE(U)", "brand": "MIDEA", "series": "MUE напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-napolno-potolochnyy-inverter.webp"},
     {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE/MO-N8", "brand": "MIDEA", "series": "MUE/MO-N8 напольно-потолочный inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-mo-n8-napolno-potolochnyy-inverter.webp"},
-    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE/MOU-L", "brand": "MIDEA", "series": "MUE/MOU-L напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-mou-l-napolno-potolochnyy-on-off.webp"}
+    {"supplier": "daichi", "brand_at_supplier": "Midea", "match": "MUE/MOU-L", "brand": "MIDEA", "series": "MUE/MOU-L напольно-потолочный on/off", "group": "pac_onoff", "type": "floor-ceiling", "suffix": "", "size": "btu", "photo": "midea-mue-mou-l-napolno-potolochnyy-on-off.webp"},
+    {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI серия O2 inverter", "brand": "DAICHI", "series": "O2 inverter", "group": "inv", "suffix": "", "size": "kw", "photo": "daichi-o2-inverter.webp", "factory": "GREE"},
+    {"supplier": "trio", "section": 35, "match": "Сплит-системы Напольно - потолочного типа. ИНВЕРТОРНЫЕ завод AUX", "brand": "БИРЮСА", "series": "Бирюса Напольно-потолочная AUX inverter", "group": "pac_inv", "type": "floor-ceiling", "suffix": "", "size": "btu", "code": "pipe", "photo": "biryusa-floor-ceiling.webp", "factory": "AUX"}
   ]
 }

@@ -176,9 +176,11 @@ def test_akciya_pri_padenii_ceny_i_snyatie_plashki():
     # цена вернулась — плашка снимается сама
     final2, report2 = publish.guard(final, [dict(final[0], price=39000)])
     assert final2[0]["price"] == 39000 and "badge" not in final2[0] and report2["sales_over"] == ["X"]
-    # рост больше 25% без акции по-прежнему ждёт проверки
+    # рост без акции применяется (владелец 21.10.2026); на проверку — только цена, выросшая вдвое
     final3, report3 = publish.guard(live, [dict(built[0], price=60000)])
-    assert final3[0]["price"] == 40000 and report3["held"]
+    assert final3[0]["price"] == 60000 and not report3["held"]
+    final4, report4 = publish.guard(live, [dict(built[0], price=90000)])
+    assert final4[0]["price"] == 40000 and report4["held"]
 
 
 def test_technosistems_onoff_i_invertor_odnogo_razmera():

@@ -34,21 +34,28 @@ LIVE_JSON = "https://splithub.ru/products.json"
 
 #: Скачок цены, после которого позиция не льётся без человека.
 MAX_JUMP = 0.25
+#: Рост цены. Владелец 21.10.2026: «цены должны быть актуальны, даже если растут — товар просто
+#: вышел из акции» — поэтому рост применяем сразу; на проверку уходит только цена, выросшая
+#: больше чем вдвое (так выглядит ошибка прайса: потерялась фасовка, лишний ноль).
+MAX_RISE = 1.00
 #: Во сколько раз каталог может усохнуть, прежде чем мы откажемся его лить.
 MAX_SHRINK = 0.10
+#: Падение цены глубже этого — не акция, а ошибка данных (потерялась фасовка, ноль в прайсе):
+#: цену держим и зовём человека. 21.10.2026 «Гайка М10» 165 → 5 ₽ ушла на сайт как «Акция».
+MAX_CRASH = 0.70
 
 STOCK_NAMES = {"in_stock": "в наличии", "out": "нет", "wait": "ожидается",
                "order_7": "под заказ", "days_7": "7 дней", "days_3_5": "3–5 дней",
                "days_1_2": "1–2 дня"}
 
 
-def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
+def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP, max_rise: float = MAX_RISE):
     """Применить предохранитель. Возвращает (итоговый каталог, отчёт).
 
     Отчёт: сколько цен и остатков поменялось, какие позиции отложены, сколько новых.
     """
     before = {product["id"]: product for product in live}
-    final, held, sales, sales_over = [], [], [], []
+    final, held, held_drop, sales, sales_over = [], [], [], [], []
     prices = stocks = added = replaced = 0
     for product in built:
         item = dict(product)
@@ -65,7 +72,11 @@ def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
                 replaced += 1
             elif old_price and new_price != old_price:
                 jump = (new_price - old_price) / old_price
-                if jump < -max_jump:
+                if jump < -MAX_CRASH:
+                    held_drop.append({"model": item["model"], "old": old_price,
+                                      "new": new_price, "jump": jump})
+                    item["price"] = old_price          # цену держим, наличие — обновляем
+                elif jump < -max_jump:
                     # Резкое падение — у поставщика акция или распродажа (владелец
                     # 11.10.2026): цену ставим сразу и вешаем плашку «Акция».
                     _start_sale(item, regular)
@@ -77,7 +88,7 @@ def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
                     if new_price >= regular * SALE_OVER:
                         _end_sale(item)
                         sales_over.append(item["model"])
-                elif jump > max_jump:
+                elif jump > max_rise:
                     held.append({"model": item["model"], "old": old_price,
                                  "new": new_price, "jump": jump})
                     item["price"] = old_price          # цену держим, наличие — обновляем
@@ -89,8 +100,8 @@ def guard(live: list[dict], built: list[dict], max_jump: float = MAX_JUMP):
             if item.get("stock") != old.get("stock"):
                 stocks += 1
         final.append(item)
-    return final, {"prices": prices, "stocks": stocks, "held": held, "added": added,
-                   "replaced": replaced, "sales": sales, "sales_over": sales_over}
+    return final, {"prices": prices, "stocks": stocks, "held": held, "held_drop": held_drop,
+                   "added": added, "replaced": replaced, "sales": sales, "sales_over": sales_over}
 
 
 #: Акция кончилась, когда цена вернулась хотя бы к 90% прежней.
@@ -133,8 +144,15 @@ def message(report: dict, published: bool, when: datetime) -> str:
             lines.append("  …и ещё %d" % (len(report["sales"]) - 8))
     if report.get("sales_over"):
         lines.append("Акция кончилась, плашка снята: " + ", ".join(report["sales_over"][:8]))
+    if report.get("held_drop"):
+        lines.append("⏸ На проверку, цена не залита (обвал больше %d%% — похоже на ошибку прайса):"
+                     % int(MAX_CRASH * 100))
+        for item in report["held_drop"][:8]:
+            lines.append("  %s: %s → %s (%+d%%)" % (item["model"], _rub(item["old"]),
+                                                    _rub(item["new"]), round(item["jump"] * 100)))
     if report["held"]:
-        lines.append("⏸ На проверку, цена не залита (рост больше %d%%):" % int(MAX_JUMP * 100))
+        lines.append("⏸ На проверку, цена не залита (рост больше %d%% — похоже на ошибку прайса):"
+                     % int(MAX_RISE * 100))
         for item in report["held"][:8]:
             lines.append("  %s: %s → %s (%+d%%)" % (item["model"], _rub(item["old"]),
                                                    _rub(item["new"]), round(item["jump"] * 100)))

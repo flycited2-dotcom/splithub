@@ -235,6 +235,8 @@ KW_TO_BTU = {"20": "07", "21": "07", "22": "07", "25": "09", "26": "09", "28": "
              "60": "24", "65": "24", "70": "24", "75": "24"}
 _BTU_CODE = re.compile(r"(?<![\d.])(07|09|12|18|24|28|30|36|48|60)(?!\d)")
 _KW_CODE = re.compile(r"(?<=[A-Z])(\d{2})(?=[A-Z])")
+#: Серия DAICHI O2: типоразмер стоит после «O2» — «O220AVQS1R-1» = 2,0 кВт, «O260…» = 6,0 кВт.
+_KW_CODE_O2 = re.compile(r"O2(\d{2})(?=[A-Z])")
 
 
 def load_series_map(path: Path = SERIES_FILE) -> list[dict]:
@@ -315,7 +317,7 @@ def size_of(code: str, kind: str) -> str:
     """Типоразмер по коду: BTU (MSES1-07) или киловатты×10 (DA20, ICE60 = 6 кВт)."""
     upper = code.upper()
     if kind == "kw":
-        found = _KW_CODE.search(upper)
+        found = _KW_CODE.search(upper) or _KW_CODE_O2.match(upper)
         return KW_TO_BTU.get(found.group(1), "") if found else ""
     found = _BTU_CODE.search(upper)
     return found.group(1) if found else ""
@@ -339,6 +341,9 @@ def supplier_offers(trio_rows: list[dict], oasis_rows: list[dict], registry: lis
                     continue
                 if entry.get("code") == "pair":
                     code = re.sub(r"\s*/\s*", "/", row["model"].strip())
+                elif entry.get("code") == "pipe":
+                    # «BLCF-H36/4DR3E | BL-H36/4DR3E»: внутренний блок — всё до « | »
+                    code = re.sub(r"\s*/\s*", "/", row["model"].split("|")[0].strip())
                 else:
                     code = trio_code(row["model"])
                 yield entry, code, row

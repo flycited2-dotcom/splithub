@@ -91,3 +91,27 @@ def test_rusklimat_ne_podklyuchen(tmp_path):
         encoding="utf-8")
     rows = sources_oasis.load(csv_file)
     assert [row["supplier"] for row in rows] == ["daichi"]
+
+
+def test_korotkiy_kod_karto4ki_nahodit_stroku_trio():
+    # Карточка «DAICHI SIB25» (код так записан у Техносистемса), у трио «SIB25AVQS1R/SIB25FVS1R»:
+    # трио в наличии — оно должно участвовать в выборе, а не оставаться «без карточки».
+    sources = build([trio_row("SIB25AVQS1R/SIB25FVS1R", 43750, section=27)], [])
+    product = {"model": "DAICHI SIB25", "brand": "DAICHI", "group": "inv"}
+    source, _, offer = sync.find_offer(sources, product)
+    assert source == "trio" and offer["dealer"] == 43750
+
+
+def test_zapasnoy_poisk_trio_ne_trogaet_krepezh():
+    # «Гайка М10» на сайте — упаковка 50 шт. по реестру расходников; у трио строка «Гайка М10 ОЦ.»
+    # за штуку (3 ₽). Короткий код нельзя цеплять к ней обычным поиском: цена упала бы до 5 ₽.
+    sources = build([trio_row("Гайка М10 ОЦ.", 3.0, section=412)], [])
+    product = {"model": "Гайка М10", "brand": "Гайка М8", "group": "rashod"}   # как в боевом каталоге
+    assert sync._offer_in(sources, "trio", product) is None
+
+
+def test_zapasnoy_poisk_trio_ne_ceplyaet_polnyy_kod():
+    # «MIDEA MCD1-55HRFNX(GA)-B» — полный код; у трио под ним другая пара блоков и цена
+    sources = build([trio_row("MCD1-55HRFNX(GA)-B/MOE30U-55HFN8-R(GA)", 186000, section=25)], [])
+    product = {"model": "MIDEA MCD1-55HRFNX(GA)-B", "brand": "MIDEA", "group": "pac_inv"}
+    assert sync._offer_in(sources, "trio", dict(product, model="MIDEA MCD1-55HRFNX(GA)-Z")) is None

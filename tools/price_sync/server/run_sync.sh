@@ -34,6 +34,9 @@ fi
 mkdir -p "$LOG_DIR" "$OUT"
 LOG=$LOG_DIR/sync_$(date +%Y%m%d_%H%M).log
 exec >>"$LOG" 2>&1
+# Первая строка — сразу: 15 и 19.10.2026 прогон умер молча, и лог остался пустым (причину
+# по нему не установить). Теперь по логу видно хотя бы, что запуск был и чем кончился.
+echo "$(date '+%H:%M:%S') старт run_sync.sh (pid $$)"
 
 export PYTHONIOENCODING=utf-8
 # Остатки JAC — файл с компьютера; Telegram — токен и чат бота остатков на этом сервере.
@@ -47,10 +50,23 @@ notify() {
     (cd "$APP" && "$PY" -m tools.price_sync.notify "$1") || true
 }
 
+# Выход без «Готово.» и без собственного сообщения о причине — аварийный: пишем код и шлём
+# сообщение в Telegram, чтобы молчание ночью не оставалось незамеченным.
+FINISHED=""
+on_exit() {
+    local rc=$?
+    echo "$(date '+%H:%M:%S') выход, код $rc"
+    if [ -z "$FINISHED" ] && [ "$rc" -ne 0 ]; then
+        notify "⚠️ СплитХаб $(date '+%d.%m %H:%M'): сверка на сервере оборвалась (код $rc) до конца. Лог: $(basename "$LOG")"
+    fi
+}
+trap on_exit EXIT
+
 # Один прогон за раз: ручной запуск не наложится на ночной.
 exec 9>/run/lock/splithub-price-sync.lock
 if ! flock -n 9; then
     log "прошлый прогон ещё идёт — выхожу"
+    FINISHED=1
     exit 0
 fi
 
@@ -133,6 +149,7 @@ fail() {
     local text="⚠️ СплитХаб $(date '+%d.%m %H:%M'): ночная сверка на сервере упала на шаге «$1». Сайт не тронут. Лог: $(basename "$LOG")"
     log "$text"
     notify "$text"
+    FINISHED=1
     exit 1
 }
 
@@ -144,7 +161,8 @@ step "Карточки" 1 tools.price_sync.new_cards || fail "карточки �
 step "Сборка каталога" 1 tools.price_sync.merge --assets https://splithub.ru/assets/img/products/ \
     || fail "сборка каталога"
 log "Заливаю на сайт через предохранитель..."
-step "Заливка" 2 tools.price_sync.publish $DRY || exit 1   # publish сам сообщает причину
+step "Заливка" 2 tools.price_sync.publish $DRY || { FINISHED=1; exit 1; }   # publish сам сообщает причину
 
+FINISHED=1
 log "Готово."
 find "$LOG_DIR" -name 'sync_*.log' -mtime +60 -delete

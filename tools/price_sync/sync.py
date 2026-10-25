@@ -135,7 +135,38 @@ def _offer_by_model(sources, name, product):
         # «DU-07 inv» давали один ключ — бралась чужая строка, а потом отбрасывалась.
         same = [entry for entry in index if same_kind(entry[1].get("series", ""), product)]
         return matching.lookup_either(same, product["model"], product["brand"])
-    return matching.lookup(index, product["model"], product["brand"])
+    found = matching.lookup(index, product["model"], product["brand"])
+    if found is None and name == "trio" and product.get("group") in AC_GROUPS and _short_code(product):
+        # Наш код короче трио-шного: «DAICHI SIB25» (так он записан у Техносистемса) —
+        # у трио «SIB25AVQS1R/SIB25FVS1R». Без этого карточка не видела строку трио и
+        # не могла взять у него остаток и цену. Только кондиционеры: у расходников свой
+        # реестр с фасовкой (гайка М10 = 50 шт.), и обычный поиск лепил к ним цену за штуку.
+        found = matching.lookup_within(_trio_text_index(sources[name][2]), product["model"],
+                                       product["brand"], min_length=5)
+    return found
+
+
+def _short_code(product: dict) -> bool:
+    """Код карточки без бренда не длиннее 7 знаков («SIB25», «ICE20»).
+
+    Полные коды («MCD1-55HRFNX(GA)-B») запасным поиском не ищем: у трио под тем же кодом
+    бывает другая пара блоков с другой ценой — это другой товар."""
+    code = matching.normalize(product["model"])
+    prefix = matching.normalize(product.get("brand") or "")
+    if prefix and code.startswith(prefix):
+        code = code[len(prefix):]
+    return 5 <= len(code) <= 7
+
+
+_TRIO_TEXT: dict[int, list] = {}
+
+
+def _trio_text_index(rows):
+    cached = _TRIO_TEXT.get(id(rows))
+    if cached is None:
+        _TRIO_TEXT.clear()
+        cached = _TRIO_TEXT[id(rows)] = matching.build_text_index(rows, lambda offer: offer["model"])
+    return cached
 
 
 def same_kind(series: str, product: dict) -> bool:

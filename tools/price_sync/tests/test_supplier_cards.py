@@ -196,3 +196,47 @@ def test_daichi_uzhe_na_sayte_s_hvostom_i():
     codes = new_cards.catalog_codes([{"model": "MIDEA MSFE1S-09FRN8G1-I inv", "brand": "MIDEA"}])
     assert new_cards.daichi_listed(codes, "MSFE1S-09FRN8G1")
     assert not new_cards.daichi_listed(codes, "MSFE1S-12FRN8G1")
+
+
+# ── DAICHI O2 и Бирюса напольно-потолочная инвертор (владелец 21.10.2026) ─────────
+
+O2 = {"supplier": "trio", "section": 27, "match": "Сплит-системы DAICHI серия O2 inverter",
+      "brand": "DAICHI", "series": "O2 inverter", "group": "inv", "suffix": "", "size": "kw",
+      "photo": "daichi-o2-inverter.webp", "factory": "GREE"}
+BIRYUSA_INV = {"supplier": "trio", "section": 35, "brand": "БИРЮСА", "group": "pac_inv",
+               "match": "Сплит-системы Напольно - потолочного типа. ИНВЕРТОРНЫЕ завод AUX",
+               "series": "Бирюса Напольно-потолочная AUX inverter", "type": "floor-ceiling",
+               "suffix": "", "size": "btu", "code": "pipe", "photo": "biryusa-floor-ceiling.webp"}
+
+
+def test_tiporazmer_o2():
+    # «O220…» = 2,0 кВт → 07 BTU; «O260…» = 6,0 кВт → 24 BTU; обычные коды не страдают
+    assert new_cards.size_of("O220AVQS1R-1", "kw") == "07"
+    assert new_cards.size_of("O235AVQS1R-1", "kw") == "12"
+    assert new_cards.size_of("O260AVQS1R-1", "kw") == "24"
+    assert new_cards.size_of("ICE35AVQ1-1", "kw") == "12"
+
+
+def test_o2_beryotsya_u_trio_v_nalichii():
+    rows = [trio_row("O225AVQS1R-1/O225FVS1R-1", "Сплит-системы DAICHI серия O2 inverter R-32 завода GREE",
+                     section=27),
+            trio_row("O250AVQS1R-1/O250FVS1R-2", "Сплит-системы DAICHI серия O2 inverter R-32 завода GREE",
+                     availability="нет", section=27)]
+    found = [(code, row["model"]) for _, code, row in new_cards.supplier_offers(rows, [], [O2])]
+    assert found == [("O225AVQS1R-1", "O225AVQS1R-1/O225FVS1R-1")]
+
+
+def test_birusa_kod_vnutrennego_bloka_do_palki():
+    rows = [trio_row("BLCF-H36/4DR3E | BL-H36/4DR3E", "Сплит-системы  Напольно - потолочного  типа. ИНВЕРТОРНЫЕ завод AUX",
+                     section=35)]
+    codes = [code for _, code, _ in new_cards.supplier_offers(rows, [], [BIRYUSA_INV])]
+    assert codes == ["BLCF-H36/4DR3E"]
+    assert new_cards.size_of("BLCF-H36/4DR3E", "btu") == "36"
+
+
+def test_opechatka_trio_ice35():
+    from tools.price_sync import sources_trio
+    html = ('<table class="main-container-table"><tr class="line_tr"><td><span class="product_no"></span>'
+            'ICE35AVQS1R/2/ICE35FVS1R-2</td><td><div class="price">32 555</div></td></tr></table>')
+    rows = sources_trio.parse(html, "bytovye-kondicionery", 27)
+    assert rows[0]["model"] == "ICE35AVQS1R-2/ICE35FVS1R-2"
