@@ -150,6 +150,24 @@ function _estInjectCss() {
 .est-btn.pri{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;box-shadow:0 4px 14px rgba(217,119,6,0.35);}
 .est-btn.sec{background:#fff;border:1px solid #F59E0B;color:#B45309;}
 .est-btn:disabled{opacity:0.45;cursor:not-allowed;}
+.est-btn-wide{display:block;width:100%;margin-bottom:8px;}
+.est{position:relative;}
+.est-send{position:absolute;inset:0;z-index:5;background:rgba(10,14,26,0.45);display:flex;align-items:flex-end;justify-content:center;border-radius:inherit;}
+.est-send-card{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.2);}
+.est-send-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.est-send-hd b{font-family:'Unbounded',sans-serif;font-size:0.95rem;}
+.est-send-sum{font-size:0.85rem;color:var(--text2,#5A5F6E);margin-bottom:12px;}
+.est-send-sum b{color:#D97706;}
+.est-send-lbl{font-size:0.78rem;font-weight:700;color:var(--text2,#5A5F6E);margin-bottom:8px;}
+.est-chs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.est-ch{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;text-decoration:none;font-size:1.4rem;line-height:1;color:#fff;font-weight:700;}
+.est-ch span{font-size:0.72rem;font-family:'Inter',sans-serif;}
+.est-ch.tg{background:#229ED9;} .est-ch.wa{background:#25D366;} .est-ch.max{background:linear-gradient(135deg,#5B2EFF,#9B4DFF);} .est-ch.mail{background:#475569;}
+.est-link{display:flex;gap:6px;margin-bottom:10px;}
+.est-link input{flex:1;min-width:0;padding:9px 10px;border:1px solid rgba(0,0,0,0.12);border-radius:10px;font:inherit;font-size:0.78rem;color:var(--text2,#5A5F6E);background:#F7F8FA;}
+.est-link button{border:none;background:#1A1C22;color:#fff;border-radius:10px;padding:0 12px;font:inherit;font-size:0.8rem;font-weight:700;cursor:pointer;}
+.est-send-err{font-size:0.82rem;color:#B91C1C;background:#FEF2F2;border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+@media(min-width:640px){.est-send{align-items:center;}.est-send-card{max-width:440px;border-radius:20px;}}
 @media(min-width:640px){
   .est-ov{align-items:center;}
   .est{max-width:760px;width:94%;max-height:92vh;border-radius:22px;}
@@ -370,15 +388,15 @@ function _estRenderFoot() {
   const box = document.getElementById('estFoot'); if (!box) return;
   const e = estCompute();
   const off = _est.busy || !e.equipment.length ? ' disabled' : '';
-  const canShare = !!(navigator.share && navigator.canShare);
   box.innerHTML = `
     <div class="est-tot"><span>Оборудование</span><b>${_estMoney(e.equipmentTotal)}</b></div>
     <div class="est-tot"><span>Работы</span><b>${_estMoney(e.worksTotal)}</b></div>
     <div class="est-grand"><span>Итого клиенту</span><b>${_estMoney(e.total)}</b></div>
     <div class="est-margin">Ваша наценка на оборудовании: ${_estMoney(e.margin)} (в смете не видна)</div>
+    <button class="est-btn pri est-btn-wide"${off} onclick="estimateSend()">${_est.busy === 'send' ? '⏳ Готовим смету…' : '📤 Отправить клиенту'}</button>
     <div class="est-btns">
-      ${canShare ? `<button class="est-btn pri"${off} onclick="estimateRun('share')">📤 Отправить клиенту</button>` : ''}
-      <button class="est-btn ${canShare ? 'sec' : 'pri'}"${off} onclick="estimateRun('save')">💾 Скачать PDF</button>
+      <button class="est-btn sec"${off} onclick="estimateDownload('pdf')">${_est.busy === 'pdf' ? '⏳ PDF…' : '📄 Скачать PDF'}</button>
+      <button class="est-btn sec"${off} onclick="estimateDownload('xlsx')">${_est.busy === 'xlsx' ? '⏳ Excel…' : '📊 Скачать Excel'}</button>
     </div>`;
 }
 
@@ -443,14 +461,58 @@ function _estDocDef(e, meta) {
   };
 }
 
-async function estimateRun(kind) {
-  if (typeof pdfMake === 'undefined') {
-    showEstToast('Библиотека PDF ещё загружается — повторите через пару секунд');
-    return;
-  }
-  const e = estCompute();
-  if (!e.equipment.length) return;
-  const meta = {
+/* ── Excel (ExcelJS) — те же строки, суммы формулами с готовым значением ── */
+async function _estXlsxBlob(e, meta) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Смета', { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
+  ws.columns = [{ width: 5 }, { width: 58 }, { width: 9 }, { width: 7 }, { width: 13 }, { width: 14 }];
+  const money = '#,##0" ₽"';
+  const accent = 'FFD97706';
+  const thin = { style: 'thin', color: { argb: 'FFE0E5EF' } };
+
+  ws.addRow(['СМЕТА от ' + meta.date.toLocaleDateString('ru-RU')]).font = { bold: true, size: 18 };
+  ws.mergeCells(ws.rowCount, 1, ws.rowCount, 6);
+  [['Исполнитель', meta.contractorName], ['Телефон', meta.contractorPhone], ['Заказчик', meta.clientName], ['Объект', meta.objectAddress]]
+    .filter(r => r[1])
+    .forEach(([k, v]) => { const r = ws.addRow(['', k + ': ' + v]); r.getCell(2).font = { bold: k === 'Исполнитель' }; });
+
+  const totalRefs = [];
+  const section = (title, lines) => {
+    if (!lines.length) return;
+    ws.addRow([]);
+    const t = ws.addRow([title]); t.font = { bold: true, size: 13, color: { argb: accent } };
+    const h = ws.addRow(['№', 'Наименование', 'Кол-во', 'Ед.', 'Цена', 'Сумма']);
+    h.eachCell(c => { c.font = { bold: true, color: { argb: 'FF64748B' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F4F8' } }; c.border = { bottom: thin }; });
+    const first = ws.rowCount + 1;
+    lines.forEach((l, i) => {
+      const n = ws.rowCount + 1;
+      const r = ws.addRow([i + 1, l.name, l.qty, l.unit || 'шт', l.unitPrice, { formula: `C${n}*E${n}`, result: l.total }]);
+      r.getCell(5).numFmt = money; r.getCell(6).numFmt = money; r.getCell(6).font = { bold: true };
+      r.getCell(2).alignment = { wrapText: true, vertical: 'top' };
+      r.eachCell(c => { c.border = { bottom: thin }; });
+    });
+    const last = ws.rowCount;
+    const sum = lines.reduce((s, l) => s + l.total, 0);
+    const tr = ws.addRow(['', '', '', '', 'Итого:', { formula: `SUM(F${first}:F${last})`, result: sum }]);
+    tr.font = { bold: true }; tr.getCell(6).numFmt = money; tr.getCell(5).alignment = { horizontal: 'right' };
+    totalRefs.push('F' + tr.number);
+  };
+  section('Оборудование и материалы', e.equipment);
+  section('Работы', e.works);
+
+  ws.addRow([]);
+  const g = ws.addRow(['', 'ИТОГО К ОПЛАТЕ', '', '', '', { formula: totalRefs.join('+') || '0', result: e.total }]);
+  g.eachCell({ includeEmpty: true }, c => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF7E6' } }; });
+  g.font = { bold: true, size: 13 }; g.getCell(6).numFmt = money; g.getCell(6).font = { bold: true, size: 14, color: { argb: accent } };
+  ws.addRow([]);
+  ws.addRow(['', `Смета действительна ${meta.validDays} дн. Цены на оборудование зафиксированы на дату составления.`]).font = { size: 9, color: { argb: 'FF64748B' } };
+
+  const buf = await wb.xlsx.writeBuffer();
+  return new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+function _estMeta() {
+  return {
     clientName: _est.clientName.trim(),
     objectAddress: _est.objectAddress.trim(),
     contractorName: (_est.settings.contractorName || '').trim(),
@@ -458,36 +520,158 @@ async function estimateRun(kind) {
     validDays: _est.settings.validDays || 7,
     date: new Date(),
   };
-  const fname = estimateFileName(meta.date);
-  _est.busy = true; _estRenderFoot();
+}
+
+function _estPdfBlob(e, meta) {
+  return new Promise((resolve, reject) => {
+    try { pdfMake.createPdf(_estDocDef(e, meta)).getBlob(resolve); } catch (err) { reject(err); }
+  });
+}
+
+// Готовит файлы сметы; kinds — ['pdf'], ['xlsx'] или оба.
+async function _estBuildFiles(kinds) {
+  if (kinds.includes('pdf') && typeof pdfMake === 'undefined') throw new Error('библиотека PDF ещё загружается, повторите через пару секунд');
+  if (kinds.includes('xlsx') && typeof ExcelJS === 'undefined') throw new Error('библиотека Excel ещё загружается, повторите через пару секунд');
+  const e = estCompute(), meta = _estMeta();
+  const base = estimateFileName(meta.date).replace(/\.pdf$/, '');
+  const out = { e, meta };
+  if (kinds.includes('pdf'))  out.pdf  = new File([await _estPdfBlob(e, meta)], base + '.pdf', { type: 'application/pdf' });
+  if (kinds.includes('xlsx')) out.xlsx = new File([await _estXlsxBlob(e, meta)], base + '.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  return out;
+}
+
+function _estSaveFile(file) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+async function estimateDownload(kind) {
+  if (_est.busy || !_est.items.length) return;
+  _est.busy = kind; _estRenderFoot();
   try {
-    const blob = await new Promise((resolve, reject) => {
-      try { pdfMake.createPdf(_estDocDef(e, meta)).getBlob(resolve); } catch (err) { reject(err); }
-    });
-    if (kind === 'share') {
-      const file = new File([blob], fname, { type: 'application/pdf' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: 'Смета', text: meta.clientName ? 'Смета для ' + meta.clientName : 'Смета' });
-          return;
-        } catch (err) {
-          if (err && err.name === 'AbortError') return; // пользователь закрыл меню «Поделиться»
-        }
-      }
-      // браузер не умеет отправлять файлы — просто сохраняем
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = fname;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-    showEstToast('Смета сохранена: ' + fname);
+    const files = await _estBuildFiles([kind]);
+    _estSaveFile(files[kind]);
+    showEstToast('Смета сохранена: ' + files[kind].name);
   } catch (err) {
-    console.error('Estimate PDF error:', err);
+    console.error('Estimate file error:', err);
     showEstToast('Не удалось подготовить смету: ' + (err && err.message || 'попробуйте ещё раз'), true);
   } finally {
     _est.busy = false; _estRenderFoot();
   }
+}
+
+async function _estUpload(file) {
+  const fd = new FormData();
+  fd.append('file', file, file.name);
+  fd.append('name', file.name);
+  const res = await fetch('api/estimate.php', { method: 'POST', body: fd });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok || !data.url) throw new Error(data.error || ('сервер ответил ' + res.status));
+  return data.url;
+}
+
+/* ── Отправка: файлы готовятся и загружаются заранее, дальше — окно со всеми каналами.
+      Ссылки каналов — обычные <a>, а системное «Поделиться» вызывается сразу по нажатию
+      с уже готовым файлом: так браузер не теряет «жест пользователя» и не закрывает меню. ── */
+async function estimateSend() {
+  if (_est.busy || !_est.items.length) return;
+  _est.busy = 'send'; _estRenderFoot();
+  try {
+    const files = await _estBuildFiles(['pdf', 'xlsx']);
+    let links = null, uploadError = '';
+    try {
+      const [pdfUrl, xlsxUrl] = await Promise.all([_estUpload(files.pdf), _estUpload(files.xlsx)]);
+      links = { pdf: pdfUrl, xlsx: xlsxUrl };
+    } catch (err) {
+      console.error('Estimate upload error:', err);
+      uploadError = err && err.message || 'нет связи с сервером';
+    }
+    _est.sent = { files, links, uploadError };
+    _estShowSendSheet();
+  } catch (err) {
+    console.error('Estimate send error:', err);
+    showEstToast('Не удалось подготовить смету: ' + (err && err.message || 'попробуйте ещё раз'), true);
+  } finally {
+    _est.busy = false; _estRenderFoot();
+  }
+}
+
+function _estShareText(sent) {
+  const m = sent.files.meta, e = sent.files.e;
+  const lines = [
+    'Смета от ' + m.date.toLocaleDateString('ru-RU') + (m.clientName ? ' для ' + m.clientName : ''),
+    m.objectAddress ? 'Объект: ' + m.objectAddress : '',
+    'Итого к оплате: ' + _estMoney(e.total),
+    sent.links ? 'PDF: ' + sent.links.pdf : '',
+    sent.links ? 'Excel: ' + sent.links.xlsx : '',
+    m.contractorName || m.contractorPhone ? '\n' + [m.contractorName, m.contractorPhone].filter(Boolean).join(', ') : '',
+  ];
+  return lines.filter(Boolean).join('\n');
+}
+
+function _estShowSendSheet() {
+  const sent = _est.sent; if (!sent) return;
+  const old = document.getElementById('estSend'); if (old) old.remove();
+  const text = _estShareText(sent);
+  const t = encodeURIComponent(text);
+  const subject = encodeURIComponent('Смета' + (sent.files.meta.clientName ? ' для ' + sent.files.meta.clientName : '') + ' — ' + _estMoney(sent.files.e.total));
+  const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [sent.files.pdf] }));
+  const ch = (href, cls, icon, label) => `<a class="est-ch ${cls}" href="${href}" target="_blank" rel="noopener">${icon}<span>${label}</span></a>`;
+  const channels = sent.links ? [
+    ch('https://t.me/share/url?url=' + encodeURIComponent(sent.links.pdf) + '&text=' + encodeURIComponent(text.replace('PDF: ' + sent.links.pdf + '\n', '')), 'tg', '✈️', 'Telegram'),
+    ch('https://wa.me/?text=' + t, 'wa', '💬', 'WhatsApp'),
+    ch('https://max.ru/:share?text=' + t, 'max', '🟣', 'Max'),
+    `<a class="est-ch mail" href="mailto:?subject=${subject}&body=${t}">✉️<span>Почта</span></a>`,
+  ].join('') : '';
+
+  document.querySelector('#estOv .est').insertAdjacentHTML('beforeend', `
+<div class="est-send" id="estSend">
+  <div class="est-send-card">
+    <div class="est-send-hd"><b>✅ Смета готова</b><button class="est-x" onclick="_estCloseSend()" aria-label="Закрыть">✕</button></div>
+    <div class="est-send-sum">${_estEsc(sent.files.meta.clientName || 'Клиент')} · <b>${_estMoney(sent.files.e.total)}</b></div>
+    ${sent.links ? `
+      <div class="est-send-lbl">Отправить ссылку на смету</div>
+      <div class="est-chs">${channels}</div>
+      <div class="est-link"><input readonly value="${_estEsc(sent.links.pdf)}" onclick="this.select()"><button onclick="_estCopy()">Копировать</button></div>`
+    : `<div class="est-send-err">Не удалось загрузить смету на сервер (${_estEsc(sent.uploadError)}). Отправьте файл через «Поделиться» или скачайте его.</div>`}
+    ${canShareFiles ? `<button class="est-btn pri est-btn-wide" onclick="_estShareFile('pdf')">📎 Поделиться файлом PDF…</button>` : ''}
+    <div class="est-btns">
+      <button class="est-btn sec" onclick="_estSaveFile(_est.sent.files.pdf)">📄 PDF</button>
+      <button class="est-btn sec" onclick="_estSaveFile(_est.sent.files.xlsx)">📊 Excel</button>
+      ${canShareFiles ? `<button class="est-btn sec" onclick="_estShareFile('xlsx')">📎 Excel…</button>` : ''}
+    </div>
+  </div>
+</div>`);
+}
+
+function _estCloseSend() { const s = document.getElementById('estSend'); if (s) s.remove(); }
+
+function _estCopy() {
+  const sent = _est.sent; if (!sent || !sent.links) return;
+  const text = _estShareText(sent);
+  const done = () => showEstToast('Текст со ссылкой скопирован');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => _estCopyFallback(text, done));
+  else _estCopyFallback(text, done);
+}
+function _estCopyFallback(text, done) {
+  const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) {}
+  ta.remove();
+}
+
+// Вызывается прямо из нажатия: файл уже готов, до navigator.share нет ни одного await.
+function _estShareFile(kind) {
+  const sent = _est.sent; if (!sent) return;
+  const file = sent.files[kind];
+  navigator.share({ files: [file], title: file.name, text: _estShareText(sent) }).catch(err => {
+    if (err && err.name === 'AbortError') return; // пользователь закрыл меню
+    console.error('Estimate share error:', err);
+    showEstToast('Меню «Поделиться» недоступно (' + (err && err.name || 'ошибка') + '). Используйте кнопки мессенджеров или скачайте файл.', true);
+  });
 }
 
 // Стили нужны сразу: баннер на главной и кнопка в заявке видны до открытия сметы

@@ -1,0 +1,13 @@
+# Файлы смет (PDF/XLSX), загруженные через api/estimate.php.
+# Ничего не исполняем, листинг выключен, в поиск не попадает.
+Options -Indexes
+<FilesMatch "\.(?:php\d?|phtml|phar|pl|py|cgi|sh|html?|svg|js)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^\.rate-">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
