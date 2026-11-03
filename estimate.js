@@ -162,6 +162,7 @@ function _estInjectCss() {
 .est-ready-hd b{font-family:'Unbounded',sans-serif;font-size:0.95rem;}
 .est-ready-file{font-size:0.8rem;color:var(--text2,#5A5F6E);margin-bottom:12px;word-break:break-all;}
 .est-ready-err{font-size:0.84rem;color:#991B1B;background:#FEF2F2;border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+.est-ready-note{font-size:0.84rem;color:#1E3A8A;background:#EEF2FF;border-radius:12px;padding:10px 12px;margin-bottom:10px;}
 .est-ready-diag{font-size:0.68rem;color:var(--text3,#9298A8);margin-top:4px;word-break:break-word;}
 @media(min-width:640px){.est-ready{align-items:center;}.est-ready-card{max-width:420px;border-radius:20px;}}
 .est-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;}
@@ -396,7 +397,7 @@ function _estRenderFoot(prepare) {
     <div class="est-tot"><span>Работы</span><b>${_estMoney(e.worksTotal)}</b></div>
     <div class="est-grand"><span>Итого клиенту</span><b>${_estMoney(e.total)}</b></div>
     <div class="est-margin">Ваша наценка на оборудовании: ${_estMoney(e.margin)} (в смете не видна)</div>
-    <button class="est-btn share est-btn-wide"${off} onclick="estimateShare()">${_est.busy === 'share' ? '⏳ Готовим PDF…' : '📤 Отправить клиенту PDF'}</button>
+    <button class="est-btn share est-btn-wide"${off} onclick="estimateShare()">${_est.busy === 'share' ? '⏳ Готовим смету…' : _estShareMode() === 'png' ? '📤 Отправить клиенту картинкой' : '📤 Отправить клиенту PDF'}</button>
     <div class="est-btns">
       <button class="est-btn pdf"${off} onclick="estimateDownload('pdf')">${_est.busy === 'pdf' ? '⏳ PDF…' : EST_FILE_ICON + 'Скачать PDF'}</button>
       <button class="est-btn xlsx"${off} onclick="estimateDownload('xlsx')">${_est.busy === 'xlsx' ? '⏳ Excel…' : EST_FILE_ICON + 'Скачать Excel'}</button>
@@ -639,18 +640,87 @@ function _estKey() {
   return JSON.stringify([estCompute(), m.clientName, m.objectAddress, m.contractorName, m.contractorPhone, m.validDays]);
 }
 
+// Samsung Internet отклоняет «Поделиться» для любого PDF (проверено на 30.0: текст, PNG и TXT
+// проходят, PDF — NotAllowedError: Permission denied). Там смета уходит картинкой PNG.
+// Флаг в localStorage ловит и другие браузеры с тем же запретом после первого отказа.
+const EST_PDF_BLOCKED_KEY = 'sh_pdf_share_blocked';
+const EST_PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function _estShareMode() {
+  return /SamsungBrowser/.test(navigator.userAgent) || _estRead(EST_PDF_BLOCKED_KEY) === true ? 'png' : 'pdf';
+}
+
 function _estSchedulePdf() {
   clearTimeout(_est.pdfTimer);
   if (!_est.items.length || typeof pdfMake === 'undefined') return;
-  _est.pdfTimer = setTimeout(_estPreparePdf, 400);
+  _est.pdfTimer = setTimeout(() => _estPrepare().catch(err => console.error('Estimate prepare error:', err)), 400);
 }
 
-async function _estPreparePdf() {
-  const key = _estKey();
-  if (_est.pdf && _est.pdf.key === key) return _est.pdf.file;
-  const files = await _estBuildFiles(['pdf']);
-  _est.pdf = { key, file: files.pdf };
-  return files.pdf;
+// Готовит PDF (и картинки, если браузер не отправляет PDF) под текущее состояние сметы.
+async function _estPrepare() {
+  const key = _estKey(), mode = _estShareMode();
+  const cur = _est.prep && _est.prep.key === key ? _est.prep : null;
+  if (cur && (mode === 'pdf' || cur.png)) return cur;
+  const prep = { key, pdf: cur ? cur.pdf : (await _estBuildFiles(['pdf'])).pdf, png: null };
+  if (mode === 'png') prep.png = await _estPdfToPng(prep.pdf);
+  _est.prep = prep;
+  return prep;
+}
+
+function _estLoadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (!_est.pdfjsLoading) {
+    _est.pdfjsLoading = new Promise((resolve, reject) => {
+      const sc = document.createElement('script');
+      sc.src = EST_PDFJS + 'pdf.min.js';
+      sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = EST_PDFJS + 'pdf.worker.min.js'; resolve(window.pdfjsLib); };
+      sc.onerror = () => { _est.pdfjsLoading = null; reject(new Error('не загрузилась библиотека для картинки')); };
+      document.head.appendChild(sc);
+    });
+  }
+  return _est.pdfjsLoading;
+}
+
+// Каждая страница PDF → PNG (2× для чёткости на телефоне), вид один в один со сметой.
+async function _estPdfToPng(pdfFile) {
+  const lib = await _estLoadPdfJs();
+  const doc = await lib.getDocument({ data: new Uint8Array(await pdfFile.arrayBuffer()) }).promise;
+  const base = pdfFile.name.replace(/\.pdf$/, '');
+  const out = [];
+  for (let n = 1; n <= doc.numPages; n++) {
+    const page = await doc.getPage(n);
+    const vp = page.getViewport({ scale: 2 });
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext: g, viewport: vp }).promise;
+    const blob = await new Promise(res => _estTrimBottom(c).toBlob(res, 'image/png'));
+    out.push(new File([blob], base + (doc.numPages > 1 ? '-' + n : '') + '.png', { type: 'image/png' }));
+  }
+  doc.destroy();
+  return out;
+}
+
+// Короткая смета занимает верх листа A4 — в чате незачем показывать пустой низ страницы.
+function _estTrimBottom(c) {
+  const { width, height } = c;
+  const data = c.getContext('2d').getImageData(0, 0, width, height).data;
+  let last = 0;
+  for (let y = height - 1; y >= 0 && !last; y--) {
+    for (let x = 0, i = y * width * 4; x < width; x++, i += 4) {
+      if (data[i] < 245 || data[i + 1] < 245 || data[i + 2] < 245) { last = y; break; }
+    }
+  }
+  const h = Math.min(height, last + 90);
+  if (!last || h >= height - 10) return c;
+  const out = document.createElement('canvas');
+  out.width = width; out.height = h;
+  out.getContext('2d').drawImage(c, 0, 0);
+  return out;
+}
+
+function _estShareFiles(prep) {
+  return _estShareMode() === 'png' ? prep.png : [prep.pdf];
 }
 
 function estimateShare() {
@@ -660,34 +730,43 @@ function estimateShare() {
     estimateDownload('pdf');
     return;
   }
-  const ready = _est.pdf && _est.pdf.key === _estKey() ? _est.pdf.file : null;
-  if (ready) { _estDoShare(ready, 1); return; }
-  // PDF ещё собирается (нажали сразу после правки) — дособираем и даём кнопку «Поделиться»:
+  const prep = _est.prep && _est.prep.key === _estKey() ? _est.prep : null;
+  const files = prep && _estShareFiles(prep);
+  if (files) { _estDoShare(files, 1); return; }
+  // ещё собирается (нажали сразу после правки) — дособираем и даём кнопку в окне «Смета готова»:
   // новое нажатие = новый «жест пользователя», без него браузер «Поделиться» не откроет
   _est.busy = 'share'; _estRenderFoot(false);
-  _estPreparePdf().then(
-    file => _estShowReady(file),
+  _estPrepare().then(
+    p => _estShowReady(p),
     err => showEstToast('Не удалось подготовить смету: ' + (err && err.message || 'попробуйте ещё раз'), true),
   ).finally(() => { _est.busy = false; _estRenderFoot(false); });
 }
 
-// Вызывается только прямо из нажатия: файл уже готов, до navigator.share нет ни одного await.
-function _estDoShare(file, attempt) {
+// Вызывается только прямо из нажатия: файлы уже готовы, до navigator.share нет ни одного await.
+function _estDoShare(files, attempt) {
   const gesture = navigator.userActivation ? navigator.userActivation.isActive : null;
+  const isPdf = files[0].type === 'application/pdf';
   let p;
   try {
-    if (!navigator.canShare({ files: [file] })) throw Object.assign(new Error('canShare: false'), { name: 'NotSupportedError' });
-    p = navigator.share({ files: [file] });
+    if (!navigator.canShare({ files })) throw Object.assign(new Error('canShare: false'), { name: 'NotSupportedError' });
+    p = navigator.share({ files });
   } catch (err) { p = Promise.reject(err); }
   p.then(_estCloseReady, err => {
     if (err && err.name === 'AbortError') return; // закрыли меню
     console.error('Estimate share error:', err, 'attempt', attempt, 'gesture', gesture);
     const diag = (err && err.name || 'Error') + (err && err.message ? ': ' + err.message : '') +
       ' · нажатие: ' + (gesture === null ? '?' : gesture ? 'да' : 'нет') + ' · ' + _estBrowser();
-    if (attempt === 1) { _estShowReady(file, diag); return; }
-    // браузер запрещает отправку файлов даже по прямому нажатию — сохраняем файл
-    _estSaveFile(file);
-    _estShowReady(file, diag, true);
+    if (isPdf && err && err.name === 'NotAllowedError') {
+      // браузер не пропускает PDF — запоминаем и готовим картинку (её он отдаёт)
+      _estWrite(EST_PDF_BLOCKED_KEY, true);
+      _estRenderFoot(false);
+      _estPrepare().then(pr => _estShowReady(pr), () => { _estSaveFile(files[0]); _estShowReady(_est.prep, diag, true); });
+      return;
+    }
+    if (attempt === 1) { _estShowReady(_est.prep, diag); return; }
+    // отказ и по прямому нажатию — сохраняем PDF
+    _estSaveFile(_est.prep.pdf);
+    _estShowReady(_est.prep, diag, true);
   });
 }
 
@@ -697,23 +776,28 @@ function _estBrowser() {
   return (m ? m[0] : 'браузер ?') + (/Android/.test(ua) ? ' · Android' : /iPhone|iPad/.test(ua) ? ' · iOS' : '');
 }
 
-// Окно «PDF готов»: большая кнопка «Поделиться» (свежее нажатие) и скачивание.
-function _estShowReady(file, diag, failed) {
+// Окно «Смета готова»: большая кнопка «Отправить» (свежее нажатие) и скачивание PDF.
+function _estShowReady(prep, diag, failed) {
   _estCloseReady();
-  const box = document.querySelector('#estOv .est'); if (!box) return;
+  const box = document.querySelector('#estOv .est'); if (!box || !prep) return;
+  const png = _estShareMode() === 'png' && prep.png;
+  const size = f => Math.max(1, Math.round(f.size / 1024)) + ' КБ';
   box.insertAdjacentHTML('beforeend', `
 <div class="est-ready" id="estReady" onclick="if(event.target===this)_estCloseReady()">
   <div class="est-ready-card">
     <div class="est-ready-hd"><b>📄 Смета готова</b><button class="est-x" onclick="_estCloseReady()" aria-label="Закрыть">✕</button></div>
-    <div class="est-ready-file">${_estEsc(file.name)} · ${Math.max(1, Math.round(file.size / 1024))} КБ</div>
+    <div class="est-ready-file">${_estEsc(prep.pdf.name)} · ${size(prep.pdf)}</div>
     ${failed
       ? `<div class="est-ready-err"><b>Этот браузер не разрешает отправлять файлы.</b> PDF сохранён в «Загрузки» — откройте его и нажмите «Поделиться», либо откройте сайт в Chrome.</div>`
-      : `<button class="est-btn share est-btn-wide" onclick="_estDoShare(_est.readyFile, 2)">📤 Поделиться PDF</button>`}
-    <button class="est-btn pdf est-btn-wide" onclick="_estSaveFile(_est.readyFile)">${EST_FILE_ICON}Скачать PDF</button>
+      : png
+        ? `<div class="est-ready-note">Этот браузер не отправляет PDF, поэтому смета уйдёт <b>картинкой</b> — клиент увидит её сразу в чате. PDF можно скачать ниже.</div>
+           <button class="est-btn share est-btn-wide" onclick="_estDoShare(_est.readyPrep.png, 2)">📷 Отправить картинкой</button>`
+        : `<button class="est-btn share est-btn-wide" onclick="_estDoShare([_est.readyPrep.pdf], 2)">📤 Поделиться PDF</button>`}
+    <button class="est-btn pdf est-btn-wide" onclick="_estSaveFile(_est.readyPrep.pdf)">${EST_FILE_ICON}Скачать PDF</button>
     ${diag ? `<div class="est-ready-diag">${_estEsc(diag)}</div>` : ''}
   </div>
 </div>`);
-  _est.readyFile = file;
+  _est.readyPrep = prep;
 }
 function _estCloseReady() { const r = document.getElementById('estReady'); if (r) r.remove(); }
 
