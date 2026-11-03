@@ -10,6 +10,14 @@ const EST_SETTINGS_KEY = 'sh_estimate_settings';
 const EST_ITEMS_KEY    = 'sh_estimate_items';
 const EST_MARKUPS      = [0, 15, 20, 25, 30];
 
+/* Глифы каналов (Simple Icons, CC0): белые на плитке фирменного цвета. */
+const EST_ICONS = {
+  tg: '<svg viewBox="0 0 24 24"><path transform="translate(1 -.6)" d="M16.906 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
+  wa: '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>',
+  max: '<svg viewBox="0 0 24 24"><path fill-rule="evenodd" transform="translate(12 12) scale(1.12) translate(-12 -11.9)" d="M14.254 3.28a4.301 4.301 0 0 1 4.3 4.302 4.301 4.301 0 0 1-1.993 3.63 6.085 6.085 0 0 1 1.054 3.422 6.085 6.085 0 0 1-6.085 6.085 6.085 6.085 0 0 1-6.085-6.085 6.085 6.085 0 0 1 4.66-5.916 4.301 4.301 0 0 1-.152-1.136 4.301 4.301 0 0 1 4.301-4.301zm0 1.849a2.453 2.453 0 0 0-2.453 2.453 2.453 2.453 0 0 0 2.453 2.453 2.453 2.453 0 0 0 2.453-2.453 2.453 2.453 0 0 0-2.453-2.453zm-2.724 5.268a4.237 4.237 0 0 0-4.237 4.237 4.237 4.237 0 0 0 4.237 4.237 4.237 4.237 0 0 0 4.237-4.237 4.237 4.237 0 0 0-4.237-4.237zm.032 2.54a1.781 1.781 0 1 1 0 3.562 1.781 1.781 0 0 1 0-3.562Z"/></svg>',
+  mail: '<svg viewBox="0 0 24 24"><path d="M3.5 5h17A1.5 1.5 0 0 1 22 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17.5v-11A1.5 1.5 0 0 1 3.5 5Zm.9 2.1v.35l7.6 5.2 7.6-5.2V7.1Zm15.2 2.75-7.6 5.2-7.6-5.2v7.05h15.2Z"/></svg>',
+};
+
 /* Типовые работы монтажника — те же, что в приложении; каждая строка редактируется. */
 function _estDefaultWorks() {
   return [
@@ -160,9 +168,14 @@ function _estInjectCss() {
 .est-send-sum b{color:#D97706;}
 .est-send-lbl{font-size:0.78rem;font-weight:700;color:var(--text2,#5A5F6E);margin-bottom:8px;}
 .est-chs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
-.est-ch{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:14px;text-decoration:none;font-size:1.4rem;line-height:1;color:#fff;font-weight:700;}
-.est-ch span{font-size:0.72rem;font-family:'Inter',sans-serif;}
-.est-ch.tg{background:#229ED9;} .est-ch.wa{background:#25D366;} .est-ch.max{background:linear-gradient(135deg,#5B2EFF,#9B4DFF);} .est-ch.mail{background:#475569;}
+.est-ch{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;text-decoration:none;color:var(--text,#1A1C22);font-size:0.74rem;font-weight:700;}
+.est-ch i{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.16);transition:transform .12s;}
+.est-ch:active i{transform:scale(.93);}
+.est-ch svg{width:32px;height:32px;fill:#fff;}
+.est-ch.tg i{background:linear-gradient(180deg,#2AABEE,#229ED9);}
+.est-ch.wa i{background:linear-gradient(180deg,#5FFC7B,#25D366 40%,#1EBE5A);}
+.est-ch.max i{background:linear-gradient(135deg,#2A7FFF,#5B5BFF 50%,#8A3FFC);}
+.est-ch.mail i{background:linear-gradient(180deg,#FFB547,#F59E0B 50%,#E08A00);}
 .est-link{display:flex;gap:6px;margin-bottom:10px;}
 .est-link input{flex:1;min-width:0;padding:9px 10px;border:1px solid rgba(0,0,0,0.12);border-radius:10px;font:inherit;font-size:0.78rem;color:var(--text2,#5A5F6E);background:#F7F8FA;}
 .est-link button{border:none;background:#1A1C22;color:#fff;border-radius:10px;padding:0 12px;font:inherit;font-size:0.8rem;font-weight:700;cursor:pointer;}
@@ -177,12 +190,13 @@ function _estInjectCss() {
 }
 /* Баннер на главной */
 .est-cta{display:flex;align-items:center;gap:12px;text-decoration:none;margin:10px 12px 0;padding:12px 16px;border-radius:14px;cursor:pointer;width:calc(100% - 24px);box-sizing:border-box;text-align:left;font:inherit;color:var(--text,#1A1C22);
-  background:linear-gradient(135deg,rgba(245,158,11,0.16),rgba(245,158,11,0.04));border:1px solid rgba(245,158,11,0.38);}
+  background:linear-gradient(135deg,rgba(42,127,255,0.20),rgba(124,77,255,0.16));border:1.5px solid rgba(98,90,255,0.6);
+  box-shadow:0 4px 16px rgba(98,90,255,0.18), inset 0 1px 0 rgba(255,255,255,0.7);}
 .est-cta-ic{font-size:1.5rem;line-height:1;}
 .est-cta-tx{display:flex;flex-direction:column;flex:1;min-width:0;}
 .est-cta-tx b{font-size:0.86rem;font-weight:700;}
 .est-cta-tx small{font-size:0.7rem;color:var(--text2,#5A5F6E);}
-.est-cta-go{flex-shrink:0;font-size:0.8rem;font-weight:800;color:#fff;padding:9px 15px;border-radius:12px;background:linear-gradient(180deg,#FBBF24 0%,#F59E0B 55%,#D97706 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.55),0 4px 12px rgba(217,119,6,0.4);transition:transform .12s;}
+.est-cta-go{flex-shrink:0;font-size:0.8rem;font-weight:800;color:#fff;padding:9px 15px;border-radius:12px;border:1px solid rgba(255,255,255,0.45);background:linear-gradient(135deg,#2A7FFF 0%,#5B5BFF 50%,#8A3FFC 100%);text-shadow:0 1px 1px rgba(30,20,120,0.35);box-shadow:inset 0 1px 0 rgba(255,255,255,0.55),inset 0 -2px 5px rgba(40,20,140,0.35),0 4px 12px rgba(91,91,255,0.5);transition:transform .12s;}
 .est-cta:hover .est-cta-go{transform:translateY(-1px);}
 @media(max-width:639px){.est-dsk{display:none;}}
 @media(min-width:640px){.est-cta{margin:10px auto 0;max-width:960px;width:100%;}.est-cta-tx b{font-size:0.95rem;}.est-cta-tx small{font-size:0.78rem;}}
@@ -619,12 +633,14 @@ function _estShowSendSheet() {
   const t = encodeURIComponent(text);
   const subject = encodeURIComponent('Смета' + (sent.files.meta.clientName ? ' для ' + sent.files.meta.clientName : '') + ' — ' + _estMoney(sent.files.e.total));
   const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [sent.files.pdf] }));
-  const ch = (href, cls, icon, label) => `<a class="est-ch ${cls}" href="${href}" target="_blank" rel="noopener">${icon}<span>${label}</span></a>`;
+  const ch = (href, cls, icon, label, blank) =>
+    `<a class="est-ch ${cls}" href="${href}"${blank ? ' target="_blank" rel="noopener"' : ''}><i>${icon}</i><span>${label}</span></a>`;
+  // Порядок как просили: Telegram, Max, WhatsApp, почта
   const channels = sent.links ? [
-    ch('https://t.me/share/url?url=' + encodeURIComponent(sent.links.pdf) + '&text=' + encodeURIComponent(text.replace('PDF: ' + sent.links.pdf + '\n', '')), 'tg', '✈️', 'Telegram'),
-    ch('https://wa.me/?text=' + t, 'wa', '💬', 'WhatsApp'),
-    ch('https://max.ru/:share?text=' + t, 'max', '🟣', 'Max'),
-    `<a class="est-ch mail" href="mailto:?subject=${subject}&body=${t}">✉️<span>Почта</span></a>`,
+    ch('https://t.me/share/url?url=' + encodeURIComponent(sent.links.pdf) + '&text=' + encodeURIComponent(text.replace('PDF: ' + sent.links.pdf + '\n', '')), 'tg', EST_ICONS.tg, 'Telegram', true),
+    ch('https://max.ru/:share?text=' + t, 'max', EST_ICONS.max, 'Max', true),
+    ch('https://wa.me/?text=' + t, 'wa', EST_ICONS.wa, 'WhatsApp', true),
+    ch(`mailto:?subject=${subject}&body=${t}`, 'mail', EST_ICONS.mail, 'Почта', false),
   ].join('') : '';
 
   document.querySelector('#estOv .est').insertAdjacentHTML('beforeend', `
