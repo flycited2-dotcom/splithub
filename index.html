@@ -475,7 +475,7 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 
 /* ── Продвижение мобильного приложения ── */
 .nav-app-btn { display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; font-weight:700; text-decoration:none; padding:7px 11px; border-radius:10px; flex-shrink:0; color:#0a7d2c; background:rgba(16,160,60,0.10); border:1px solid rgba(16,160,60,0.28); white-space:nowrap; }
-.hero-app-cta { display:flex; align-items:center; gap:12px; text-decoration:none; margin:10px 12px 0; padding:12px 16px; border-radius:14px; background:linear-gradient(135deg,rgba(16,160,60,0.12),rgba(16,160,60,0.04)); border:1px solid rgba(16,160,60,0.28); color:var(--text); }
+.hero-app-cta { display:flex; align-items:center; gap:12px; text-decoration:none; margin:10px 12px 0; padding:12px 16px; border-radius:14px; background:linear-gradient(135deg,rgba(16,170,70,0.26),rgba(16,170,70,0.10)); border:1.5px solid rgba(16,150,60,0.6); box-shadow:0 4px 16px rgba(16,150,60,0.16), inset 0 1px 0 rgba(255,255,255,0.7); color:var(--text); }
 .hero-app-cta .hero-app-ic { font-size:1.5rem; line-height:1; }
 .hero-app-cta .hero-app-tx { display:flex; flex-direction:column; flex:1; min-width:0; }
 .hero-app-cta .hero-app-tx b { font-size:0.86rem; font-weight:700; }
@@ -527,7 +527,7 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 
 /* ── FAB и scroll-top на мобиле ── */
 .fab { bottom: 72px; right: 14px; }
-.scroll-top { bottom: 130px; right: 14px; width: 44px; height: 44px; }
+.scroll-top { bottom: 84px; left: 14px; }
 
 /* ── Drawer на мобиле — full screen ── */
 .dr {
@@ -610,7 +610,7 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
 
   /* FAB скрыт — Заявка в навбаре */
   .fab { display: none; }
-  .scroll-top { bottom: 28px; right: 28px; width: 52px; height: 52px; }
+  .scroll-top { bottom: 28px; left: 28px; width: 62px; height: 62px; font-size: .6rem; }
 
   /* Drawer — центральное модальное окно */
   .dr {
@@ -659,7 +659,12 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
   .nav-order-btn { font-size: 0.76rem; padding: 8px 12px; flex-shrink: 0; }
   .nav-reg-btn { display: none; }
   .nav-logout-btn { display: none !important; }
-  .nav-auth-btn { min-width: 0; padding: 6px 10px; font-size: .70rem; }
+  /* .nav-top повышает специфичность: общее .nav-auth-btn{min-width:168px} стоит ниже в CSS
+     и иначе перебивает это правило — «Войти» раздувалось и выталкивало «Заявку» за экран */
+  .nav-top .logo { flex: 0 0 auto; }
+  .nav-top .nav-auth-btn { min-width: 0; flex: 1 1 0; padding: 6px 10px; font-size: .70rem; overflow: hidden; text-overflow: ellipsis; }
+  .nav-top .nav-order-btn { display: inline-flex; align-items: center; }
+  .nav-top .nav-cart-badge { margin-left: 5px; min-width: 18px; height: 18px; font-size: .66rem; }
 
   /* Навбар строка 2: телефоны 2x2 */
   .nav-phones-mobile {
@@ -703,7 +708,7 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
   .quick-row { padding: 10px 12px 0 !important; }
   .qbtn { font-size: 0.76rem !important; padding: 10px 8px !important; }
   .fab { bottom: 72px !important; right: 14px !important; }
-  .scroll-top { bottom: 130px !important; right: 14px !important; }
+  .scroll-top { bottom: 84px !important; left: 14px !important; }
 
   /* Drawer — full screen on mobile */
   .dr {
@@ -909,13 +914,12 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 .imglb-close{position:fixed;top:18px;right:20px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
 .imglb-close:hover{background:rgba(255,255,255,.28)}
 
-/* SCROLL-TOP & SHARE */
-.scroll-top{position:fixed;bottom:82px;left:10px;z-index:198;display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:999px;border:1px solid var(--blo);background:rgba(255,255,255,.88);backdrop-filter:blur(12px);color:var(--text2);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.1);opacity:0;transform:translateY(8px);pointer-events:none;transition:all .3s cubic-bezier(.34,1.4,.64,1)}
+/* SCROLL-TOP: круглая кнопка слева — стрелка + «Наверх» внутри круга, синий контур */
+.scroll-top{position:fixed;bottom:84px;left:14px;z-index:198;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:58px;height:58px;padding:0;border-radius:50%;border:2px solid #2A7FFF;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#1D5FE0;font-family:'Inter',sans-serif;font-size:.56rem;font-weight:800;letter-spacing:.01em;line-height:1;cursor:pointer;box-shadow:0 4px 16px rgba(42,127,255,.35);opacity:0;transform:translateY(8px);pointer-events:none;transition:all .3s cubic-bezier(.34,1.4,.64,1)}
+.scroll-top svg{width:20px;height:20px}
 .scroll-top.on{opacity:1;transform:translateY(0);pointer-events:auto}
-.scroll-top:active{transform:scale(.96)}
-.share-btn{position:fixed;bottom:42px;left:10px;z-index:198;display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:999px;border:1px solid var(--blo);background:rgba(255,255,255,.88);backdrop-filter:blur(12px);color:var(--text2);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.1);opacity:0;transform:translateY(8px);pointer-events:none;transition:all .3s cubic-bezier(.34,1.4,.64,1)}
-.share-btn.on{opacity:1;transform:translateY(0);pointer-events:auto}
-.share-btn:active{transform:scale(.96)}
+.scroll-top:hover{background:#2A7FFF;color:#fff}
+.scroll-top:active{transform:scale(.94)}
 
 /* FAQ */
 .faq-item{padding:0;overflow:visible}
@@ -1147,6 +1151,11 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     <span class="hero-app-tx"><b>Установите приложение СплитХаб</b><small>Каталог, заказы и бонусы в телефоне &middot; Android</small></span>
     <span class="hero-app-go">Установить &rarr;</span>
   </a>
+  <button type="button" class="est-cta rv" onclick="openEstimate()" style="transition-delay:0.04s">
+    <span class="est-cta-ic">&#128196;</span>
+    <span class="est-cta-tx"><b>Смета для клиента<span class="est-dsk"> за 1 минуту</span></b><small>Техника с вашей наценкой + работы &rarr; PDF<span class="est-dsk"> для WhatsApp, Telegram или почты</span></small></span>
+    <span class="est-cta-go">Создать<span class="est-dsk"> смету</span> &rarr;</span>
+  </button>
   <div class="quick-row rv" style="transition-delay:0.05s">
     <button class="g qbtn qbtn-full btn-price-dl btn-price-dl--mobile" onclick="openPricelistModal()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1276,14 +1285,10 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
   <div id="dashBody"></div>
 </div>
 
-<!-- SCROLL TOP & SHARE -->
-<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+<!-- SCROLL TOP -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Наверх">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
   Наверх
-</button>
-<button class="share-btn" id="shareBtn" onclick="shareSite()">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-  Поделиться
 </button>
 
 
@@ -1292,6 +1297,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
 <script src="pricelist.js"></script>
+<script src="estimate.js"></script>
 <script>
 // Product overrides and custom products from admin. products.js remains the base source.
 var PRODUCT_OVERRIDES = {};
@@ -2005,6 +2011,7 @@ function renderD() {
       + '<div class="dtot-left"><div class="dtot-label">Итого по заявке</div><div class="dtot-count">'+tPos+' товара · '+tQty+' шт.</div></div>'
       + '<div class="dtot-s">'+tot.toLocaleString('ru-RU')+' ₽</div>'
     + '</div>'
+    + '<button type="button" class="est-cta est-cta-dr" onclick="openEstimate()"><span class="est-cta-ic">&#128196;</span><span class="est-cta-tx"><b>Смета для клиента</b><small>Ваша наценка + работы &rarr; PDF клиенту</small></span><span class="est-cta-go">Создать &rarr;</span></button>'
     + idHtml
     + '<button class="comment-toggle" onclick="toggleComment()">Добавить комментарий</button>'
     + '<div id="commentWrap" hidden><textarea class="inp inp-ta" id="dC" placeholder="Комментарий к заявке" rows="2"></textarea></div>'
@@ -2116,23 +2123,11 @@ function sendOrder() {
   });
 }
 
-// ── Scroll & Share ────────────────────────────────────
+// ── Scroll top ────────────────────────────────────────
 var _st = document.getElementById('scrollTop');
-var _sb = document.getElementById('shareBtn');
 window.addEventListener('scroll', function() {
-  var show = window.scrollY > 200;
-  if(_st) _st.classList.toggle('on', show);
-  if(_sb) _sb.classList.toggle('on', show);
+  if(_st) _st.classList.toggle('on', window.scrollY > 200);
 }, {passive:true});
-
-function shareSite() {
-  var url = 'https://splithub.ru/';
-  if(navigator.share) {
-    navigator.share({title:'СплитХаб', text:'Оптовый прайс кондиционеров для монтажников и B2B', url:url}).catch(function(){});
-  } else {
-    window.open('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent('Оптовый прайс кондиционеров для монтажников и B2B — СплитХаб'), '_blank');
-  }
-}
 
 // ── Nav height fix ────────────────────────────────────
 function fixHeroPad() {

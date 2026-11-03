@@ -22,3 +22,4 @@ db/*.db
 tools/price_sync/out/
 tools/price_sync/logs/
 __pycache__/
+
