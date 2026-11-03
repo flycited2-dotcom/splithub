@@ -1147,6 +1147,11 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
     <span class="hero-app-tx"><b>Установите приложение СплитХаб</b><small>Каталог, заказы и бонусы в телефоне &middot; Android</small></span>
     <span class="hero-app-go">Установить &rarr;</span>
   </a>
+  <button type="button" class="est-cta rv" onclick="openEstimate()" style="transition-delay:0.04s">
+    <span class="est-cta-ic">&#128196;</span>
+    <span class="est-cta-tx"><b>Смета для клиента<span class="est-dsk"> за 1 минуту</span></b><small>Техника с вашей наценкой + работы &rarr; PDF<span class="est-dsk"> для WhatsApp, Telegram или почты</span></small></span>
+    <span class="est-cta-go">Создать<span class="est-dsk"> смету</span> &rarr;</span>
+  </button>
   <div class="quick-row rv" style="transition-delay:0.05s">
     <button class="g qbtn qbtn-full btn-price-dl btn-price-dl--mobile" onclick="openPricelistModal()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1292,6 +1297,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:fo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
 <script src="pricelist.js"></script>
+<script src="estimate.js"></script>
 <script>
 // Product overrides and custom products from admin. products.js remains the base source.
 var PRODUCT_OVERRIDES = {};
@@ -2005,6 +2011,7 @@ function renderD() {
       + '<div class="dtot-left"><div class="dtot-label">Итого по заявке</div><div class="dtot-count">'+tPos+' товара · '+tQty+' шт.</div></div>'
       + '<div class="dtot-s">'+tot.toLocaleString('ru-RU')+' ₽</div>'
     + '</div>'
+    + '<button class="est-dr-btn" onclick="openEstimate()"><b>&#128196; Смета для клиента</b><small>PDF с вашей наценкой и работами — отправьте в WhatsApp или Telegram</small></button>'
     + idHtml
     + '<button class="comment-toggle" onclick="toggleComment()">Добавить комментарий</button>'
     + '<div id="commentWrap" hidden><textarea class="inp inp-ta" id="dC" placeholder="Комментарий к заявке" rows="2"></textarea></div>'
