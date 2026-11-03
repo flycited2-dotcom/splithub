@@ -23,6 +23,3 @@ tools/price_sync/out/
 tools/price_sync/logs/
 __pycache__/
 
-# сметы клиентов, загруженные через api/estimate.php (кроме правил доступа)
-estimates/*
-!estimates/.htaccess

@@ -9,14 +9,7 @@
 const EST_SETTINGS_KEY = 'sh_estimate_settings';
 const EST_ITEMS_KEY    = 'sh_estimate_items';
 const EST_MARKUPS      = [0, 15, 20, 25, 30];
-
-/* Глифы каналов (Simple Icons, CC0): белые на плитке фирменного цвета. */
-const EST_ICONS = {
-  tg: '<svg viewBox="0 0 24 24"><path transform="translate(1 -.6)" d="M16.906 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
-  wa: '<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>',
-  max: '<svg viewBox="0 0 24 24"><path fill-rule="evenodd" transform="translate(12 12) scale(1.12) translate(-12 -11.9)" d="M14.254 3.28a4.301 4.301 0 0 1 4.3 4.302 4.301 4.301 0 0 1-1.993 3.63 6.085 6.085 0 0 1 1.054 3.422 6.085 6.085 0 0 1-6.085 6.085 6.085 6.085 0 0 1-6.085-6.085 6.085 6.085 0 0 1 4.66-5.916 4.301 4.301 0 0 1-.152-1.136 4.301 4.301 0 0 1 4.301-4.301zm0 1.849a2.453 2.453 0 0 0-2.453 2.453 2.453 2.453 0 0 0 2.453 2.453 2.453 2.453 0 0 0 2.453-2.453 2.453 2.453 0 0 0-2.453-2.453zm-2.724 5.268a4.237 4.237 0 0 0-4.237 4.237 4.237 4.237 0 0 0 4.237 4.237 4.237 4.237 0 0 0 4.237-4.237 4.237 4.237 0 0 0-4.237-4.237zm.032 2.54a1.781 1.781 0 1 1 0 3.562 1.781 1.781 0 0 1 0-3.562Z"/></svg>',
-  mail: '<svg viewBox="0 0 24 24"><path d="M3.5 5h17A1.5 1.5 0 0 1 22 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17.5v-11A1.5 1.5 0 0 1 3.5 5Zm.9 2.1v.35l7.6 5.2 7.6-5.2V7.1Zm15.2 2.75-7.6 5.2-7.6-5.2v7.05h15.2Z"/></svg>',
-};
+const EST_FILE_ICON    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><polyline points="9 15 12 18 15 15"/></svg>';
 
 /* Типовые работы монтажника — те же, что в приложении; каждая строка редактируется. */
 function _estDefaultWorks() {
@@ -159,28 +152,11 @@ function _estInjectCss() {
 .est-btn.sec{background:#fff;border:1px solid #F59E0B;color:#B45309;}
 .est-btn:disabled{opacity:0.45;cursor:not-allowed;}
 .est-btn-wide{display:block;width:100%;margin-bottom:8px;}
-.est{position:relative;}
-.est-send{position:absolute;inset:0;z-index:5;background:rgba(10,14,26,0.45);display:flex;align-items:flex-end;justify-content:center;border-radius:inherit;}
-.est-send-card{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.2);}
-.est-send-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
-.est-send-hd b{font-family:'Unbounded',sans-serif;font-size:0.95rem;}
-.est-send-sum{font-size:0.85rem;color:var(--text2,#5A5F6E);margin-bottom:12px;}
-.est-send-sum b{color:#D97706;}
-.est-send-lbl{font-size:0.78rem;font-weight:700;color:var(--text2,#5A5F6E);margin-bottom:8px;}
-.est-chs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
-.est-ch{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;text-decoration:none;color:var(--text,#1A1C22);font-size:0.74rem;font-weight:700;}
-.est-ch i{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.16);transition:transform .12s;}
-.est-ch:active i{transform:scale(.93);}
-.est-ch svg{width:32px;height:32px;fill:#fff;}
-.est-ch.tg i{background:linear-gradient(180deg,#2AABEE,#229ED9);}
-.est-ch.wa i{background:linear-gradient(180deg,#5FFC7B,#25D366 40%,#1EBE5A);}
-.est-ch.max i{background:linear-gradient(135deg,#2A7FFF,#5B5BFF 50%,#8A3FFC);}
-.est-ch.mail i{background:linear-gradient(180deg,#FFB547,#F59E0B 50%,#E08A00);}
-.est-link{display:flex;gap:6px;margin-bottom:10px;}
-.est-link input{flex:1;min-width:0;padding:9px 10px;border:1px solid rgba(0,0,0,0.12);border-radius:10px;font:inherit;font-size:0.78rem;color:var(--text2,#5A5F6E);background:#F7F8FA;}
-.est-link button{border:none;background:#1A1C22;color:#fff;border-radius:10px;padding:0 12px;font:inherit;font-size:0.8rem;font-weight:700;cursor:pointer;}
-.est-send-err{font-size:0.82rem;color:#B91C1C;background:#FEF2F2;border-radius:12px;padding:10px 12px;margin-bottom:10px;}
-@media(min-width:640px){.est-send{align-items:center;}.est-send-card{max-width:440px;border-radius:20px;}}
+.est-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;}
+.est-btn svg{width:17px;height:17px;flex-shrink:0;}
+.est-btn.share{display:flex;color:#fff;background:linear-gradient(135deg,#2A7FFF 0%,#5B5BFF 50%,#8A3FFC 100%);box-shadow:0 4px 14px rgba(91,91,255,0.4);}
+.est-btn.pdf{color:#fff;background:linear-gradient(180deg,#F0443A,#D93025);box-shadow:0 3px 10px rgba(217,48,37,0.35);}
+.est-btn.xlsx{color:#fff;background:linear-gradient(180deg,#21A366,#107C41);box-shadow:0 3px 10px rgba(16,124,65,0.35);}
 @media(min-width:640px){
   .est-ov{align-items:center;}
   .est{max-width:760px;width:94%;max-height:92vh;border-radius:22px;}
@@ -237,8 +213,8 @@ function openEstimate() {
 
       <div class="est-sec">Клиент</div>
       <div class="est-row2">
-        <input class="est-in" id="estClient" placeholder="Имя клиента" value="${_estEsc(_est.clientName)}" oninput="_est.clientName=this.value">
-        <input class="est-in" id="estAddr" placeholder="Адрес объекта" value="${_estEsc(_est.objectAddress)}" oninput="_est.objectAddress=this.value">
+        <input class="est-in" id="estClient" placeholder="Имя клиента" value="${_estEsc(_est.clientName)}" oninput="_est.clientName=this.value;_estSchedulePdf()">
+        <input class="est-in" id="estAddr" placeholder="Адрес объекта" value="${_estEsc(_est.objectAddress)}" oninput="_est.objectAddress=this.value;_estSchedulePdf()">
       </div>
 
       <div class="est-sec">Оборудование <small id="estEqCount"></small></div>
@@ -260,9 +236,9 @@ function openEstimate() {
       <div class="est-sec">Исполнитель <small>в шапке сметы</small></div>
       <div class="est-row2">
         <input class="est-in" placeholder="Ваше имя или компания" value="${_estEsc(s.contractorName)}"
-          oninput="_est.settings.contractorName=this.value;_estSaveSettings()">
+          oninput="_est.settings.contractorName=this.value;_estSaveSettings();_estSchedulePdf()">
         <input class="est-in" type="tel" placeholder="Телефон" value="${_estEsc(s.contractorPhone)}"
-          oninput="_est.settings.contractorPhone=this.value;_estSaveSettings()">
+          oninput="_est.settings.contractorPhone=this.value;_estSaveSettings();_estSchedulePdf()">
       </div>
     </div>
     <div class="est-ft" id="estFoot"></div>
@@ -400,8 +376,9 @@ function _estDelWork(id) {
   _estSaveSettings(); _estRenderWorks(); _estRenderFoot();
 }
 
-function _estRenderFoot() {
+function _estRenderFoot(prepare) {
   const box = document.getElementById('estFoot'); if (!box) return;
+  if (prepare !== false) _estSchedulePdf();
   const e = estCompute();
   const off = _est.busy || !e.equipment.length ? ' disabled' : '';
   box.innerHTML = `
@@ -409,10 +386,10 @@ function _estRenderFoot() {
     <div class="est-tot"><span>Работы</span><b>${_estMoney(e.worksTotal)}</b></div>
     <div class="est-grand"><span>Итого клиенту</span><b>${_estMoney(e.total)}</b></div>
     <div class="est-margin">Ваша наценка на оборудовании: ${_estMoney(e.margin)} (в смете не видна)</div>
-    <button class="est-btn pri est-btn-wide"${off} onclick="estimateSend()">${_est.busy === 'send' ? '⏳ Готовим смету…' : '📤 Отправить клиенту'}</button>
+    <button class="est-btn share est-btn-wide"${off} onclick="estimateShare()">${_est.busy === 'share' ? '⏳ Готовим PDF…' : '📤 Отправить клиенту PDF'}</button>
     <div class="est-btns">
-      <button class="est-btn sec"${off} onclick="estimateDownload('pdf')">${_est.busy === 'pdf' ? '⏳ PDF…' : '📄 Скачать PDF'}</button>
-      <button class="est-btn sec"${off} onclick="estimateDownload('xlsx')">${_est.busy === 'xlsx' ? '⏳ Excel…' : '📊 Скачать Excel'}</button>
+      <button class="est-btn pdf"${off} onclick="estimateDownload('pdf')">${_est.busy === 'pdf' ? '⏳ PDF…' : EST_FILE_ICON + 'Скачать PDF'}</button>
+      <button class="est-btn xlsx"${off} onclick="estimateDownload('xlsx')">${_est.busy === 'xlsx' ? '⏳ Excel…' : EST_FILE_ICON + 'Скачать Excel'}</button>
     </div>`;
 }
 
@@ -579,117 +556,53 @@ async function estimateDownload(kind) {
   }
 }
 
-async function _estUpload(file) {
-  const fd = new FormData();
-  fd.append('file', file, file.name);
-  fd.append('name', file.name);
-  const res = await fetch('api/estimate.php', { method: 'POST', body: fd });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok || !data.url) throw new Error(data.error || ('сервер ответил ' + res.status));
-  return data.url;
+/* ── Отправка клиенту: сразу файлом PDF через системное «Поделиться»
+      (Telegram, WhatsApp, Max, почта — что установлено на телефоне).
+      Браузер разрешает «Поделиться» только прямо из нажатия, поэтому PDF собирается
+      заранее, пока монтажник заполняет смету, а кнопка отдаёт уже готовый файл. ── */
+function _estKey() {
+  const m = _estMeta();
+  return JSON.stringify([estCompute(), m.clientName, m.objectAddress, m.contractorName, m.contractorPhone, m.validDays]);
 }
 
-/* ── Отправка: файлы готовятся и загружаются заранее, дальше — окно со всеми каналами.
-      Ссылки каналов — обычные <a>, а системное «Поделиться» вызывается сразу по нажатию
-      с уже готовым файлом: так браузер не теряет «жест пользователя» и не закрывает меню. ── */
-async function estimateSend() {
+function _estSchedulePdf() {
+  clearTimeout(_est.pdfTimer);
+  if (!_est.items.length || typeof pdfMake === 'undefined') return;
+  _est.pdfTimer = setTimeout(_estPreparePdf, 400);
+}
+
+async function _estPreparePdf() {
+  const key = _estKey();
+  if (_est.pdf && _est.pdf.key === key) return _est.pdf.file;
+  const files = await _estBuildFiles(['pdf']);
+  _est.pdf = { key, file: files.pdf };
+  return files.pdf;
+}
+
+function estimateShare() {
   if (_est.busy || !_est.items.length) return;
-  _est.busy = 'send'; _estRenderFoot();
-  try {
-    const files = await _estBuildFiles(['pdf', 'xlsx']);
-    let links = null, uploadError = '';
-    try {
-      const [pdfUrl, xlsxUrl] = await Promise.all([_estUpload(files.pdf), _estUpload(files.xlsx)]);
-      links = { pdf: pdfUrl, xlsx: xlsxUrl };
-    } catch (err) {
-      console.error('Estimate upload error:', err);
-      uploadError = err && err.message || 'нет связи с сервером';
-    }
-    _est.sent = { files, links, uploadError };
-    _estShowSendSheet();
-  } catch (err) {
-    console.error('Estimate send error:', err);
-    showEstToast('Не удалось подготовить смету: ' + (err && err.message || 'попробуйте ещё раз'), true);
-  } finally {
-    _est.busy = false; _estRenderFoot();
+  const ready = _est.pdf && _est.pdf.key === _estKey() ? _est.pdf.file : null;
+  const canShare = !!(navigator.share && navigator.canShare);
+  if (ready && canShare && navigator.canShare({ files: [ready] })) {
+    // никаких await до share — иначе браузер сочтёт вызов не от пользователя
+    navigator.share({ files: [ready], title: ready.name }).catch(err => {
+      if (err && err.name === 'AbortError') return; // закрыли меню
+      console.error('Estimate share error:', err);
+      showEstToast('Не получилось открыть «Поделиться» (' + (err && err.name || 'ошибка') + '). PDF можно скачать кнопкой ниже.', true);
+    });
+    return;
   }
-}
-
-function _estShareText(sent) {
-  const m = sent.files.meta, e = sent.files.e;
-  const lines = [
-    'Смета от ' + m.date.toLocaleDateString('ru-RU') + (m.clientName ? ' для ' + m.clientName : ''),
-    m.objectAddress ? 'Объект: ' + m.objectAddress : '',
-    'Итого к оплате: ' + _estMoney(e.total),
-    sent.links ? 'PDF: ' + sent.links.pdf : '',
-    sent.links ? 'Excel: ' + sent.links.xlsx : '',
-    m.contractorName || m.contractorPhone ? '\n' + [m.contractorName, m.contractorPhone].filter(Boolean).join(', ') : '',
-  ];
-  return lines.filter(Boolean).join('\n');
-}
-
-function _estShowSendSheet() {
-  const sent = _est.sent; if (!sent) return;
-  const old = document.getElementById('estSend'); if (old) old.remove();
-  const text = _estShareText(sent);
-  const t = encodeURIComponent(text);
-  const subject = encodeURIComponent('Смета' + (sent.files.meta.clientName ? ' для ' + sent.files.meta.clientName : '') + ' — ' + _estMoney(sent.files.e.total));
-  const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [sent.files.pdf] }));
-  const ch = (href, cls, icon, label, blank) =>
-    `<a class="est-ch ${cls}" href="${href}"${blank ? ' target="_blank" rel="noopener"' : ''}><i>${icon}</i><span>${label}</span></a>`;
-  // Порядок как просили: Telegram, Max, WhatsApp, почта
-  const channels = sent.links ? [
-    ch('https://t.me/share/url?url=' + encodeURIComponent(sent.links.pdf) + '&text=' + encodeURIComponent(text.replace('PDF: ' + sent.links.pdf + '\n', '')), 'tg', EST_ICONS.tg, 'Telegram', true),
-    ch('https://max.ru/:share?text=' + t, 'max', EST_ICONS.max, 'Max', true),
-    ch('https://wa.me/?text=' + t, 'wa', EST_ICONS.wa, 'WhatsApp', true),
-    ch(`mailto:?subject=${subject}&body=${t}`, 'mail', EST_ICONS.mail, 'Почта', false),
-  ].join('') : '';
-
-  document.querySelector('#estOv .est').insertAdjacentHTML('beforeend', `
-<div class="est-send" id="estSend">
-  <div class="est-send-card">
-    <div class="est-send-hd"><b>✅ Смета готова</b><button class="est-x" onclick="_estCloseSend()" aria-label="Закрыть">✕</button></div>
-    <div class="est-send-sum">${_estEsc(sent.files.meta.clientName || 'Клиент')} · <b>${_estMoney(sent.files.e.total)}</b></div>
-    ${sent.links ? `
-      <div class="est-send-lbl">Отправить ссылку на смету</div>
-      <div class="est-chs">${channels}</div>
-      <div class="est-link"><input readonly value="${_estEsc(sent.links.pdf)}" onclick="this.select()"><button onclick="_estCopy()">Копировать</button></div>`
-    : `<div class="est-send-err">Не удалось загрузить смету на сервер (${_estEsc(sent.uploadError)}). Отправьте файл через «Поделиться» или скачайте его.</div>`}
-    ${canShareFiles ? `<button class="est-btn pri est-btn-wide" onclick="_estShareFile('pdf')">📎 Поделиться файлом PDF…</button>` : ''}
-    <div class="est-btns">
-      <button class="est-btn sec" onclick="_estSaveFile(_est.sent.files.pdf)">📄 PDF</button>
-      <button class="est-btn sec" onclick="_estSaveFile(_est.sent.files.xlsx)">📊 Excel</button>
-      ${canShareFiles ? `<button class="est-btn sec" onclick="_estShareFile('xlsx')">📎 Excel…</button>` : ''}
-    </div>
-  </div>
-</div>`);
-}
-
-function _estCloseSend() { const s = document.getElementById('estSend'); if (s) s.remove(); }
-
-function _estCopy() {
-  const sent = _est.sent; if (!sent || !sent.links) return;
-  const text = _estShareText(sent);
-  const done = () => showEstToast('Текст со ссылкой скопирован');
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => _estCopyFallback(text, done));
-  else _estCopyFallback(text, done);
-}
-function _estCopyFallback(text, done) {
-  const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
-  document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); done(); } catch (e) {}
-  ta.remove();
-}
-
-// Вызывается прямо из нажатия: файл уже готов, до navigator.share нет ни одного await.
-function _estShareFile(kind) {
-  const sent = _est.sent; if (!sent) return;
-  const file = sent.files[kind];
-  navigator.share({ files: [file], title: file.name, text: _estShareText(sent) }).catch(err => {
-    if (err && err.name === 'AbortError') return; // пользователь закрыл меню
-    console.error('Estimate share error:', err);
-    showEstToast('Меню «Поделиться» недоступно (' + (err && err.name || 'ошибка') + '). Используйте кнопки мессенджеров или скачайте файл.', true);
-  });
+  if (!canShare) {
+    // компьютер или браузер без отправки файлов — сохраняем PDF, его можно прикрепить в мессенджере
+    estimateDownload('pdf');
+    return;
+  }
+  // PDF ещё собирается (первое нажатие сразу после правки) — дособираем и просим нажать ещё раз
+  _est.busy = 'share'; _estRenderFoot(false);
+  _estPreparePdf().then(
+    () => showEstToast('PDF готов — нажмите «Отправить» ещё раз'),
+    err => showEstToast('Не удалось подготовить смету: ' + (err && err.message || 'попробуйте ещё раз'), true),
+  ).finally(() => { _est.busy = false; _estRenderFoot(false); });
 }
 
 // Стили нужны сразу: баннер на главной и кнопка в заявке видны до открытия сметы
