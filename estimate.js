@@ -200,10 +200,12 @@ function _estInjectCss() {
 .est-cta:hover .est-cta-go{transform:translateY(-1px);}
 @media(max-width:639px){.est-dsk{display:none;}}
 @media(min-width:640px){.est-cta{margin:10px auto 0;max-width:960px;width:100%;}.est-cta-tx b{font-size:0.95rem;}.est-cta-tx small{font-size:0.78rem;}}
-/* Кнопка в заявке */
-.est-dr-btn{display:block;width:100%;text-align:left;border:1px solid rgba(245,158,11,0.45);background:rgba(245,158,11,0.10);border-radius:12px;padding:10px 12px;margin:0 0 9px;cursor:pointer;font:inherit;}
-.est-dr-btn b{display:block;color:#B45309;font-size:0.88rem;}
-.est-dr-btn small{color:var(--text2,#5A5F6E);font-size:0.72rem;}
+/* Та же плашка в шторке заявки — на всю ширину, без внешних отступов */
+.est-cta.est-cta-dr{width:100%;max-width:none;margin:0 0 10px;padding:10px 12px;gap:10px;}
+.est-cta-dr .est-cta-ic{font-size:1.3rem;}
+.est-cta-dr .est-cta-tx b{font-size:0.88rem;}
+.est-cta-dr .est-cta-tx small{font-size:0.72rem;}
+.est-cta-dr .est-cta-go{padding:8px 12px;font-size:0.78rem;}
 `;
   const st = document.createElement('style');
   st.id = 'estCss';
