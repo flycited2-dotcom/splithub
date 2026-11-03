@@ -152,6 +152,15 @@ function _estInjectCss() {
 .est-btn.sec{background:#fff;border:1px solid #F59E0B;color:#B45309;}
 .est-btn:disabled{opacity:0.45;cursor:not-allowed;}
 .est-btn-wide{display:block;width:100%;margin-bottom:8px;}
+.est{position:relative;}
+.est-ready{position:absolute;inset:0;z-index:5;background:rgba(10,14,26,0.45);display:flex;align-items:flex-end;justify-content:center;border-radius:inherit;}
+.est-ready-card{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,0.2);}
+.est-ready-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.est-ready-hd b{font-family:'Unbounded',sans-serif;font-size:0.95rem;}
+.est-ready-file{font-size:0.8rem;color:var(--text2,#5A5F6E);margin-bottom:12px;word-break:break-all;}
+.est-ready-err{font-size:0.84rem;color:#991B1B;background:#FEF2F2;border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+.est-ready-diag{font-size:0.68rem;color:var(--text3,#9298A8);margin-top:4px;word-break:break-word;}
+@media(min-width:640px){.est-ready{align-items:center;}.est-ready-card{max-width:420px;border-radius:20px;}}
 .est-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;}
 .est-btn svg{width:17px;height:17px;flex-shrink:0;}
 .est-btn.share{display:flex;color:#fff;background:linear-gradient(135deg,#2A7FFF 0%,#5B5BFF 50%,#8A3FFC 100%);box-shadow:0 4px 14px rgba(91,91,255,0.4);}
@@ -581,29 +590,67 @@ async function _estPreparePdf() {
 
 function estimateShare() {
   if (_est.busy || !_est.items.length) return;
-  const ready = _est.pdf && _est.pdf.key === _estKey() ? _est.pdf.file : null;
-  const canShare = !!(navigator.share && navigator.canShare);
-  if (ready && canShare && navigator.canShare({ files: [ready] })) {
-    // никаких await до share — иначе браузер сочтёт вызов не от пользователя
-    navigator.share({ files: [ready], title: ready.name }).catch(err => {
-      if (err && err.name === 'AbortError') return; // закрыли меню
-      console.error('Estimate share error:', err);
-      showEstToast('Не получилось открыть «Поделиться» (' + (err && err.name || 'ошибка') + '). PDF можно скачать кнопкой ниже.', true);
-    });
-    return;
-  }
-  if (!canShare) {
+  if (!(navigator.share && navigator.canShare)) {
     // компьютер или браузер без отправки файлов — сохраняем PDF, его можно прикрепить в мессенджере
     estimateDownload('pdf');
     return;
   }
-  // PDF ещё собирается (первое нажатие сразу после правки) — дособираем и просим нажать ещё раз
+  const ready = _est.pdf && _est.pdf.key === _estKey() ? _est.pdf.file : null;
+  if (ready) { _estDoShare(ready, 1); return; }
+  // PDF ещё собирается (нажали сразу после правки) — дособираем и даём кнопку «Поделиться»:
+  // новое нажатие = новый «жест пользователя», без него браузер «Поделиться» не откроет
   _est.busy = 'share'; _estRenderFoot(false);
   _estPreparePdf().then(
-    () => showEstToast('PDF готов — нажмите «Отправить» ещё раз'),
+    file => _estShowReady(file),
     err => showEstToast('Не удалось подготовить смету: ' + (err && err.message || 'попробуйте ещё раз'), true),
   ).finally(() => { _est.busy = false; _estRenderFoot(false); });
 }
+
+// Вызывается только прямо из нажатия: файл уже готов, до navigator.share нет ни одного await.
+function _estDoShare(file, attempt) {
+  const gesture = navigator.userActivation ? navigator.userActivation.isActive : null;
+  let p;
+  try {
+    if (!navigator.canShare({ files: [file] })) throw Object.assign(new Error('canShare: false'), { name: 'NotSupportedError' });
+    p = navigator.share({ files: [file] });
+  } catch (err) { p = Promise.reject(err); }
+  p.then(_estCloseReady, err => {
+    if (err && err.name === 'AbortError') return; // закрыли меню
+    console.error('Estimate share error:', err, 'attempt', attempt, 'gesture', gesture);
+    const diag = (err && err.name || 'Error') + (err && err.message ? ': ' + err.message : '') +
+      ' · нажатие: ' + (gesture === null ? '?' : gesture ? 'да' : 'нет') + ' · ' + _estBrowser();
+    if (attempt === 1) { _estShowReady(file, diag); return; }
+    // браузер запрещает отправку файлов даже по прямому нажатию — сохраняем файл
+    _estSaveFile(file);
+    _estShowReady(file, diag, true);
+  });
+}
+
+function _estBrowser() {
+  const ua = navigator.userAgent;
+  const m = ua.match(/SamsungBrowser\/[\d.]+|YaBrowser\/[\d.]+|Firefox\/[\d.]+|EdgA?\/[\d.]+|OPR\/[\d.]+|Chrome\/[\d.]+|Version\/[\d.]+ Mobile.*Safari/);
+  return (m ? m[0] : 'браузер ?') + (/Android/.test(ua) ? ' · Android' : /iPhone|iPad/.test(ua) ? ' · iOS' : '');
+}
+
+// Окно «PDF готов»: большая кнопка «Поделиться» (свежее нажатие) и скачивание.
+function _estShowReady(file, diag, failed) {
+  _estCloseReady();
+  const box = document.querySelector('#estOv .est'); if (!box) return;
+  box.insertAdjacentHTML('beforeend', `
+<div class="est-ready" id="estReady" onclick="if(event.target===this)_estCloseReady()">
+  <div class="est-ready-card">
+    <div class="est-ready-hd"><b>📄 Смета готова</b><button class="est-x" onclick="_estCloseReady()" aria-label="Закрыть">✕</button></div>
+    <div class="est-ready-file">${_estEsc(file.name)} · ${Math.max(1, Math.round(file.size / 1024))} КБ</div>
+    ${failed
+      ? `<div class="est-ready-err"><b>Этот браузер не разрешает отправлять файлы.</b> PDF сохранён в «Загрузки» — откройте его и нажмите «Поделиться», либо откройте сайт в Chrome.</div>`
+      : `<button class="est-btn share est-btn-wide" onclick="_estDoShare(_est.readyFile, 2)">📤 Поделиться PDF</button>`}
+    <button class="est-btn pdf est-btn-wide" onclick="_estSaveFile(_est.readyFile)">${EST_FILE_ICON}Скачать PDF</button>
+    ${diag ? `<div class="est-ready-diag">${_estEsc(diag)}</div>` : ''}
+  </div>
+</div>`);
+  _est.readyFile = file;
+}
+function _estCloseReady() { const r = document.getElementById('estReady'); if (r) r.remove(); }
 
 // Стили нужны сразу: баннер на главной и кнопка в заявке видны до открытия сметы
 _estInjectCss();
