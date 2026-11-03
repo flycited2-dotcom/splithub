@@ -659,7 +659,12 @@ footer{position:relative;z-index:1;padding:1rem 16px;display:flex;align-items:ce
   .nav-order-btn { font-size: 0.76rem; padding: 8px 12px; flex-shrink: 0; }
   .nav-reg-btn { display: none; }
   .nav-logout-btn { display: none !important; }
-  .nav-auth-btn { min-width: 0; padding: 6px 10px; font-size: .70rem; }
+  /* .nav-top повышает специфичность: общее .nav-auth-btn{min-width:168px} стоит ниже в CSS
+     и иначе перебивает это правило — «Войти» раздувалось и выталкивало «Заявку» за экран */
+  .nav-top .logo { flex: 0 0 auto; }
+  .nav-top .nav-auth-btn { min-width: 0; flex: 1 1 0; padding: 6px 10px; font-size: .70rem; overflow: hidden; text-overflow: ellipsis; }
+  .nav-top .nav-order-btn { display: inline-flex; align-items: center; }
+  .nav-top .nav-cart-badge { margin-left: 5px; min-width: 18px; height: 18px; font-size: .66rem; }
 
   /* Навбар строка 2: телефоны 2x2 */
   .nav-phones-mobile {
