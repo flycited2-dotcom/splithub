@@ -7,7 +7,7 @@
  */
 
 const EST_SETTINGS_KEY = 'sh_estimate_settings';
-const EST_ITEMS_KEY    = 'sh_estimate_items';
+const EST_ITEMS_KEY    = 'sh_estimate_items'; // устаревший ключ: техника больше не хранится между визитами
 const EST_MARKUPS      = [0, 15, 20, 25, 30];
 const EST_FILE_ICON    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><polyline points="9 15 12 18 15 15"/></svg>';
 
@@ -31,7 +31,7 @@ function _estWrite(key, value) {
 
 const _est = {
   settings: null,   // { markupPercent, works, contractorName, contractorPhone, validDays }
-  items: [],        // [{ id, qty }] — оборудование сметы (своё, заявку не меняет)
+  items: [],        // [{ id, qty }] — оборудование сметы (своё, заявку не меняет; живёт до перезагрузки)
   clientName: '',
   objectAddress: '',
   busy: false,
@@ -49,10 +49,13 @@ function _estLoad() {
     validDays: 7,
   };
   if (saved.works && saved.works.length) Object.assign(_est.settings, saved);
-  _est.items = (_estRead(EST_ITEMS_KEY) || []).filter(it => _estProduct(it.id));
+  // Каждая новая смета начинается с типового набора: монтаж ×1, остальные работы 0.
+  // Цены, названия и свои работы остаются — это настройки монтажника.
+  _est.settings.works.forEach(w => { w.qty = w.id === 'install' ? 1 : 0; });
+  // Техника в смете живёт, как и заявка, только пока открыта страница; раньше хранилась — убираем след
+  try { localStorage.removeItem(EST_ITEMS_KEY); } catch (e) {}
 }
 function _estSaveSettings() { _estWrite(EST_SETTINGS_KEY, _est.settings); }
-function _estSaveItems()    { _estWrite(EST_ITEMS_KEY, _est.items); }
 
 function _estProduct(id) {
   return typeof findVisibleProduct === 'function' ? findVisibleProduct(id) : PRODUCTS.find(p => p.id === id);
@@ -273,7 +276,6 @@ function _estTakeCart() {
     const ex = _est.items.find(it => it.id === c.id);
     if (ex) ex.qty = Math.max(ex.qty, c.qty); else _est.items.push({ id: c.id, qty: c.qty });
   });
-  _estSaveItems();
 }
 
 function _estRenderEquipment() {
@@ -306,7 +308,7 @@ function _estQty(id, d) {
   const i = _est.items.findIndex(it => it.id === id); if (i < 0) return;
   _est.items[i].qty += d;
   if (_est.items[i].qty <= 0) _est.items.splice(i, 1);
-  _estSaveItems(); _estRenderEquipment(); _estRenderFoot();
+  _estRenderEquipment(); _estRenderFoot();
 }
 
 function _estSuggest(q) {
@@ -328,7 +330,6 @@ function _estSuggest(q) {
 function _estAdd(id) {
   const ex = _est.items.find(it => it.id === id);
   if (ex) ex.qty++; else _est.items.push({ id, qty: 1 });
-  _estSaveItems();
   const q = document.getElementById('estQ'); if (q) { q.value = ''; q.focus(); }
   _estSuggest(''); _estRenderEquipment(); _estRenderFoot();
 }
