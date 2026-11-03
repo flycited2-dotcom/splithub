@@ -466,48 +466,112 @@ function _estDocDef(e, meta) {
 /* ── Excel (ExcelJS) — те же строки, суммы формулами с готовым значением ── */
 async function _estXlsxBlob(e, meta) {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('Смета', { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
-  ws.columns = [{ width: 5 }, { width: 58 }, { width: 9 }, { width: 7 }, { width: 13 }, { width: 14 }];
+  wb.calcProperties.fullCalcOnLoad = true;
+  const ws = wb.addWorksheet('Смета', {
+    views: [{ showGridLines: false }],
+    pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.5, right: 0.5, top: 0.6, bottom: 0.6, header: 0.3, footer: 0.3 } },
+  });
+  // Узкая колонка «Наименование» — чтобы на телефоне сразу были видны цена и сумма
+  const W = [4.5, 40, 7, 6, 12, 13];
+  ws.columns = W.map(width => ({ width }));
   const money = '#,##0" ₽"';
-  const accent = 'FFD97706';
+  const INK = 'FF0F1729', MUTED = 'FF64748B', ACCENT = 'FFD97706';
   const thin = { style: 'thin', color: { argb: 'FFE0E5EF' } };
+  const fill = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+  // Высота строки под перенос текста: Excel сам её не пересчитывает при открытии
+  const lines = (text, width) => Math.max(1, Math.ceil(String(text).length / (width * 1.05)));
+  const mergedW = (from, to) => W.slice(from - 1, to).reduce((a, b) => a + b, 0);
 
-  ws.addRow(['СМЕТА от ' + meta.date.toLocaleDateString('ru-RU')]).font = { bold: true, size: 18 };
-  ws.mergeCells(ws.rowCount, 1, ws.rowCount, 6);
-  [['Исполнитель', meta.contractorName], ['Телефон', meta.contractorPhone], ['Заказчик', meta.clientName], ['Объект', meta.objectAddress]]
-    .filter(r => r[1])
-    .forEach(([k, v]) => { const r = ws.addRow(['', k + ': ' + v]); r.getCell(2).font = { bold: k === 'Исполнитель' }; });
+  // Шапка
+  const t = ws.addRow(['']);
+  ws.mergeCells(t.number, 1, t.number, 6);
+  t.getCell(1).value = { richText: [
+    { text: 'СМЕТА', font: { bold: true, size: 20, color: { argb: INK } } },
+    { text: '   от ' + meta.date.toLocaleDateString('ru-RU'), font: { size: 12, color: { argb: MUTED } } },
+  ] };
+  t.height = 34; t.getCell(1).alignment = { vertical: 'middle' };
+  ws.addRow([]).height = 6;
+
+  // Карточки: исполнитель — серая, клиент и объект — тёплая с оранжевой полосой
+  const info = [
+    ['Исполнитель', meta.contractorName, 'FFF2F4F8', 'FF94A3B8', MUTED],
+    ['Телефон', meta.contractorPhone, 'FFF2F4F8', 'FF94A3B8', MUTED],
+    ['Заказчик', meta.clientName, 'FFFFF4DE', 'FFF59E0B', 'FFB45309'],
+    ['Объект', meta.objectAddress, 'FFFFF4DE', 'FFF59E0B', 'FFB45309'],
+  ].filter(r => r[1]);
+  info.forEach(([label, value, bg, bar, labelColor], i) => {
+    const r = ws.addRow(['', '']);
+    ws.mergeCells(r.number, 2, r.number, 6);
+    r.getCell(2).value = { richText: [
+      { text: label + ':  ', font: { bold: true, size: 10, color: { argb: labelColor } } },
+      { text: value, font: { bold: label === 'Исполнитель' || label === 'Заказчик', size: 11, color: { argb: INK } } },
+    ] };
+    r.getCell(2).alignment = { vertical: 'middle', wrapText: true, indent: 1 };
+    for (let c = 1; c <= 6; c++) r.getCell(c).fill = fill(bg);
+    r.getCell(1).fill = fill(bar);
+    r.height = Math.max(20, lines(label + ': ' + value, mergedW(2, 6)) * 15 + 6);
+    // разделитель между группой исполнителя и группой клиента
+    if (info[i + 1] && info[i + 1][2] !== bg) ws.addRow([]).height = 4;
+  });
 
   const totalRefs = [];
-  const section = (title, lines) => {
-    if (!lines.length) return;
-    ws.addRow([]);
-    const t = ws.addRow([title]); t.font = { bold: true, size: 13, color: { argb: accent } };
+  const section = (title, items) => {
+    if (!items.length) return;
+    ws.addRow([]).height = 10;
+    const st = ws.addRow([title]);
+    ws.mergeCells(st.number, 1, st.number, 6);
+    st.font = { bold: true, size: 13, color: { argb: ACCENT } }; st.height = 24;
+    st.getCell(1).alignment = { vertical: 'bottom' };
     const h = ws.addRow(['№', 'Наименование', 'Кол-во', 'Ед.', 'Цена', 'Сумма']);
-    h.eachCell(c => { c.font = { bold: true, color: { argb: 'FF64748B' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F4F8' } }; c.border = { bottom: thin }; });
+    h.height = 20;
+    h.eachCell((c, col) => {
+      c.font = { bold: true, size: 9, color: { argb: MUTED } }; c.fill = fill('FFF2F4F8'); c.border = { bottom: thin };
+      c.alignment = { vertical: 'middle', horizontal: col >= 5 ? 'right' : col === 2 ? 'left' : 'center' };
+    });
     const first = ws.rowCount + 1;
-    lines.forEach((l, i) => {
+    items.forEach((l, i) => {
       const n = ws.rowCount + 1;
       const r = ws.addRow([i + 1, l.name, l.qty, l.unit || 'шт', l.unitPrice, { formula: `C${n}*E${n}`, result: l.total }]);
+      r.height = Math.max(20, lines(l.name, W[1]) * 15 + 5);
+      r.eachCell((c, col) => {
+        c.border = { bottom: thin };
+        c.alignment = { vertical: 'middle', wrapText: col === 2, horizontal: col >= 5 ? 'right' : col === 2 ? 'left' : 'center' };
+        if (i % 2) c.fill = fill('FFFAFBFC');
+      });
+      r.getCell(1).font = { color: { argb: MUTED } };
       r.getCell(5).numFmt = money; r.getCell(6).numFmt = money; r.getCell(6).font = { bold: true };
-      r.getCell(2).alignment = { wrapText: true, vertical: 'top' };
-      r.eachCell(c => { c.border = { bottom: thin }; });
     });
     const last = ws.rowCount;
-    const sum = lines.reduce((s, l) => s + l.total, 0);
+    const sum = items.reduce((s, l) => s + l.total, 0);
     const tr = ws.addRow(['', '', '', '', 'Итого:', { formula: `SUM(F${first}:F${last})`, result: sum }]);
-    tr.font = { bold: true }; tr.getCell(6).numFmt = money; tr.getCell(5).alignment = { horizontal: 'right' };
+    tr.height = 22; tr.font = { bold: true };
+    tr.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
+    tr.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+    tr.getCell(6).numFmt = money;
     totalRefs.push('F' + tr.number);
   };
   section('Оборудование и материалы', e.equipment);
   section('Работы', e.works);
 
-  ws.addRow([]);
+  ws.addRow([]).height = 10;
   const g = ws.addRow(['', 'ИТОГО К ОПЛАТЕ', '', '', '', { formula: totalRefs.join('+') || '0', result: e.total }]);
-  g.eachCell({ includeEmpty: true }, c => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF7E6' } }; });
-  g.font = { bold: true, size: 13 }; g.getCell(6).numFmt = money; g.getCell(6).font = { bold: true, size: 14, color: { argb: accent } };
-  ws.addRow([]);
-  ws.addRow(['', `Смета действительна ${meta.validDays} дн. Цены на оборудование зафиксированы на дату составления.`]).font = { size: 9, color: { argb: 'FF64748B' } };
+  ws.mergeCells(g.number, 2, g.number, 5);
+  g.height = 30;
+  for (let c = 1; c <= 6; c++) g.getCell(c).fill = fill('FFFFF4DE');
+  g.getCell(1).fill = fill('FFF59E0B');
+  g.getCell(2).font = { bold: true, size: 13, color: { argb: INK } };
+  g.getCell(2).alignment = { vertical: 'middle', indent: 1 };
+  g.getCell(6).numFmt = money;
+  g.getCell(6).font = { bold: true, size: 14, color: { argb: ACCENT } };
+  g.getCell(6).alignment = { vertical: 'middle', horizontal: 'right' };
+
+  ws.addRow([]).height = 8;
+  const note = `Смета действительна ${meta.validDays} дн. Цены на оборудование зафиксированы на дату составления.`;
+  const nr = ws.addRow(['', note]);
+  ws.mergeCells(nr.number, 2, nr.number, 6);
+  nr.getCell(2).font = { size: 9, color: { argb: MUTED } };
+  nr.getCell(2).alignment = { wrapText: true, vertical: 'top' };
+  nr.height = lines(note, mergedW(2, 6) * 1.2) * 13 + 4;
 
   const buf = await wb.xlsx.writeBuffer();
   return new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
