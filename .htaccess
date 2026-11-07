@@ -7,3 +7,14 @@
 <FilesMatch "\.(?:db|sqlite|sqlite3)(?:-(?:wal|shm))?$">
     Require all denied
 </FilesMatch>
+
+# SEO: одно зеркало — https://splithub.ru (без www).
+# www.splithub.ru/<путь>?<запрос> → 301 сразу на https://splithub.ru/<путь>?<запрос>
+# (одним прыжком, без промежуточного http). Query string Apache переносит сам.
+# ⚠️ Если в боевом .htaccess на сервере уже есть правило http→https — НЕ затирайте его
+# этим файлом: оставьте оба блока (этот — выше правила http→https).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+</IfModule>

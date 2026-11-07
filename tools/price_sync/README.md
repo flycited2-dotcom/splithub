@@ -132,3 +132,16 @@ python -m tools.price_sync.merge       # свести с каталогом -> o
 ```
 python -m pytest tools/price_sync/tests -q
 ```
+
+## SEO-страницы брендов (`seo_pages.py`)
+
+После заливки каталога `publish` пересобирает `/ultima-comfort/`, `/xigma/`, `/eurohoff/`,
+`/daichi/`, `/mednaya-truba/` из свежего каталога с правками админки и заливает только
+изменившиеся (без бэкапов — страницы генерируемые). Сбой здесь каталог не откатывает и код
+возврата не меняет — только строка «⚠️ Страницы брендов не обновлены» в сообщении.
+
+```
+python -m tools.price_sync.seo_pages                    # собрать в корень сайта из products.js
+python -m tools.price_sync.seo_pages --live-overrides   # с правками админки с splithub.ru
+python -m tools.price_sync.seo_pages --sitemap          # ещё и sitemap.xml (ночью не льётся)
+```

@@ -26,7 +26,7 @@ from pathlib import Path
 
 import requests
 
-from tools.price_sync import merge, notify
+from tools.price_sync import merge, notify, seo_pages
 from tools.price_sync.deploy_file import upload
 from tools.price_sync.sync import DEFAULT_OUT, render_products_js
 
@@ -198,9 +198,56 @@ def run(dry_run: bool, quiet: bool) -> int:
                 notify.send(text)
             return 1
 
+    seo_note = publish_seo_pages(final)
+    if seo_note:
+        print(seo_note)
+        text += "\n" + seo_note
     if not quiet:
         notify.send(text)
     return 0
+
+
+def changed_seo_pages(built: list[tuple[Path, str]], fetch) -> list[tuple[Path, str]]:
+    """Какие из собранных страниц отличаются от того, что сейчас отдаёт сайт."""
+    changed = []
+    for local, name in built:
+        try:
+            live = fetch(name)
+        except Exception:
+            live = None
+        if live != local.read_text(encoding="utf-8"):
+            changed.append((local, name))
+    return changed
+
+
+def publish_seo_pages(final: list[dict]) -> str:
+    """Перегенерировать страницы брендов по свежему каталогу и залить изменившиеся.
+
+    Ошибка здесь не должна мешать каталогу — он уже залит и проверен. Поэтому всё
+    в try: вернём строку для сообщения владельцу, но код возврата прогона не меняем.
+    """
+    try:
+        try:
+            overrides, custom = seo_pages.fetch_overrides()
+        except Exception as error:
+            print("страницы брендов: правки админки не получены (%s) — собираю по каталогу" % error)
+            overrides, custom = {}, []
+        built = seo_pages.build(seo_pages.apply_overrides(final, overrides, custom),
+                                DEFAULT_OUT / "seo")
+
+        def fetch(name: str) -> str:
+            response = requests.get("%s/%s" % (seo_pages.SITE, name.replace("index.html", "")),
+                                    params={"t": int(datetime.now().timestamp())}, timeout=60)
+            response.encoding = "utf-8"
+            return response.text if response.status_code == 200 else None
+
+        pages = changed_seo_pages(built, fetch)
+        if pages:
+            upload(pages, backup=False)
+            return "Страницы брендов обновлены: %d" % len(pages)
+        return ""
+    except Exception as error:
+        return "⚠️ Страницы брендов не обновлены: %s" % error
 
 
 def main(argv=None) -> int:

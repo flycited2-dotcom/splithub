@@ -27,10 +27,12 @@ def remote_dir(cfg: dict) -> str:
     return remote.rsplit("/", 1)[0] if remote.endswith(".js") else remote
 
 
-def upload(pairs: list[tuple[Path, str]], attempts: int = 3) -> None:
+def upload(pairs: list[tuple[Path, str]], attempts: int = 3, backup: bool = True) -> None:
     """Залить (локальный файл, путь на сайте) с датированным бэкапом каждого.
 
     Сеть до хостинга иногда рвётся — пробуем несколько раз, прежде чем сдаться.
+    backup=False — для генерируемых файлов (страницы брендов пересобираются каждую
+    ночь из каталога, копить их бэкапы в webroot незачем). Папку на сайте создаёт сам.
     """
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     site = remote_dir(cfg)
@@ -45,12 +47,18 @@ def upload(pairs: list[tuple[Path, str]], attempts: int = 3) -> None:
             try:
                 for local, name in pairs:
                     target = site + "/" + name
-                    backup = "%s.bak.%s" % (target, stamp)
-                    _, out, _ = ssh.exec_command('cp -p "%s" "%s"' % (target, backup))
-                    out.channel.recv_exit_status()
+                    if "/" in name:
+                        _, out, _ = ssh.exec_command('mkdir -p "%s"' % target.rsplit("/", 1)[0])
+                        out.channel.recv_exit_status()
+                    note = "без бэкапа"
+                    if backup:
+                        copy = "%s.bak.%s" % (target, stamp)
+                        _, out, _ = ssh.exec_command('cp -p "%s" "%s"' % (target, copy))
+                        out.channel.recv_exit_status()
+                        note = "бэкап " + copy.rsplit("/", 1)[-1]
                     sftp.put(str(local), target)
-                    print("залито: %s (%d КБ), бэкап %s" % (
-                        name, Path(local).stat().st_size // 1024, backup.rsplit("/", 1)[-1]))
+                    print("залито: %s (%d КБ), %s" % (
+                        name, Path(local).stat().st_size // 1024, note))
             finally:
                 sftp.close()
                 ssh.close()
