@@ -187,3 +187,42 @@ def test_ssylki_na_brendy_i_stati():
     for b in seo_pages.BRANDS:
         assert 'href="/%s/"' % b["slug"] in page
     assert 'href="/articles/">Статьи</a>' in page
+
+
+# ── деплой: слияние с боевыми файлами ────────────────────────────────────────
+
+from tools.price_sync import deploy_seo  # noqa: E402
+
+
+def test_htaccess_pravilo_www_v_nachalo_boevogo():
+    live = "RewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]\n"
+    merged = deploy_seo.merge_htaccess(live)
+    assert merged.endswith(live)                                   # боевое не тронуто
+    assert merged.index("^www\\.") < merged.index("%{HTTPS} off")  # www — первым
+    assert deploy_seo.merge_htaccess(merged) == merged             # повторный запуск — без дублей
+
+
+def test_htaccess_net_na_servere_berem_iz_repo():
+    assert "^www\\." in deploy_seo.merge_htaccess(None)
+
+
+def test_sitemap_sohranyaet_boevye_adresa():
+    live = ('<urlset><url><loc>https://splithub.ru/</loc></url>'
+            '<url><loc>https://splithub.ru/privacy/</loc></url>'
+            '<url><loc>https://splithub.ru/articles/kak-vybrat/</loc></url></urlset>')
+    locs = deploy_seo.sitemap_locs(deploy_seo.merge_sitemap(live))
+    assert locs[:1 + len(seo_pages.BRANDS)] == seo_pages.sitemap_urls()
+    assert locs[-2:] == ["https://splithub.ru/privacy/", "https://splithub.ru/articles/kak-vybrat/"]
+    assert len(locs) == len(set(locs))
+
+
+def test_baza_index_html():
+    import subprocess
+    try:
+        base = subprocess.run(["git", "show", "05742f7:index.html"], cwd=ROOT, capture_output=True,
+                              check=True).stdout.decode("utf-8")
+    except Exception:
+        return
+    assert deploy_seo.index_digest(base) == deploy_seo.BASE_INDEX_SHA256
+    assert deploy_seo.index_digest(base.replace("\n", "\r\n")) == deploy_seo.BASE_INDEX_SHA256
+    assert deploy_seo.index_digest(_index()) != deploy_seo.BASE_INDEX_SHA256
