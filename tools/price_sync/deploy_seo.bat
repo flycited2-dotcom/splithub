@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 > nul
-rem Деплой SEO-правок splithub.ru: двойной клик. Сначала забирает ветку с правками,
-rem потом tools\price_sync\deploy_seo.py (сверка, бэкапы, заливка, проверка, откат).
+rem Деплой SEO-правок splithub.ru: двойной клик (репозиторий на ветке claude/nice-fermat-3kkxi0).
+rem Запускает tools\price_sync\deploy_seo.py (сверка, бэкапы, заливка, проверка, откат).
 cd /d "%~dp0\..\.."
 
 echo.
