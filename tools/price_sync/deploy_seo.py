@@ -37,7 +37,7 @@ from tools.price_sync.deploy_file import CONFIG, SITE_ROOT, remote_dir
 from tools.price_sync.sync import DEFAULT_OUT
 
 #: sha256 index.html, от которого делались SEO-правки (коммит 05742f7), переводы строк — LF.
-BASE_INDEX_SHA256 = "efd4c2f65000b6f931713f01095fa2778a4a540196b49051266bcc6cf7944ef6"
+BASE_INDEX_SHA256 = "302a44ce78d8a3d1db5fb7dae0c74029323b78ca67c144b8b4cf8ed966f3f1aa"  # боевой index.html на момент слияния с правками админки/прода (предыдущая база 05742f7)
 
 WWW_MARKER = r"RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]"
 WWW_BLOCK = """# SEO: одно зеркало — https://splithub.ru (без www). www.splithub.ru/<путь>?<запрос>
